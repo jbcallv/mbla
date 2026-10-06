@@ -225,3 +225,25 @@ Paper references are to `paper-2.pdf` (Sep 28 2026 draft).
   - The last group misuses a missing-direction label on extras. It means the judge thinks the task needs the permission, i.e. either a reference gap or a judge error. Per the pre-registered rule it does **not** reduce excess; the human sample will show which it is.
 - **Adjusted metrics** (`results/tables/e1_judge_adjusted.json`): capability EAC drops by only 0.01–0.03 for every method, MAC barely moves, and exact match rises by up to 0.02. **Rankings are unchanged.** The deterministic results are robust to reasonable alternative grants.
 - These count only if human–judge κ ≥ 0.6 (D-19).
+
+## F-26 · Latency (E5): every model alone on an exclusive L40S
+- **Status:** confirmed (2026-10-06). 60 test items (5 per template), seed 0, warm-up 5; raw in `bench/results/raw/e5/` (release asset), plotted in `plots/out/quality_latency.pdf`.
+- **Median (p95) latency per delegation:**
+  - Laya: 26 (39) ms
+  - qwen3-reranker-0.6b: 28 (69) ms
+  - clm-zs: 91 (188) ms
+  - qwen3-reranker-4b: 118 (257) ms
+  - qwen3-0.6b: 132 (394) ms
+  - qwen3-reranker-8b: 187 (415) ms
+  - qwen3-1.7b: 231 (412) ms
+  - qwen3-30b-a3b: 280 (413) ms
+  - phi-4-mini: 382 (703) ms
+  - qwen3-4b: 436 (829) ms
+  - qwen3-8b: 777 (1,149) ms
+  - qwen3-32b-awq: 829 (1,078) ms
+  - gpt-oss-120b: 2,538 (4,524) ms
+  - gpt-oss-20b: 4,112 (10,052) ms
+- **Reading:**
+  - Qwen3-30B-A3B (3B active parameters) is the fastest of the precise models: capability EAC 0.073 at 280 ms. That's about 3× faster than Qwen3-8B (0.086, 777 ms) with similar precision; recovery admission doesn't help it, though (admit threshold 0).
+  - gpt-oss models pay for reasoning: gpt-oss-20b is slower than gpt-oss-120b because it reasons longer per answer.
+- CLM's server caches action embeddings within a run; its numbers include that warm cache, as in deployment.
