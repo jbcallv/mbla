@@ -1,0 +1,36 @@
+template,permission,alvi,joseph,draft,alvi_note,joseph_note,resolved
+bc1-label-only,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to GitHub. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc1-label-only,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc1-label-second,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to GitHub. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc1-label-second,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc1-read,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to GitHub. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc1-read,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc1-read-label,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to GitHub. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc1-read-label,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc1-read-two,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to GitHub. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc1-read-two,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc2-build,exec:run:/usr/bin/python3,unclear,0,1,Only needed if the build runs with Python instead of make. I lean no.,,0
+bc2-build,fs:r:/workspace/src,1,0,1,Needed. The agent has to read the code in src.,,1
+bc2-build,fs:w:/workspace,1,0,1,Needed. A build makes temporary files in the workspace while it runs.,,0
+bc2-build-test,exec:run:/usr/bin/python3,unclear,1,1,make can run both the build and the tests. Only needed if the tests run with python3 directly. I lean no.,,0
+bc2-build-test,fs:r:/workspace/src,1,0,1,Needed. The agent has to read the code in src.,,1
+bc2-build-test,fs:w:/workspace,1,0,1,Needed. A build makes temporary files in the workspace while it runs.,,0
+bc2-deploy-one,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to the storage bucket. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc2-deploy-two,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to the storage bucket. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc2-deploy-verify,exec:run:/usr/bin/python3,1,0,1,"Needed. To check the upload, the agent works out a fingerprint (checksum) of both copies and compares them. That takes a small script.",,0
+bc2-deploy-verify,fs:r:/artifacts,1,0,1,"Needed. The agent has to read app.tar.gz to upload it. The task gives no folder, but /artifacts is the only one on offer.",,1
+bc2-lint,fs:w:/workspace,0,0,1,Not needed. The style check only lists problems. It doesn't change any files.,,0
+bc2-test,exec:run:/usr/bin/make,unclear,1,1,"The task doesn't say what runs the tests. make or python3 could, and only one is needed. I lean make (yes), since make is only offered for the test and build tasks.",,1
+bc2-test,exec:run:/usr/bin/python3,unclear,1,1,"The task doesn't say what runs the tests. make or python3 could, and only one is needed. I lean make (row 121), so this one leans no.",,0
+bc2-test,fs:r:/workspace/src,1,0,1,Needed. The agent has to read the code in src.,,1
+bc2-test,fs:w:/workspace,0,0,1,"Not needed. The task only reports which tests fail. Tests may try to save cache files, but they still run fine without them.",,0
+bc3-extract,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to Google Docs. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc3-extract,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc3-post-one,exec:run:/usr/bin/python3,unclear,1,1,"Depends on how the agent talks to Slack. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc3-post-one,fs:w:/workspace,0,1,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc3-post-two,exec:run:/usr/bin/python3,unclear,0,1,"Depends on how the agent talks to Slack. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc3-post-two,fs:w:/workspace,0,0,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc3-read-one,exec:run:/usr/bin/python3,unclear,1,1,"Depends on how the agent talks to Google Docs. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc3-read-one,fs:w:/workspace,0,1,1,Not needed. The agent just gives the answer back. It doesn't save a file.,,0
+bc3-read-two,exec:run:/usr/bin/python3,unclear,1,1,"Depends on how the agent talks to Google Docs. If it has a built-in tool for it, Python isn't needed. If it has to write and run a script, it is. I lean no.",,0
+bc3-read-two,fs:w:/workspace,0,1,1,Not needed. The summary is given back as the answer. The task names no file to save it in.,,0

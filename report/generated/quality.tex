@@ -1,0 +1,23 @@
+\begin{tabular}{lrrrrr}
+\toprule
+Method & Type & p50 ms & EAC (C) & MAC (C) & Exact \\
+\midrule
+manifest-only & baseline & -- & 0.025 & 0.185 & 0.000 \\
+qwen3-32b-awq & generative & 829 & 0.061 & 0.038 & 0.389 \\
+qwen3-30b & generative & 280 & 0.073 & 0.066 & 0.131 \\
+qwen3-8b & generative & 777 & 0.086 & 0.031 & 0.330 \\
+qwen3-4b & generative & 436 & 0.092 & 0.036 & 0.233 \\
+gpt-oss-20b & generative & 4112 & 0.135 & 0.036 & 0.330 \\
+gpt-oss-120b & generative & -- & 0.139 & 0.022 & 0.366 \\
+qwen3-reranker-8b & decision & 187 & 0.379 & 0.058 & 0.024 \\
+qwen3-reranker-0.6b & decision & 28 & 0.397 & 0.072 & 0.007 \\
+lexical & baseline & -- & 0.473 & 0.000 & 0.000 \\
+qwen3-1.7b & generative & 231 & 0.636 & 0.000 & 0.000 \\
+qwen3-reranker-4b & decision & 118 & 0.642 & 0.016 & 0.066 \\
+clm-zs & decision & 91 & 0.709 & 0.028 & 0.000 \\
+qwen3-0.6b & generative & 131 & 0.745 & 0.010 & 0.000 \\
+phi-4-mini & generative & 382 & 0.794 & 0.024 & 0.000 \\
+laya & decision & 26 & 0.848 & 0.088 & 0.000 \\
+set-only & bound & -- & 1.000 & 0.000 & 0.000 \\
+\bottomrule
+\end{tabular}

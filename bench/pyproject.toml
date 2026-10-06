@@ -1,0 +1,21 @@
+[project]
+name = "mbla-bench"
+version = "0.1.0"
+description = "Replication package for MBLA policy inference in BoundClaw"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "scipy",
+  "pandas",
+  "matplotlib",
+  "pyyaml",
+  "requests",
+  "tabulate",
+]
+
+[project.optional-dependencies]
+serve = ["vllm", "laya", "contrastive-lm"]
+dev = ["pytest", "ruff"]
+
+[tool.ruff]
+line-length = 140

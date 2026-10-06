@@ -1,0 +1,16 @@
+clm-zs                   n= 1543 EM=0.000 OPR=0.999 NAR=0.000 safe=0.001
+gpt-oss-120b             n= 1543 EM=0.290 OPR=0.331 NAR=0.001 safe=0.668
+gpt-oss-20b              n= 1543 EM=0.255 OPR=0.391 NAR=0.032 safe=0.577
+laya                     n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
+lexical                  n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
+phi-4-mini               n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
+qwen3-0.6b               n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
+qwen3-1.7b               n= 1543 EM=0.002 OPR=0.990 NAR=0.000 safe=0.010
+qwen3-30b                n= 1543 EM=0.184 OPR=0.452 NAR=0.025 safe=0.524
+qwen3-32b-awq            n= 1543 EM=0.214 OPR=0.483 NAR=0.016 safe=0.500
+qwen3-4b                 n= 1543 EM=0.157 OPR=0.454 NAR=0.001 safe=0.545
+qwen3-8b                 n= 1543 EM=0.167 OPR=0.462 NAR=0.091 safe=0.447
+qwen3-reranker-0.6b      n= 1543 EM=0.057 OPR=0.742 NAR=0.078 safe=0.180
+qwen3-reranker-4b        n= 1543 EM=0.093 OPR=0.459 NAR=0.156 safe=0.384
+qwen3-reranker-8b        n= 1543 EM=0.113 OPR=0.189 NAR=0.425 safe=0.386
+set-only                 n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000

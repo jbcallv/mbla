@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\setlist{nosep}
+\graphicspath{{../plots/out/}}
+
+\title{MBLA: Task-Scoped Permission Inference for BoundClaw\\\large Overview of benchmark findings}
+\author{BoundClaw MBLA working group}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{What MBLA is}
+MBLA is the policy-inference and recovery-admission component of BoundClaw. At each delegation it proposes the
+capability and confinement permissions the receiver needs, choosing only from what the delegator already holds.
+The trusted checks (attenuation on the delegator, ceiling on the receiver) bound every proposal, so a wrong or
+manipulated model can cost utility but never safety. When a receiver is denied mid-task it may request one
+concrete permission; MBLA decides whether to grant it.
+
+The Go package (\texttt{mbla/}) is what the gVisor fork imports. The benchmark (\texttt{bench/}) reproduces every
+number here. Design decisions, assumptions and findings are logged in \texttt{research/}, including a section-by-section
+mapping onto the paper (\texttt{research/paper\_alignment.md}).
+
+\section{Setup}
+\begin{itemize}
+  \item \textbf{Tasks.} The paper's three workflows (BC-1 GitHub triage, BC-2 build and staging deploy, BC-3
+    workspace-to-Slack): 17 task templates, 288 test items and 120 dev items, with injection variants. The test
+    split was frozen by hash before any test run.
+  \item \textbf{References.} Two people labeled every candidate permission independently (Table~\ref{tab:audit});
+    35 disagreements were resolved by rule. Agreement is reported on the independent labels.
+  \item \textbf{Methods.} Decision models (Qwen3-Reranker 0.6B/4B/8B, Laya 0.4B, CLM-v0.1-8B) answer
+    ``is this permission needed?'' per candidate. Generative LLMs (Qwen3 0.6B--32B, Qwen3-30B-A3B, Phi-4-mini,
+    gpt-oss-20b/120b) output the permission set as JSON. Baselines: full parent, operator manifest, keyword match.
+  \item \textbf{Protocol.} Thresholds tuned on dev only with a pre-registered objective; 95\% confidence intervals
+    from a cluster bootstrap over test templates; paired tests with Holm correction. Latency measured separately,
+    each model alone on an L40S GPU (E5).
+\end{itemize}
+
+\begin{table}[h]\centering\small\input{generated/audit.tex}
+\caption{Reference audit: independent agreement between two human reviewers.}\label{tab:audit}\end{table}
+
+\section{Findings}
+
+\paragraph{1. The paper's recovery rule lets every attack through; scored admission fixes it.}
+Under the paper's rule (grant any single action inside the recovery bound), a malicious receiver reaches every
+attack the parent allows: 100\% for all methods (Figure~\ref{fig:recovery}). Requiring the request to also be in the
+scorer's \emph{admit} set cuts this to 13\% for Qwen3-8B (95\% CI 8--20\%) while 97\% of legitimate tasks still
+succeed (attack reduction significant, $p < 0.001$; success change not significant). gpt-oss and Reranker-8B land
+near 50\%. Methods with coarse 0/1 scores gain nothing, because their dev tuning admits everything.
+
+\begin{figure}[h]\centering\includegraphics[width=\linewidth]{recovery.pdf}
+\caption{Share of reachable attacks after recovery (cap 3). Error bars: 95\% CI.}\label{fig:recovery}\end{figure}
+
+\paragraph{2. Mid-size generative models are the most precise; decision models are faster but over-grant.}
+Qwen3-32B, Qwen3-30B, Qwen3-8B and Qwen3-4B keep excess capability authority below 0.1 while missing under 7\% of
+needed permissions (Table~\ref{tab:quality}). gpt-oss-120b is not more precise than Qwen3-8B. Decision models answer
+in tens of milliseconds but, zero-shot, grant 0.38--0.85 of the avoidable authority (Figure~\ref{fig:quality}).
+
+\begin{figure}[h]\centering\includegraphics[width=0.85\linewidth]{quality_latency.pdf}
+\caption{Excess capability authority (E1, test) against median latency (E5, exclusive GPU).}\label{fig:quality}\end{figure}
+
+\begin{table}[h]\centering\small\input{generated/quality.tex}
+\caption{E1 test results. EAC and MAC: excess and missing capability authority (paper \S6.3). Latency from E5.}\label{tab:quality}\end{table}
+
+\paragraph{3. External validation on FORTIS.}
+Scored with FORTIS's own metric code, Reranker-8B matches 30B--120B generators on skill selection (exact match
+0.45--0.47), while tool selection is hard for every method (best 0.29). Decision-model thresholds tuned on our
+data do not transfer: they either abstain or grant everything (Figure~\ref{fig:fortis}, Table~\ref{tab:fortis}).
+
+\begin{figure}[h]\centering\includegraphics[width=\linewidth]{fortis.pdf}
+\caption{FORTIS exact match per method (task 1: 579 queries, task 2: 1,543 queries).}\label{fig:fortis}\end{figure}
+
+\begin{table}[h]\centering\small\input{generated/fortis.tex}
+\caption{FORTIS results with the benchmark's official classification.}\label{tab:fortis}\end{table}
+
+\paragraph{4. What the scorer sees, and how the backbone is used.}
+For Qwen3-8B, adding the operator manifest to the input cuts excess authority from about 0.23 to 0.09
+(Figure~\ref{fig:inputs}). On the same Qwen3-8B weights, generating the set (EAC 0.09) is far more precise than a
+reranker head (0.38) or CLM's contrastive heads (0.71). Operating curves show generative scores are coarse, while
+decision models trade excess for misses smoothly (Figure~\ref{fig:curves}).
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.49\linewidth]{inputs.pdf}\hfill\includegraphics[width=0.49\linewidth]{curves.pdf}
+\caption{Left: input ablation (E3). Right: operating curves (E2).}\label{fig:inputs}\label{fig:curves}\end{figure}
+
+\paragraph{5. Correctness of the trusted checks.}
+The Go attenuation checker agrees with an independent set-semantics implementation on 14,480 generated
+parent/child pairs and chains up to 8 hops (0 false accepts, 0 false rejects); a deliberately broken checker is caught.
+
+\section{Status}
+\begin{itemize}
+  \item Done: library, references, E1--E4, E6, E7, E9, FORTIS, significance tests, LLM judge labels (an independent
+    judge's adjustments change excess by at most 0.03 and leave the ranking unchanged).
+  \item Pending: E5 latency for gpt-oss-120b (waiting for two free GPUs); optional human validation of the judge;
+    optional fine-tuned CLM (E1b).
+\end{itemize}
+
+\end{document}

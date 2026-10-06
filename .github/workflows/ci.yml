@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: vet and test the core package
+        working-directory: mbla
+        run: |
+          go vet ./...
+          go test ./...
+          go build -o bin/mbla ./cmd/mbla
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: benchmark checks
+        working-directory: bench
+        run: |
+          pip install -e ".[dev]"
+          ruff check mbla_bench tests serve
+          pytest -q tests
+          python -m mbla_bench.validate --verify
+          python -m mbla_bench.conform --out /tmp/conformance.json

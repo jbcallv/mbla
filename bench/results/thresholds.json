@@ -1,0 +1,121 @@
+{
+  "clm-zs": {
+    "initial": 0.7,
+    "admit": 0.65,
+    "dev_f1": 0.5235596438896849,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "gpt-oss-120b": {
+    "initial": 1.0,
+    "admit": 0.5,
+    "dev_f1": 0.8257275132275131,
+    "dev_success": 0.9583333333333334,
+    "dev_rows": 120
+  },
+  "gpt-oss-20b": {
+    "initial": 1.0,
+    "admit": 0.5,
+    "dev_f1": 0.8487481962481963,
+    "dev_success": 0.9583333333333334,
+    "dev_rows": 120
+  },
+  "laya": {
+    "initial": 0.2,
+    "admit": 0.15,
+    "dev_f1": 0.5075473089288879,
+    "dev_success": 0.95,
+    "dev_rows": 120
+  },
+  "lexical": {
+    "initial": 1.0,
+    "admit": 0.0,
+    "dev_f1": 0.5000432900432901,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "manifest-only": {
+    "initial": 1.0,
+    "admit": 0.0,
+    "dev_f1": 0.6334920634920636,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "phi-4-mini": {
+    "initial": 0.5,
+    "admit": 0.0,
+    "dev_f1": 0.5376840037981342,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-0.6b": {
+    "initial": 0.5,
+    "admit": 0.0,
+    "dev_f1": 0.5062979144689335,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-1.7b": {
+    "initial": 0.5,
+    "admit": 0.5,
+    "dev_f1": 0.5684577322831966,
+    "dev_success": 0.9833333333333333,
+    "dev_rows": 120
+  },
+  "qwen3-30b": {
+    "initial": 1.0,
+    "admit": 0.0,
+    "dev_f1": 0.799728835978836,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-32b-awq": {
+    "initial": 1.0,
+    "admit": 0.0,
+    "dev_f1": 0.8239309764309763,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-4b": {
+    "initial": 1.0,
+    "admit": 0.5,
+    "dev_f1": 0.8025198412698413,
+    "dev_success": 0.9833333333333333,
+    "dev_rows": 120
+  },
+  "qwen3-8b": {
+    "initial": 1.0,
+    "admit": 0.5,
+    "dev_f1": 0.8675661375661375,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-reranker-0.6b": {
+    "initial": 0.5,
+    "admit": 0.0,
+    "dev_f1": 0.619493746993747,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  },
+  "qwen3-reranker-4b": {
+    "initial": 0.75,
+    "admit": 0.15,
+    "dev_f1": 0.6236080765782778,
+    "dev_success": 0.9666666666666667,
+    "dev_rows": 120
+  },
+  "qwen3-reranker-8b": {
+    "initial": 0.9,
+    "admit": 0.5,
+    "dev_f1": 0.621390785140785,
+    "dev_success": 0.9666666666666667,
+    "dev_rows": 120
+  },
+  "set-only": {
+    "initial": 1.0,
+    "admit": 1.0,
+    "dev_f1": 0.4984600389863548,
+    "dev_success": 1.0,
+    "dev_rows": 120
+  }
+}

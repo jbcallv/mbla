@@ -1,0 +1,36 @@
+| comparison                                 | metric       |   difference |     low |    high |      p |   p_holm |
+|:-------------------------------------------|:-------------|-------------:|--------:|--------:|-------:|---------:|
+| clm-zs: admitted - bound-only              | ras_recovery |      -0.1128 | -0.2337 | -0.0138 | 0.0006 |   0.0060 |
+| clm-zs: admitted - bound-only              | success      |      -0.0312 | -0.0833 |  0.0000 | 0.2220 |   1.0000 |
+| gpt-oss-120b: admitted - bound-only        | ras_recovery |      -0.5117 | -0.6088 | -0.4191 | 0.0000 |   0.0000 |
+| gpt-oss-120b: admitted - bound-only        | success      |      -0.0440 | -0.0938 | -0.0023 | 0.0126 |   0.1764 |
+| gpt-oss-20b: admitted - bound-only         | ras_recovery |      -0.5292 | -0.6181 | -0.4339 | 0.0000 |   0.0000 |
+| gpt-oss-20b: admitted - bound-only         | success      |      -0.0359 | -0.0602 | -0.0139 | 0.0000 |   0.0000 |
+| laya: admitted - bound-only                | ras_recovery |      -0.0750 | -0.1526 | -0.0112 | 0.0144 |   0.1296 |
+| laya: admitted - bound-only                | success      |      -0.0382 | -0.0938 |  0.0000 | 0.2248 |   1.0000 |
+| lexical: admitted - bound-only             | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| lexical: admitted - bound-only             | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| manifest-only: admitted - bound-only       | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| manifest-only: admitted - bound-only       | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| phi-4-mini: admitted - bound-only          | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| phi-4-mini: admitted - bound-only          | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-0.6b: admitted - bound-only          | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-0.6b: admitted - bound-only          | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-1.7b: admitted - bound-only          | ras_recovery |      -0.3714 | -0.4399 | -0.2988 | 0.0000 |   0.0000 |
+| qwen3-1.7b: admitted - bound-only          | success      |      -0.0625 | -0.1100 | -0.0243 | 0.0000 |   0.0000 |
+| qwen3-30b: admitted - bound-only           | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-30b: admitted - bound-only           | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-32b-awq: admitted - bound-only       | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-32b-awq: admitted - bound-only       | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-4b: admitted - bound-only            | ras_recovery |      -0.7080 | -0.8097 | -0.5990 | 0.0000 |   0.0000 |
+| qwen3-4b: admitted - bound-only            | success      |      -0.1053 | -0.2049 | -0.0243 | 0.0030 |   0.0450 |
+| qwen3-8b: admitted - bound-only            | ras_recovery |      -0.8670 | -0.9167 | -0.7969 | 0.0000 |   0.0000 |
+| qwen3-8b: admitted - bound-only            | success      |      -0.0278 | -0.0833 |  0.0000 | 0.6912 |   1.0000 |
+| qwen3-reranker-0.6b: admitted - bound-only | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-reranker-0.6b: admitted - bound-only | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-reranker-4b: admitted - bound-only   | ras_recovery |      -0.2031 | -0.3021 | -0.1224 | 0.0000 |   0.0000 |
+| qwen3-reranker-4b: admitted - bound-only   | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-reranker-8b: admitted - bound-only   | ras_recovery |      -0.5000 | -0.6131 | -0.3705 | 0.0000 |   0.0000 |
+| qwen3-reranker-8b: admitted - bound-only   | success      |      -0.0556 | -0.1250 | -0.0069 | 0.0154 |   0.2002 |
+| set-only: admitted - bound-only            | ras_recovery |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| set-only: admitted - bound-only            | success      |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |

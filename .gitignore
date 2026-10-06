@@ -1,0 +1,29 @@
+# environments, caches and builds
+bench/.venv/
+bench/.venv-serve/
+mbla/bin/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+plots/out/
+report/*.pdf
+report/*.aux
+report/*.log
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.toc
+
+# large or regenerable results (raw predictions ship as a release asset)
+bench/results/raw/
+bench/results/archive/*/raw/
+bench/results/logs/
+release/
+
+# not ours to redistribute
+bench/data/external/
+paper-2.pdf
+
+# local tooling
+.claude/

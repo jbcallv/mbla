@@ -1,0 +1,25 @@
+name: report
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  findings-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install gnuplot and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnuplot texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended latexmk
+      - name: build figures
+        run: make -C plots
+      - name: build report
+        run: make -C report
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mbla-findings
+          path: |
+            report/mbla_findings.pdf
+            plots/out/*.pdf

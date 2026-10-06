@@ -1,0 +1,64 @@
+mbla: ../mbla/bin/mbla
+glossary: data/universe.json
+hardware: "1x NVIDIA L40S 46GB per model, exclusive (gpt-oss-120b: 2x)"
+warmup: 5
+
+items:
+  dev: data/tasks/dev.jsonl
+  test: data/tasks/test.jsonl
+
+experiments:
+  dev:
+    purpose: "threshold tuning only (make tune); one seed"
+    split: dev
+    inputs: [full]
+    seeds: [0]
+    methods: [set-only, manifest-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+
+  e1:
+    purpose: "M1/M2/M3/M6 method comparison; E2 curves, E5 latency, E6 recovery and E9 variants come from these rows"
+    split: test
+    inputs: [full]
+    methods: [set-only, manifest-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+
+  e3:
+    purpose: "M4 input ablation; qwen3-8b = best generative model on dev (results/thresholds.json)"
+    split: test
+    inputs: [text, args, history, full]
+    seeds: [0]
+    methods: [lexical, laya, qwen3-reranker-8b, clm-zs, qwen3-8b]
+
+  e4:
+    purpose: "M5 one Qwen3-8B backbone used three ways: generation, reranker head, contrastive heads"
+    split: test
+    inputs: [full]
+    seeds: [0]
+    methods: [qwen3-8b, qwen3-reranker-8b, clm-zs]
+
+  fortis1:
+    purpose: "external validation on FORTIS task 1 (skill selection), official FORTIS metrics; thresholds from our dev"
+    items: data/external/fortis/task1.jsonl
+    glossary: data/external/fortis/universe.json
+    inputs: [full]
+    seeds: [0]
+    methods: [set-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+
+  fortis2:
+    purpose: "external validation on FORTIS task 2 (tool selection), official FORTIS metrics; thresholds from our dev"
+    items: data/external/fortis/task2.jsonl
+    glossary: data/external/fortis/universe.json
+    inputs: [full]
+    seeds: [0]
+    methods: [set-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+
+  e5:
+    purpose: "M2 latency, measured alone on exclusive GPUs (never shared); 5 test items per template, latency only"
+    items: data/latency/latency.jsonl
+    inputs: [full]
+    seeds: [0]
+    methods: [laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]

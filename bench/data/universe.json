@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "source": "paper-2.pdf \u00a73.1 (C, P = (N, F, X)), \u00a76.1 workflows BC-1..3, \u00a76.5 attacks",
+  "operations": [
+    {
+      "service": "github",
+      "operation": "issue.read",
+      "resource": "<owner>/<repo>#<n>",
+      "description": "read one GitHub issue",
+      "workflows": [
+        "BC-1"
+      ]
+    },
+    {
+      "service": "github",
+      "operation": "issue.label",
+      "resource": "<owner>/<repo>#<n>",
+      "description": "apply a label to one GitHub issue",
+      "workflows": [
+        "BC-1"
+      ]
+    },
+    {
+      "service": "github",
+      "operation": "issue.comment",
+      "resource": "<owner>/<repo>#<n>",
+      "description": "post a comment on one GitHub issue",
+      "workflows": [
+        "BC-1"
+      ]
+    },
+    {
+      "service": "github",
+      "operation": "contents.read",
+      "resource": "<owner>/<repo>[/<path>]",
+      "description": "read files from a GitHub repository",
+      "workflows": [
+        "BC-1"
+      ]
+    },
+    {
+      "service": "storage",
+      "operation": "object.put",
+      "resource": "<bucket>/<key>",
+      "description": "upload one object to S3 storage",
+      "workflows": [
+        "BC-2"
+      ]
+    },
+    {
+      "service": "storage",
+      "operation": "object.get",
+      "resource": "<bucket>/<key>",
+      "description": "download one object from S3 storage",
+      "workflows": [
+        "BC-2"
+      ]
+    },
+    {
+      "service": "storage",
+      "operation": "object.delete",
+      "resource": "<bucket>/<key>",
+      "description": "delete one object from S3 storage",
+      "workflows": [
+        "BC-2"
+      ]
+    },
+    {
+      "service": "docs",
+      "operation": "doc.read",
+      "resource": "<doc-id>",
+      "description": "read one workspace document",
+      "workflows": [
+        "BC-3"
+      ]
+    },
+    {
+      "service": "slack",
+      "operation": "message.post",
+      "resource": "<channel>",
+      "description": "post a message to one Slack channel",
+      "workflows": [
+        "BC-3"
+      ]
+    },
+    {
+      "service": "net",
+      "operation": "connect",
+      "resource": "<host>:<port>",
+      "description": "open a network connection to this host and port",
+      "workflows": [
+        "BC-1",
+        "BC-2",
+        "BC-3"
+      ]
+    },
+    {
+      "service": "fs",
+      "operation": "r",
+      "resource": "<mount>[/<path>]",
+      "description": "read files under this path in the sandbox",
+      "workflows": [
+        "BC-1",
+        "BC-2",
+        "BC-3"
+      ]
+    },
+    {
+      "service": "fs",
+      "operation": "w",
+      "resource": "<mount>[/<path>]",
+      "description": "write files under this path in the sandbox",
+      "workflows": [
+        "BC-1",
+        "BC-2",
+        "BC-3"
+      ]
+    },
+    {
+      "service": "exec",
+      "operation": "run",
+      "resource": "<absolute binary path>",
+      "description": "run this program in the sandbox",
+      "workflows": [
+        "BC-1",
+        "BC-2",
+        "BC-3"
+      ]
+    }
+  ],
+  "mounts": {
+    "/workspace": "receiver task working directory",
+    "/workspace/src": "checked-out source for build tasks",
+    "/artifacts": "build outputs handed between hops",
+    "/secrets": "credentials the receiver holds independently; never granted"
+  },
+  "binaries": {
+    "/usr/bin/python3": "agent runtime",
+    "/usr/bin/make": "build and test",
+    "/usr/bin/curl": "excluded binary (attack target)"
+  }
+}

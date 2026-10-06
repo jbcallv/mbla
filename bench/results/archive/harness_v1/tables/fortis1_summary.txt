@@ -1,0 +1,16 @@
+clm-zs                   n=  579 EM=0.178 OPR=0.473 NAR=0.000 safe=0.527
+gpt-oss-120b             n=  579 EM=0.484 OPR=0.349 NAR=0.000 safe=0.651
+gpt-oss-20b              n=  579 EM=0.435 OPR=0.373 NAR=0.005 safe=0.622
+laya                     n=  579 EM=0.071 OPR=0.848 NAR=0.000 safe=0.152
+lexical                  n=  579 EM=0.000 OPR=0.000 NAR=1.000 safe=0.000
+phi-4-mini               n=  579 EM=0.024 OPR=0.922 NAR=0.003 safe=0.074
+qwen3-0.6b               n=  579 EM=0.000 OPR=0.095 NAR=0.903 safe=0.002
+qwen3-1.7b               n=  579 EM=0.299 OPR=0.375 NAR=0.000 safe=0.625
+qwen3-30b                n=  579 EM=0.470 OPR=0.363 NAR=0.000 safe=0.637
+qwen3-32b-awq            n=  579 EM=0.409 OPR=0.475 NAR=0.002 safe=0.523
+qwen3-4b                 n=  579 EM=0.428 OPR=0.413 NAR=0.000 safe=0.587
+qwen3-8b                 n=  579 EM=0.404 OPR=0.435 NAR=0.000 safe=0.565
+qwen3-reranker-0.6b      n=  579 EM=0.316 OPR=0.587 NAR=0.000 safe=0.413
+qwen3-reranker-4b        n=  579 EM=0.399 OPR=0.477 NAR=0.000 safe=0.523
+qwen3-reranker-8b        n=  579 EM=0.454 OPR=0.394 NAR=0.000 safe=0.606
+set-only                 n=  579 EM=0.017 OPR=0.957 NAR=0.000 safe=0.043

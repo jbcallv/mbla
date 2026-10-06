@@ -1,0 +1,17 @@
+comparison,metric,difference,p,p_holm
+gpt-oss-120b - clm-zs,exact_match,0.3576388888888889,1.9721522630525295e-31,2.9582283945787943e-30
+gpt-oss-20b - clm-zs,exact_match,0.3541666666666667,3.944304526105059e-31,5.5220263365470826e-30
+laya - clm-zs,exact_match,0.0,1.0,1.0
+lexical - clm-zs,exact_match,0.0,1.0,1.0
+manifest-only - clm-zs,exact_match,0.0,1.0,1.0
+phi-4-mini - clm-zs,exact_match,0.0,1.0,1.0
+qwen3-0.6b - clm-zs,exact_match,0.0,1.0,1.0
+qwen3-1.7b - clm-zs,exact_match,0.0,1.0,1.0
+qwen3-30b - clm-zs,exact_match,0.15625,5.684341886080802e-14,6.252776074688882e-13
+qwen3-32b-awq - clm-zs,exact_match,0.3055555555555556,6.462348535570529e-27,8.401053096241687e-26
+qwen3-4b - clm-zs,exact_match,0.2326388888888889,1.3552527156068805e-20,1.6263032587282567e-19
+qwen3-8b - clm-zs,exact_match,0.3680555555555556,2.465190328815662e-32,3.944304526105059e-31
+qwen3-reranker-0.6b - clm-zs,exact_match,0.006944444444444444,0.5,1.0
+qwen3-reranker-4b - clm-zs,exact_match,0.06597222222222222,3.814697265625e-06,3.814697265625e-05
+qwen3-reranker-8b - clm-zs,exact_match,0.024305555555555556,0.015625,0.140625
+set-only - clm-zs,exact_match,0.0,1.0,1.0

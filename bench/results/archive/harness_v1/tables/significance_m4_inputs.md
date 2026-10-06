@@ -1,0 +1,32 @@
+| comparison                        | metric   |   difference |     low |    high |      p |   p_holm |
+|:----------------------------------|:---------|-------------:|--------:|--------:|-------:|---------:|
+| clm-zs: text - full               | mac_C    |       0.1412 |  0.0278 |  0.2801 | 0.0102 |   0.1428 |
+| clm-zs: text - full               | eac_C    |      -0.0378 | -0.1149 |  0.0242 | 0.2974 |   1.0000 |
+| clm-zs: args - full               | mac_C    |       0.0833 |  0.0000 |  0.1944 | 0.0534 |   0.6526 |
+| clm-zs: args - full               | eac_C    |       0.0079 | -0.0510 |  0.0487 | 0.6832 |   1.0000 |
+| clm-zs: history - full            | mac_C    |       0.0556 |  0.0000 |  0.1389 | 0.2064 |   1.0000 |
+| clm-zs: history - full            | eac_C    |       0.0088 | -0.0437 |  0.0557 | 0.7122 |   1.0000 |
+| laya: text - full                 | mac_C    |      -0.0741 | -0.1759 |  0.0139 | 0.1368 |   1.0000 |
+| laya: text - full                 | eac_C    |       0.0188 | -0.1525 |  0.1676 | 0.7928 |   1.0000 |
+| laya: args - full                 | mac_C    |      -0.0602 | -0.1667 |  0.0324 | 0.2616 |   1.0000 |
+| laya: args - full                 | eac_C    |      -0.0980 | -0.2854 |  0.0814 | 0.2978 |   1.0000 |
+| laya: history - full              | mac_C    |      -0.0880 | -0.1759 |  0.0000 | 0.0558 |   0.6526 |
+| laya: history - full              | eac_C    |       0.0274 | -0.1163 |  0.1702 | 0.7210 |   1.0000 |
+| lexical: text - full              | mac_C    |       0.4907 |  0.2315 |  0.7130 | 0.0002 |   0.0030 |
+| lexical: text - full              | eac_C    |      -0.2841 | -0.4080 | -0.1421 | 0.0002 |   0.0024 |
+| lexical: args - full              | mac_C    |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| lexical: args - full              | eac_C    |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| lexical: history - full           | mac_C    |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| lexical: history - full           | eac_C    |       0.0000 |  0.0000 |  0.0000 | 1.0000 |   1.0000 |
+| qwen3-8b: text - full             | mac_C    |      -0.0100 | -0.0309 |  0.0093 | 0.3890 |   1.0000 |
+| qwen3-8b: text - full             | eac_C    |       0.1182 |  0.0763 |  0.1597 | 0.0000 |   0.0000 |
+| qwen3-8b: args - full             | mac_C    |      -0.0077 | -0.0278 |  0.0093 | 0.5404 |   1.0000 |
+| qwen3-8b: args - full             | eac_C    |       0.1052 |  0.0597 |  0.1510 | 0.0000 |   0.0000 |
+| qwen3-8b: history - full          | mac_C    |      -0.0077 | -0.0255 |  0.0046 | 0.4350 |   1.0000 |
+| qwen3-8b: history - full          | eac_C    |       0.1212 |  0.0568 |  0.1890 | 0.0000 |   0.0000 |
+| qwen3-reranker-8b: text - full    | mac_C    |       0.0409 | -0.0309 |  0.1181 | 0.2802 |   1.0000 |
+| qwen3-reranker-8b: text - full    | eac_C    |       0.0106 | -0.2434 |  0.2394 | 0.9002 |   1.0000 |
+| qwen3-reranker-8b: args - full    | mac_C    |       0.0540 | -0.0293 |  0.1373 | 0.2336 |   1.0000 |
+| qwen3-reranker-8b: args - full    | eac_C    |      -0.0482 | -0.2098 |  0.1005 | 0.5950 |   1.0000 |
+| qwen3-reranker-8b: history - full | mac_C    |       0.0887 |  0.0000 |  0.2045 | 0.0502 |   0.6526 |
+| qwen3-reranker-8b: history - full | eac_C    |      -0.0772 | -0.2477 |  0.0614 | 0.3248 |   1.0000 |

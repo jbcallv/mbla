@@ -1,0 +1,1 @@
+qwen3-reranker-0.6b,qwen3-reranker-4b,qwen3-reranker-8b,qwen3-0.6b,qwen3-1.7b,qwen3-4b,qwen3-8b,qwen3-32b-awq,qwen3-30b,phi-4-mini,gpt-oss-20b,gpt-oss-120b

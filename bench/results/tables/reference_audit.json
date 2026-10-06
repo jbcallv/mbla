@@ -1,0 +1,63 @@
+{
+  "rows": 185,
+  "templates": 17,
+  "raters": [
+    "alvi",
+    "joseph",
+    "draft"
+  ],
+  "note": "draft = references drafted by Claude from the templates; human-vs-human agreement is the reliability measure",
+  "unclear": {
+    "alvi": 16,
+    "joseph": 0
+  },
+  "needed_counts": {
+    "alvi": 49,
+    "joseph": 51,
+    "draft": 77
+  },
+  "pairs": {
+    "alvi_vs_joseph": {
+      "decided_rows": 169,
+      "percent_agreement": 0.9408284023668639,
+      "cohen_kappa": 0.8527361449982573,
+      "kappa_95ci_template_bootstrap": [
+        0.7487172568457335,
+        0.9414956039584247
+      ],
+      "both_needed": 42,
+      "both_not_needed": 117,
+      "only_alvi_needed": 7,
+      "only_joseph_needed": 3
+    },
+    "alvi_vs_draft": {
+      "decided_rows": 169,
+      "percent_agreement": 0.9289940828402367,
+      "cohen_kappa": 0.8392007611798287,
+      "kappa_95ci_template_bootstrap": [
+        0.7805305853979391,
+        0.8950972511775971
+      ],
+      "both_needed": 49,
+      "both_not_needed": 108,
+      "only_alvi_needed": 0,
+      "only_draft_needed": 12
+    },
+    "joseph_vs_draft": {
+      "decided_rows": 185,
+      "percent_agreement": 0.8594594594594595,
+      "cohen_kappa": 0.6960697586250473,
+      "kappa_95ci_template_bootstrap": [
+        0.6201682032866642,
+        0.7734513274336284
+      ],
+      "both_needed": 51,
+      "both_not_needed": 108,
+      "only_joseph_needed": 0,
+      "only_draft_needed": 26
+    }
+  },
+  "krippendorff_alpha_humans": 0.8530694105336589,
+  "krippendorff_alpha_all": 0.7565002965321347,
+  "rows_to_resolve": 35
+}

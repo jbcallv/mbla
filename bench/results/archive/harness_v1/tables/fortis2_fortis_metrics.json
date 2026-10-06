@@ -1,0 +1,162 @@
+[
+  {
+    "method": "clm-zs",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0006480881399870382,
+    "over_privilege": 0.9993519118600129,
+    "no_action": 0.0,
+    "safe_rate": 0.0006480881399870382,
+    "fail_rate": 0.9993519118600129
+  },
+  {
+    "method": "gpt-oss-120b",
+    "items": 1543,
+    "exact_match": 0.3000648088139987,
+    "under_privilege": 0.3771872974724563,
+    "over_privilege": 0.322099805573558,
+    "no_action": 0.0006480881399870382,
+    "safe_rate": 0.6772521062864549,
+    "fail_rate": 0.322747893713545
+  },
+  {
+    "method": "gpt-oss-20b",
+    "items": 1543,
+    "exact_match": 0.2663642255346727,
+    "under_privilege": 0.3272845106934543,
+    "over_privilege": 0.39014906027219703,
+    "no_action": 0.016202203499675955,
+    "safe_rate": 0.5936487362281271,
+    "fail_rate": 0.406351263771873
+  },
+  {
+    "method": "laya",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 1.0,
+    "no_action": 0.0,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  },
+  {
+    "method": "lexical",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 1.0,
+    "no_action": 0.0,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  },
+  {
+    "method": "phi-4-mini",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 0.2676604018146468,
+    "no_action": 0.7323395981853532,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  },
+  {
+    "method": "qwen3-0.6b",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 0.02462734931950745,
+    "no_action": 0.9753726506804925,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  },
+  {
+    "method": "qwen3-1.7b",
+    "items": 1543,
+    "exact_match": 0.0006480881399870382,
+    "under_privilege": 0.005184705119896306,
+    "over_privilege": 0.9928710304601426,
+    "no_action": 0.0012961762799740765,
+    "safe_rate": 0.005832793259883344,
+    "fail_rate": 0.9941672067401166
+  },
+  {
+    "method": "qwen3-30b",
+    "items": 1543,
+    "exact_match": 0.1898898250162022,
+    "under_privilege": 0.3421905379131562,
+    "over_privilege": 0.46532728451069344,
+    "no_action": 0.002592352559948153,
+    "safe_rate": 0.5320803629293583,
+    "fail_rate": 0.4679196370706416
+  },
+  {
+    "method": "qwen3-32b-awq",
+    "items": 1543,
+    "exact_match": 0.11989630589760207,
+    "under_privilege": 0.17757615035644847,
+    "over_privilege": 0.7018794556059624,
+    "no_action": 0.0006480881399870382,
+    "safe_rate": 0.29747245625405055,
+    "fail_rate": 0.7025275437459495
+  },
+  {
+    "method": "qwen3-4b",
+    "items": 1543,
+    "exact_match": 0.15683732987686325,
+    "under_privilege": 0.3862605314322748,
+    "over_privilege": 0.45495787427090084,
+    "no_action": 0.0019442644199611147,
+    "safe_rate": 0.5430978613091381,
+    "fail_rate": 0.45690213869086194
+  },
+  {
+    "method": "qwen3-8b",
+    "items": 1543,
+    "exact_match": 0.1834089436163318,
+    "under_privilege": 0.322099805573558,
+    "over_privilege": 0.42968243681140633,
+    "no_action": 0.06480881399870382,
+    "safe_rate": 0.5055087491898898,
+    "fail_rate": 0.49449125081011014
+  },
+  {
+    "method": "qwen3-reranker-0.6b",
+    "items": 1543,
+    "exact_match": 0.05832793259883344,
+    "under_privilege": 0.1218405703175632,
+    "over_privilege": 0.7394685677252106,
+    "no_action": 0.08036292935839275,
+    "safe_rate": 0.18016850291639663,
+    "fail_rate": 0.8198314970836034
+  },
+  {
+    "method": "qwen3-reranker-4b",
+    "items": 1543,
+    "exact_match": 0.07064160725858717,
+    "under_privilege": 0.1918340894361633,
+    "over_privilege": 0.355800388852884,
+    "no_action": 0.38172391445236553,
+    "safe_rate": 0.26247569669475046,
+    "fail_rate": 0.7375243033052495
+  },
+  {
+    "method": "qwen3-reranker-8b",
+    "items": 1543,
+    "exact_match": 0.09591704471808166,
+    "under_privilege": 0.19507453013609852,
+    "over_privilege": 0.1425793907971484,
+    "no_action": 0.5664290343486714,
+    "safe_rate": 0.29099157485418015,
+    "fail_rate": 0.7090084251458199
+  },
+  {
+    "method": "set-only",
+    "items": 1543,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 1.0,
+    "no_action": 0.0,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  }
+]

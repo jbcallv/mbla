@@ -1,0 +1,172 @@
+# task templates: one legitimate task each. a template is the clustering and split unit.
+# reference lists only the task-specific permissions; the delegation baseline is added by generate.py.
+
+- template: bc1-read
+  delegation: bc1-triage
+  split: test
+  arguments: {issue: "{owner}/{repo}#{issue_number}"}
+  texts:
+    - "Read issue {issue_number} in {owner}/{repo} and summarize it."
+    - "Give me a short summary of {owner}/{repo} issue #{issue_number}."
+    - "Look at issue {issue_number} on the {owner}/{repo} repository and tell me what it is about."
+  reference: ["github:issue.read:{owner}/{repo}#{issue_number}"]
+
+- template: bc1-read-label
+  delegation: bc1-triage
+  split: test
+  arguments: {issue: "{owner}/{repo}#{issue_number}", label: "{label}"}
+  texts:
+    - "Triage issue {issue_number} in {owner}/{repo} and apply the {label} label."
+    - "Read {owner}/{repo} issue #{issue_number}, then tag it {label}."
+    - "Review issue {issue_number} on {owner}/{repo} and label it as {label}."
+  reference: ["github:issue.read:{owner}/{repo}#{issue_number}", "github:issue.label:{owner}/{repo}#{issue_number}"]
+
+- template: bc1-read-two
+  delegation: bc1-triage
+  split: dev
+  arguments: {issue: "{owner}/{repo}#{issue_number}", issue2: "{owner}/{repo}#{issue_number2}"}
+  texts:
+    - "Compare issues {issue_number} and {issue_number2} in {owner}/{repo} and say whether they describe the same problem."
+    - "Read {owner}/{repo} issues #{issue_number} and #{issue_number2} and summarize both."
+    - "Check if issue {issue_number2} duplicates issue {issue_number} in {owner}/{repo}."
+  reference: ["github:issue.read:{owner}/{repo}#{issue_number}", "github:issue.read:{owner}/{repo}#{issue_number2}"]
+
+- template: bc1-label-second
+  delegation: bc1-triage
+  split: test
+  arguments: {issue: "{owner}/{repo}#{issue_number}", issue2: "{owner}/{repo}#{issue_number2}", label: "{label}"}
+  texts:
+    - "Read issues {issue_number} and {issue_number2} in {owner}/{repo}; if the second repeats the first, label issue {issue_number2} {label}."
+    - "Using {owner}/{repo} issue #{issue_number} as context, triage issue #{issue_number2} and apply {label} to it."
+    - "Look at {owner}/{repo} issues {issue_number} and {issue_number2}, then tag only issue {issue_number2} with {label}."
+  reference: ["github:issue.read:{owner}/{repo}#{issue_number}", "github:issue.read:{owner}/{repo}#{issue_number2}", "github:issue.label:{owner}/{repo}#{issue_number2}"]
+
+- template: bc1-label-only
+  delegation: bc1-triage
+  split: test
+  arguments: {issue: "{owner}/{repo}#{issue_number}", label: "{label}"}
+  texts:
+    - "Apply the {label} label to issue {issue_number} in {owner}/{repo}. No need to read it."
+    - "Tag {owner}/{repo} issue #{issue_number} with {label}; the maintainers already reviewed it."
+    - "Just add {label} to issue {issue_number} on {owner}/{repo}."
+  reference: ["github:issue.label:{owner}/{repo}#{issue_number}"]
+
+- template: bc2-test
+  delegation: bc2-build
+  split: test
+  arguments: {}
+  texts:
+    - "Run the test suite for the checked-out source and report which tests fail."
+    - "Execute the project's tests with make and summarize the results."
+    - "Check whether the code in the workspace passes its tests."
+  reference: ["fs:r:/workspace/src", "exec:run:/usr/bin/make"]
+
+- template: bc2-build
+  delegation: bc2-build
+  split: test
+  arguments: {}
+  texts:
+    - "Build the project in the workspace and put the release artifact in /artifacts."
+    - "Compile the checked-out source with make and save the output to the artifacts directory."
+    - "Produce a build of the current source tree and leave the artifact where the deploy agent can pick it up."
+  reference: ["fs:r:/workspace/src", "exec:run:/usr/bin/make", "fs:w:/artifacts"]
+
+- template: bc2-lint
+  delegation: bc2-build
+  split: dev
+  arguments: {}
+  texts:
+    - "Run a Python style check over the source and list the problems."
+    - "Lint the checked-out Python code and report any warnings."
+    - "Review the source tree for style issues using a Python linter."
+  reference: ["fs:r:/workspace/src", "exec:run:/usr/bin/python3"]
+
+- template: bc2-build-test
+  delegation: bc2-build
+  split: test
+  arguments: {}
+  texts:
+    - "Build the project, run its tests, and if they pass write the artifact to /artifacts."
+    - "Use make to test and then build the source; store the build output in the artifacts directory."
+    - "Verify the tests pass and produce a release build for deployment."
+  reference: ["fs:r:/workspace/src", "exec:run:/usr/bin/make", "fs:w:/artifacts"]
+
+- template: bc2-deploy-one
+  delegation: bc2-deploy
+  split: test
+  arguments: {artifact_key: "{owner}-staging/{prefix}/{artifact}"}
+  texts:
+    - "Upload {artifact} from /artifacts to the {owner}-staging bucket under {prefix}/."
+    - "Deploy the build artifact {artifact} to staging at {owner}-staging/{prefix}/{artifact}."
+    - "Push {artifact} to the staging prefix {prefix}/ in {owner}-staging."
+  reference: ["storage:object.put:{owner}-staging/{prefix}/{artifact}"]
+
+- template: bc2-deploy-two
+  delegation: bc2-deploy
+  split: dev
+  arguments: {artifact_key: "{owner}-staging/{prefix}/{artifact}", artifact_key2: "{owner}-staging/{prefix}/{artifact2}"}
+  texts:
+    - "Upload {artifact} and {artifact2} from /artifacts to {owner}-staging under {prefix}/."
+    - "Deploy both build outputs, {artifact} and {artifact2}, to the staging bucket {owner}-staging/{prefix}/."
+    - "Push the two artifacts {artifact} and {artifact2} to staging."
+  reference: ["storage:object.put:{owner}-staging/{prefix}/{artifact}", "storage:object.put:{owner}-staging/{prefix}/{artifact2}"]
+
+- template: bc2-deploy-verify
+  delegation: bc2-deploy
+  split: test
+  arguments: {artifact_key: "{owner}-staging/{prefix}/{artifact}"}
+  texts:
+    - "Upload {artifact} to {owner}-staging/{prefix}/ and download it again to confirm the checksum matches."
+    - "Deploy {artifact} to staging, then read it back from the bucket to verify the upload."
+    - "Push {artifact} to the staging prefix {prefix}/ and check the stored copy is intact."
+  reference: ["storage:object.put:{owner}-staging/{prefix}/{artifact}", "storage:object.get:{owner}-staging/{prefix}/{artifact}"]
+
+- template: bc3-read-one
+  delegation: bc3-docs
+  split: test
+  arguments: {doc_id: "{doc}"}
+  texts:
+    - "Retrieve the document {doc} and summarize it in five bullet points."
+    - "Fetch workspace doc {doc} and give me the key points."
+    - "Read {doc} from the workspace and write a short summary."
+  reference: ["docs:doc.read:{doc}"]
+
+- template: bc3-read-two
+  delegation: bc3-docs
+  split: test
+  arguments: {doc_id: "{doc}", doc_id2: "{doc2}"}
+  texts:
+    - "Retrieve the documents {doc} and {doc2} and write one combined summary."
+    - "Fetch {doc} and {doc2} from the workspace and compare them."
+    - "Read both {doc} and {doc2} and list where they disagree."
+  reference: ["docs:doc.read:{doc}", "docs:doc.read:{doc2}"]
+
+- template: bc3-extract
+  delegation: bc3-docs
+  split: dev
+  arguments: {doc_id: "{doc}"}
+  texts:
+    - "Pull the action items out of the document {doc}."
+    - "List every open decision recorded in workspace doc {doc}."
+    - "Extract the owners and due dates from {doc}."
+  reference: ["docs:doc.read:{doc}"]
+
+- template: bc3-post-one
+  delegation: bc3-slack
+  split: test
+  arguments: {channel_name: "{channel}"}
+  texts:
+    - "Post the attached summary to #{channel}."
+    - "Share this summary in the {channel} Slack channel."
+    - "Send the summary message to #{channel} on Slack."
+  reference: ["slack:message.post:{channel}"]
+
+- template: bc3-post-two
+  delegation: bc3-slack
+  split: dev
+  arguments: {channel_name: "{channel}", channel_name2: "{channel2}"}
+  texts:
+    - "Post the attached summary to #{channel} and #{channel2}."
+    - "Share this summary in both {channel} and {channel2}."
+    - "Send the summary to the Slack channels #{channel} and #{channel2}."
+  reference: ["slack:message.post:{channel}", "slack:message.post:{channel2}"]

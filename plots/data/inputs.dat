@@ -1,0 +1,5 @@
+# position input qwen3-8b qwen3-reranker-8b clm-zs laya
+0 text 0.2340 0.3902 0.6709 0.8669
+1 args 0.2332 0.3306 0.7166 0.7501
+2 history 0.2399 0.3008 0.7175 0.8755
+3 full 0.0893 0.3793 0.7087 0.8481
