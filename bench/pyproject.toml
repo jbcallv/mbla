@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "mbla-bench"
 version = "0.1.0"
@@ -16,6 +20,9 @@ dependencies = [
 [project.optional-dependencies]
 serve = ["vllm", "laya", "contrastive-lm"]
 dev = ["pytest", "ruff"]
+
+[tool.setuptools]
+packages = ["mbla_bench"]
 
 [tool.ruff]
 line-length = 140
