@@ -121,16 +121,39 @@ def latex_cell(value):
     return f"{value:.0f}" if value >= 10 else f"{value:.3f}"
 
 
+KIND_NAMES = {"decision": "yes/no scorer", "generative": "LLM", "baseline": "simple rule", "bound": "no reduction"}
+
+
+def percent(value):
+    return "--" if math.isnan(value) else f"{100 * value:.0f}\\%"
+
+
+def milliseconds(value):
+    return "instant" if math.isnan(value) else f"{value:,.0f}"
+
+
+def plain_quality_rows(quality):
+    return [
+        [row[0], KIND_NAMES.get(row[1], row[1]), milliseconds(row[2]), percent(row[4]), percent(row[5]), percent(row[6])] for row in quality
+    ]
+
+
+def plain_recovery_rows():
+    return [[row[0], percent(row[1]), percent(row[2]), percent(row[5])] for row in recovery_rows()]
+
+
+def plain_fortis_rows():
+    return [[row[0], *(percent(value) for value in row[1:])] for row in fortis_rows()]
+
+
 def audit_rows():
     audit = json.loads((TABLES / "reference_audit_independent.json").read_text())
     pair = audit["pairs"]["alvi_vs_joseph"]
-    low, high = pair["kappa_95ci_template_bootstrap"]
     return [
-        ["Rows (17 templates)", str(audit["rows"])],
-        ["Agreement, Alvi vs Joseph", f"{pair['percent_agreement']:.3f}"],
-        ["Cohen's kappa (95\\% CI)", f"{pair['cohen_kappa']:.3f} [{low:.3f}, {high:.3f}]"],
-        ["Krippendorff's alpha (humans)", f"{audit['krippendorff_alpha_humans']:.3f}"],
-        ["Rows needing resolution", str(audit["rows_to_resolve"])],
+        ["Permission decisions labeled by each reviewer", str(audit["rows"])],
+        ["Decisions where both reviewers agreed", percent(pair["percent_agreement"])],
+        ["Agreement beyond chance (1 = perfect, 0 = chance)", f"{pair['cohen_kappa']:.2f}"],
+        ["Disagreements settled together afterwards", str(audit["rows_to_resolve"])],
     ]
 
 
@@ -155,15 +178,13 @@ def main():
     for method in CURVE_METHODS:
         write_dat(plots / f"curve_{method}.dat", ["threshold", "eac_C", "mac_C"], curve_rows(method, rows, items))
     latex_table(
-        report / "quality.tex", ["Method", "Type", "p50 ms", "EAC (C)", "MAC (C)", "Exact"], [row[:3] + row[4:7] for row in quality]
+        report / "quality.tex",
+        ["Model", "Kind", "Time (ms)", "Extra granted", "Needed but missed", "Exactly right"],
+        plain_quality_rows(quality),
     )
-    latex_table(
-        report / "recovery.tex",
-        ["Method", "Bound-only", "Admitted", "Success"],
-        [[row[0], row[1], row[2], row[5]] for row in recovery_rows()],
-    )
-    latex_table(report / "fortis.tex", ["Method", "T1 exact", "T1 over-priv.", "T2 exact", "T2 over-priv."], fortis_rows())
-    latex_table(report / "audit.tex", ["Reference audit", "Value"], audit_rows())
+    latex_table(report / "recovery.tex", ["Model", "Paper's rule", "Our rule", "Normal tasks finished"], plain_recovery_rows())
+    latex_table(report / "fortis.tex", ["Model", "Right skill", "Riskier skill", "Right tools", "Extra tools"], plain_fortis_rows())
+    latex_table(report / "audit.tex", ["Human check of the answer key", ""], audit_rows())
 
 
 if __name__ == "__main__":

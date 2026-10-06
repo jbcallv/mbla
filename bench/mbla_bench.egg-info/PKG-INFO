@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: mbla-bench
+Version: 0.1.0
+Summary: Replication package for MBLA policy inference in BoundClaw
+Requires-Python: >=3.11
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: pandas
+Requires-Dist: matplotlib
+Requires-Dist: pyyaml
+Requires-Dist: requests
+Requires-Dist: tabulate
+Provides-Extra: serve
+Requires-Dist: vllm; extra == "serve"
+Requires-Dist: laya; extra == "serve"
+Requires-Dist: contrastive-lm; extra == "serve"
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"

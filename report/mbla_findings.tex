@@ -4,99 +4,139 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage{float}
 \setlist{nosep}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
 \graphicspath{{../plots/out/}}
 
-\title{MBLA: Task-Scoped Permission Inference for BoundClaw\\\large Overview of benchmark findings}
-\author{BoundClaw MBLA working group}
+\title{mbla: giving AI agents only the permissions they need\\\large What we built, what we measured, and what to use}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-\section{What MBLA is}
-MBLA is the policy-inference and recovery-admission component of BoundClaw. At each delegation it proposes the
-capability and confinement permissions the receiver needs, choosing only from what the delegator already holds.
-The trusted checks (attenuation on the delegator, ceiling on the receiver) bound every proposal, so a wrong or
-manipulated model can cost utility but never safety. When a receiver is denied mid-task it may request one
-concrete permission; MBLA decides whether to grant it.
+\section{The problem in one example}
+An assistant agent can read and write every repository in a company's GitHub account. A user asks it to
+summarize one public issue, and it hands that job to a second agent. If the second agent receives the
+assistant's full access, a malicious message hidden in that issue can trick it into copying a private
+repository into a public comment. Nothing was hacked; the agent simply held far more access than the task needed.
 
-The Go package (\texttt{mbla/}) is what the gVisor fork imports. The benchmark (\texttt{bench/}) reproduces every
-number here. Design decisions, assumptions and findings are logged in \texttt{research/}, including a section-by-section
-mapping onto the paper (\texttt{research/paper\_alignment.md}).
+mbla decides, for each handoff, which permissions the receiving agent actually needs (here: read one
+issue, and connect to GitHub) and grants only those.
 
-\section{Setup}
+\section{How it works}
+\begin{enumerate}
+  \item \textbf{Start from what the sender has.} mbla only ever picks from the permissions the handing-off
+    agent already holds, so it can never give away more than that agent has.
+  \item \textbf{Pick what the task needs.} A model reads the task and rates each available permission.
+    Highly rated ones are granted. Ones rated as plausible go on a backup list.
+  \item \textbf{Apply the receiver's own limits.} Whatever the receiving machine's operator refuses to allow is removed.
+  \item \textbf{Handle mistakes.} If the agent is blocked partway through, it can ask for one specific missing
+    permission. It gets it only if the sender holds it and it is on the backup list, with at most three requests per task.
+\end{enumerate}
+Steps 1 and 3 are fixed checks that do not depend on the model. If the model makes a bad choice, the task
+may need an extra request or may fail, but the agent still cannot get more than the sender holds and the
+receiver allows.
+
+\section{Words used in this report}
+\begin{description}
+  \item[Permission] One specific allowed action, e.g.\ ``read issue 42 in acme/web'', ``connect to
+    api.github.com'', ``write files in /artifacts'', or ``run make''.
+  \item[Extra granted] Of the permissions the agent could have received but did not need, the share it
+    received anyway. 0\% means it got only what it needed; 100\% means it got everything the sender had.
+  \item[Needed but missed] Of the permissions the task needed, the share left out. The agent can still ask
+    for these later, at the cost of a delay.
+  \item[Exactly right] The share of tasks where the granted set matched the needed set exactly.
+  \item[Attacks that get through] We planted attack goals in each task (for example ``read the private
+    repository''). This is the share of those a compromised agent could still achieve by asking for missing
+    permissions.
+  \item[Time] How long the model takes to decide the permissions for one handoff, measured with each model
+    running alone on one graphics card.
+  \item[LLM] A large language model that reads the task and writes out the list of permissions it needs.
+  \item[Yes/no scorer] A smaller, faster model that answers ``is this permission needed?'' for each permission separately.
+  \item[Simple rule] No model: grant everything, grant what the receiver's operator says the operation
+    usually needs (``operator list''), or grant things whose names appear in the task text.
+\end{description}
+
+\section{What should we use?}
 \begin{itemize}
-  \item \textbf{Tasks.} The paper's three workflows (BC-1 GitHub triage, BC-2 build and staging deploy, BC-3
-    workspace-to-Slack): 17 task templates, 288 test items and 120 dev items, with injection variants. The test
-    split was frozen by hash before any test run.
-  \item \textbf{References.} Two people labeled every candidate permission independently (Table~\ref{tab:audit});
-    35 disagreements were resolved by rule. Agreement is reported on the independent labels.
-  \item \textbf{Methods.} Decision models (Qwen3-Reranker 0.6B/4B/8B, Laya 0.4B, CLM-v0.1-8B) answer
-    ``is this permission needed?'' per candidate. Generative LLMs (Qwen3 0.6B--32B, Qwen3-30B-A3B, Phi-4-mini,
-    gpt-oss-20b/120b) output the permission set as JSON. Baselines: full parent, operator manifest, keyword match.
-  \item \textbf{Protocol.} Thresholds tuned on dev only with a pre-registered objective; 95\% confidence intervals
-    from a cluster bootstrap over test templates; paired tests with Holm correction. Latency measured separately,
-    each model alone on an L40S GPU (E5).
+  \item \textbf{Best overall: Qwen3-8B (an LLM) with the backup-list rule.} Grants about 9\% extra, misses
+    about 3\%, and lets only 13\% of attacks through (versus 100\% under the paper's current rule), while
+    97\% of normal tasks still finish. Takes about 0.8 seconds per handoff.
+  \item \textbf{If speed matters most: Qwen3-30B-A3B (an LLM).} Similarly tight (7\% extra) in about 0.3
+    seconds, but the backup-list rule does not help it, because it rates permissions as simply yes or no.
+  \item \textbf{If no model server is available: the operator list.} Almost never grants extra (2\%), but
+    misses 19\% of needed permissions, so agents will ask for more often.
+  \item \textbf{Avoid:} the tiny models (Qwen3-0.6B, Qwen3-1.7B, Phi-4-mini) and the off-the-shelf yes/no
+    scorers Laya and CLM. They grant most of what the sender has.
+  \item \textbf{Always keep the fixed checks on.} They are what keeps the system safe; the model only makes it tighter.
 \end{itemize}
 
-\begin{table}[h]\centering\small\input{generated/audit.tex}
-\caption{Reference audit: independent agreement between two human reviewers.}\label{tab:audit}\end{table}
+\section{Results}
 
-\section{Findings}
+\paragraph{Asking for more permissions is where attacks get through.}
+Under the paper's current rule (grant any requested permission the sender holds), a compromised agent
+could carry out every planted attack, with every model. Granting only what the model had already rated
+plausible stops most of them.
 
-\paragraph{1. The paper's recovery rule lets every attack through; scored admission fixes it.}
-Under the paper's rule (grant any single action inside the recovery bound), a malicious receiver reaches every
-attack the parent allows: 100\% for all methods (Figure~\ref{fig:recovery}). Requiring the request to also be in the
-scorer's \emph{admit} set cuts this to 13\% for Qwen3-8B (95\% CI 8--20\%) while 97\% of legitimate tasks still
-succeed (attack reduction significant, $p < 0.001$; success change not significant). gpt-oss and Reranker-8B land
-near 50\%. Methods with coarse 0/1 scores gain nothing, because their dev tuning admits everything.
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{recovery.pdf}
+\caption{Share of planted attacks that succeed when the agent may ask for up to three more permissions.
+Black bars show the range we are 95\% confident the true value falls in. Lower is better.}\end{figure}
 
-\begin{figure}[h]\centering\includegraphics[width=\linewidth]{recovery.pdf}
-\caption{Share of reachable attacks after recovery (cap 3). Error bars: 95\% CI.}\label{fig:recovery}\end{figure}
+\begin{table}[H]\centering\small\input{generated/recovery.tex}
+\caption{Attacks that get through, and how many normal tasks still finish under our rule.}\end{table}
 
-\paragraph{2. Mid-size generative models are the most precise; decision models are faster but over-grant.}
-Qwen3-32B, Qwen3-30B, Qwen3-8B and Qwen3-4B keep excess capability authority below 0.1 while missing under 7\% of
-needed permissions (Table~\ref{tab:quality}). gpt-oss-120b is not more precise than Qwen3-8B. Decision models answer
-in tens of milliseconds but, zero-shot, grant 0.38--0.85 of the avoidable authority (Figure~\ref{fig:quality}).
+\paragraph{Bigger LLMs choose tighter permissions; small scorers are faster but too generous.}
+Each dot is one model. Lower is tighter, further left is faster. The mid-size LLMs sit in the lower middle.
+The yes/no scorers are fast but grant much more than needed when used without extra training.
 
-\begin{figure}[h]\centering\includegraphics[width=0.85\linewidth]{quality_latency.pdf}
-\caption{Excess capability authority (E1, test) against median latency (E5, exclusive GPU).}\label{fig:quality}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=0.85\linewidth]{quality_latency.pdf}
+\caption{Share of unneeded permissions granted against time per handoff.}\end{figure}
 
-\begin{table}[h]\centering\small\input{generated/quality.tex}
-\caption{E1 test results. EAC and MAC: excess and missing capability authority (paper \S6.3). Latency from E5.}\label{tab:quality}\end{table}
+\begin{table}[H]\centering\small\input{generated/quality.tex}
+\caption{All models on our 288 test tasks. ``instant'' means no model is involved.}\end{table}
 
-\paragraph{3. External validation on FORTIS.}
-Scored with FORTIS's own metric code, Reranker-8B matches 30B--120B generators on skill selection (exact match
-0.45--0.47), while tool selection is hard for every method (best 0.29). Decision-model thresholds tuned on our
-data do not transfer: they either abstain or grant everything (Figure~\ref{fig:fortis}, Table~\ref{tab:fortis}).
+\paragraph{The results hold up on outside data.}
+FORTIS is a benchmark built by another research group for the same question: does an agent pick the least
+powerful option that still does the job? On choosing one skill, the yes/no scorer Qwen3-Reranker-8B does as
+well as LLMs ten times its size. Choosing a set of tools is hard for every model.
 
-\begin{figure}[h]\centering\includegraphics[width=\linewidth]{fortis.pdf}
-\caption{FORTIS exact match per method (task 1: 579 queries, task 2: 1,543 queries).}\label{fig:fortis}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{fortis.pdf}
+\caption{How often each model's choice was exactly right on FORTIS (579 skill tasks, 1,543 tool tasks).}\end{figure}
 
-\begin{table}[h]\centering\small\input{generated/fortis.tex}
-\caption{FORTIS results with the benchmark's official classification.}\label{tab:fortis}\end{table}
+\begin{table}[H]\centering\small\input{generated/fortis.tex}
+\caption{FORTIS results, scored with FORTIS's own grading code. ``Riskier'' and ``extra'' mean the model
+chose more power than needed.}\end{table}
 
-\paragraph{4. What the scorer sees, and how the backbone is used.}
-For Qwen3-8B, adding the operator manifest to the input cuts excess authority from about 0.23 to 0.09
-(Figure~\ref{fig:inputs}). On the same Qwen3-8B weights, generating the set (EAC 0.09) is far more precise than a
-reranker head (0.38) or CLM's contrastive heads (0.71). Operating curves show generative scores are coarse, while
-decision models trade excess for misses smoothly (Figure~\ref{fig:curves}).
+\paragraph{Showing the model the operator's list helps.}
+Telling Qwen3-8B what the receiving operator says an operation usually needs cuts extra permissions from
+about 23\% to 9\%. Moving the confidence cutoff trades extra permissions against missed ones; the LLMs reach
+low values on both, the yes/no scorers do not.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.49\linewidth]{inputs.pdf}\hfill\includegraphics[width=0.49\linewidth]{curves.pdf}
-\caption{Left: input ablation (E3). Right: operating curves (E2).}\label{fig:inputs}\label{fig:curves}\end{figure}
+\caption{Left: what the model is shown. Right: trade-off as the confidence cutoff moves (lower left is best).}\end{figure}
 
-\paragraph{5. Correctness of the trusted checks.}
-The Go attenuation checker agrees with an independent set-semantics implementation on 14,480 generated
-parent/child pairs and chains up to 8 hops (0 false accepts, 0 false rejects); a deliberately broken checker is caught.
-
-\section{Status}
+\section{Why we trust these numbers}
 \begin{itemize}
-  \item Done: library, references, E1--E7, E9, FORTIS, significance tests, LLM judge labels (an independent
-    judge's adjustments change excess by at most 0.03 and leave the ranking unchanged).
-  \item Pending: optional human validation of the judge;
-    optional fine-tuned CLM (E1b).
+  \item \textbf{A human-checked answer key.} Two people independently marked which permissions each task
+    needs, then settled their disagreements together (Table~\ref{tab:audit}).
+  \item \textbf{No peeking.} Model settings were tuned on separate practice tasks; the test tasks were
+    locked before any model saw them.
+  \item \textbf{Outside data.} The FORTIS results come from another group's benchmark and grading code.
+  \item \textbf{Checked checks.} The fixed safety checks agreed with an independently written version on
+    14,480 generated cases, with zero mistakes.
+\end{itemize}
+
+\begin{table}[H]\centering\small\input{generated/audit.tex}
+\caption{How well the two reviewers agreed before settling differences.}\label{tab:audit}\end{table}
+
+\section{Where things are in the repository}
+\begin{itemize}
+  \item \texttt{mbla/}: the Go package the sandbox code imports (start with its README).
+  \item \texttt{bench/}: the benchmark that produced every number here.
+  \item \texttt{research/findings.md}: the full results log, with statistical details.
 \end{itemize}
 
 \end{document}

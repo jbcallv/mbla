@@ -1,0 +1,16 @@
+numpy
+scipy
+pandas
+matplotlib
+pyyaml
+requests
+tabulate
+
+[dev]
+pytest
+ruff
+
+[serve]
+vllm
+laya
+contrastive-lm

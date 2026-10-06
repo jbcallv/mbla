@@ -1,8 +1,8 @@
 load "common.gp"
 set output "out/curves.pdf"
-set title "Operating curves (E2): sweeping the initial threshold"
-set xlabel "excess capability authority (EAC)"
-set ylabel "missing capability authority (MAC)"
+set title "Trade-off as the confidence cutoff moves"
+set xlabel "share of unneeded permissions granted"
+set ylabel "share of needed permissions missed"
 set xrange [0:1]
 set yrange [0:1]
 set key top right
