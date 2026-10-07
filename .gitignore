@@ -27,3 +27,6 @@ paper-2.pdf
 
 # local tooling
 .claude/
+
+# credentials for the shared model server
+.secrets/
