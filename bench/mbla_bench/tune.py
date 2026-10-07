@@ -48,9 +48,10 @@ def main():
     parser.add_argument("--out", default="results/thresholds.json")
     arguments = parser.parse_args()
     items = data.items_by_id(arguments.items)
+    models = data.load_yaml("config/models.yaml")["methods"]
     rows_by_method = defaultdict(list)
     for row in data.load_predictions(arguments.predictions):
-        if row["input"] == "full":
+        if row["input"] == "full" and "fixed_thresholds" not in models.get(row["method"], {}):
             rows_by_method[row["method"]].append(row)
     chosen = {method: tune_method(rows, items) for method, rows in sorted(rows_by_method.items())}
     Path(arguments.out).write_text(json.dumps(chosen, indent=2) + "\n")

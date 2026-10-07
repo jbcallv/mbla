@@ -1,3 +1,6 @@
+bge-large-zs             n=  579 EM=0.344 OPR=0.506 NAR=0.000 safe=0.494
+capmas                   n=  579 EM=0.035 OPR=0.943 NAR=0.000 safe=0.057
+capmas-scores            n=  579 EM=0.352 OPR=0.518 NAR=0.000 safe=0.482
 clm-zs                   n=  579 EM=0.178 OPR=0.473 NAR=0.000 safe=0.527
 gpt-oss-120b             n=  579 EM=0.473 OPR=0.352 NAR=0.000 safe=0.648
 gpt-oss-20b              n=  579 EM=0.446 OPR=0.377 NAR=0.007 safe=0.617

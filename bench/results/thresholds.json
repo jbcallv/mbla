@@ -1,4 +1,18 @@
 {
+  "bge-large-zs": {
+    "initial": 0.6,
+    "admit": 0.6,
+    "dev_f1": 0.5936305633364456,
+    "dev_success": 0.975,
+    "dev_rows": 120
+  },
+  "capmas-scores": {
+    "initial": 0.35,
+    "admit": 0.15,
+    "dev_f1": 0.5776370388870389,
+    "dev_success": 0.95,
+    "dev_rows": 120
+  },
   "clm-zs": {
     "initial": 0.7,
     "admit": 0.65,

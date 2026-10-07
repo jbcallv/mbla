@@ -1,5 +1,35 @@
 [
   {
+    "method": "bge-large-zs",
+    "items": 579,
+    "exact_match": 0.3436960276338515,
+    "under_privilege": 0.15025906735751296,
+    "over_privilege": 0.5060449050086355,
+    "no_action": 0.0,
+    "safe_rate": 0.4939550949913645,
+    "fail_rate": 0.5060449050086355
+  },
+  {
+    "method": "capmas",
+    "items": 579,
+    "exact_match": 0.03454231433506045,
+    "under_privilege": 0.022452504317789293,
+    "over_privilege": 0.9430051813471503,
+    "no_action": 0.0,
+    "safe_rate": 0.05699481865284974,
+    "fail_rate": 0.9430051813471503
+  },
+  {
+    "method": "capmas-scores",
+    "items": 579,
+    "exact_match": 0.35233160621761656,
+    "under_privilege": 0.12953367875647667,
+    "over_privilege": 0.5181347150259067,
+    "no_action": 0.0,
+    "safe_rate": 0.4818652849740932,
+    "fail_rate": 0.5181347150259067
+  },
+  {
     "method": "clm-zs",
     "items": 579,
     "exact_match": 0.17789291882556132,

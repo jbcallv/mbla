@@ -13,14 +13,14 @@ experiments:
     split: dev
     inputs: [full]
     seeds: [0]
-    methods: [set-only, manifest-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+    methods: [set-only, manifest-only, lexical, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
               qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
 
   e1:
     purpose: "M1/M2/M3/M6 method comparison; E2 curves, E5 latency, E6 recovery and E9 variants come from these rows"
     split: test
     inputs: [full]
-    methods: [set-only, manifest-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+    methods: [set-only, manifest-only, lexical, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
               qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
 
   e3:
@@ -43,7 +43,7 @@ experiments:
     glossary: data/external/fortis/universe.json
     inputs: [full]
     seeds: [0]
-    methods: [set-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+    methods: [set-only, lexical, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
               qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
 
   fortis2:
@@ -52,7 +52,7 @@ experiments:
     glossary: data/external/fortis/universe.json
     inputs: [full]
     seeds: [0]
-    methods: [set-only, lexical, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+    methods: [set-only, lexical, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
               qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
 
   e5:
@@ -60,5 +60,5 @@ experiments:
     items: data/latency/latency.jsonl
     inputs: [full]
     seeds: [0]
-    methods: [laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
+    methods: [capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
               qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]

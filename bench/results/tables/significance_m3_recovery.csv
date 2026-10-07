@@ -1,8 +1,14 @@
 comparison,metric,difference,low,high,p,p_holm
+bge-large-zs: admitted - bound-only,ras_recovery,-0.18055555555555555,-0.2638888888888889,-0.125,0.0,0.0
+bge-large-zs: admitted - bound-only,success,-0.020833333333333332,-0.0625,0.0,0.7098,1.0
+capmas: admitted - bound-only,ras_recovery,-0.3076388888888889,-0.43824842436974787,-0.18055300245098047,0.0,0.0
+capmas: admitted - bound-only,success,-0.4930555555555556,-0.6909722222222222,-0.2881944444444444,0.0,0.0
+capmas-scores: admitted - bound-only,ras_recovery,-0.13055555555555556,-0.18229166666666666,-0.09375,0.0,0.0
+capmas-scores: admitted - bound-only,success,-0.09375,-0.20833333333333334,-0.010416666666666666,0.0144,0.216
 clm-zs: admitted - bound-only,ras_recovery,-0.11284722222222224,-0.23373021834935892,-0.013764035443722957,0.0006,0.005999999999999999
 clm-zs: admitted - bound-only,success,-0.03125,-0.08333333333333333,0.0,0.222,1.0
 gpt-oss-120b: admitted - bound-only,ras_recovery,-0.5116898148148148,-0.6087596106150793,-0.41911424291939003,0.0,0.0
-gpt-oss-120b: admitted - bound-only,success,-0.04398148148148148,-0.09375000000000003,-0.002314814814814815,0.0126,0.1764
+gpt-oss-120b: admitted - bound-only,success,-0.04398148148148148,-0.09375000000000003,-0.002314814814814815,0.0126,0.2016
 gpt-oss-20b: admitted - bound-only,ras_recovery,-0.5291666666666667,-0.618058449074074,-0.4339001926892552,0.0,0.0
 gpt-oss-20b: admitted - bound-only,success,-0.03587962962962963,-0.06021412037037013,-0.013888888888888888,0.0,0.0
 laya: admitted - bound-only,ras_recovery,-0.075,-0.15257352941176472,-0.011160714285714286,0.0144,0.1296
@@ -22,7 +28,7 @@ qwen3-30b: admitted - bound-only,success,0.0,0.0,0.0,1.0,1.0
 qwen3-32b-awq: admitted - bound-only,ras_recovery,0.0,0.0,0.0,1.0,1.0
 qwen3-32b-awq: admitted - bound-only,success,0.0,0.0,0.0,1.0,1.0
 qwen3-4b: admitted - bound-only,ras_recovery,-0.7079861111111111,-0.8097227328431372,-0.5989583333333334,0.0,0.0
-qwen3-4b: admitted - bound-only,success,-0.10532407407407408,-0.20486111111111113,-0.024305555555555556,0.003,0.045
+qwen3-4b: admitted - bound-only,success,-0.10532407407407408,-0.20486111111111113,-0.024305555555555556,0.003,0.051000000000000004
 qwen3-8b: admitted - bound-only,ras_recovery,-0.867013888888889,-0.9166666666666667,-0.7968750000000001,0.0,0.0
 qwen3-8b: admitted - bound-only,success,-0.027777777777777776,-0.08333333333333333,0.0,0.6912,1.0
 qwen3-reranker-0.6b: admitted - bound-only,ras_recovery,0.0,0.0,0.0,1.0,1.0
@@ -30,6 +36,6 @@ qwen3-reranker-0.6b: admitted - bound-only,success,0.0,0.0,0.0,1.0,1.0
 qwen3-reranker-4b: admitted - bound-only,ras_recovery,-0.203125,-0.3020833333333333,-0.12239583333333334,0.0,0.0
 qwen3-reranker-4b: admitted - bound-only,success,0.0,0.0,0.0,1.0,1.0
 qwen3-reranker-8b: admitted - bound-only,ras_recovery,-0.5,-0.613095238095238,-0.3705344742063492,0.0,0.0
-qwen3-reranker-8b: admitted - bound-only,success,-0.05555555555555555,-0.125,-0.006944444444444444,0.0154,0.20020000000000002
+qwen3-reranker-8b: admitted - bound-only,success,-0.05555555555555555,-0.125,-0.006944444444444444,0.0154,0.216
 set-only: admitted - bound-only,ras_recovery,0.0,0.0,0.0,1.0,1.0
 set-only: admitted - bound-only,success,0.0,0.0,0.0,1.0,1.0

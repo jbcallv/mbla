@@ -151,3 +151,23 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
   - Report human–human and human–judge Cohen's κ (`judge agree`).
   - If human–judge κ < 0.6, the adjusted metrics are dropped. The humans validate the judge; they don't train it.
 - **GPUs:** the judge runs on GPUs 2–3 in shared mode; E5 (latency) runs on GPUs 0–1, exclusive, so the judge can't distort latency.
+
+## D-20 · CAPMAS comparison (pre-registered before any CAPMAS test result)
+- **Decided:** 2026-10-07 (Joseph asked for a head-to-head on security, latency and other relevant fields)
+- **What CAPMAS is here:** their released code, trained with their own `train.py` and paper configuration (shared bge-large encoder, ASTRA closed_room split, batch 128, up to 15 epochs, seed 42). Reproduction is checked against their reported perfect-bundle rate on their own ASTRA test split before use.
+- **Methods:**
+  - `capmas`: as published. Their selection rule (top-10, cut at the first cosine drop > 0.2), fixed (no tuning on our data), and **no recovery**, because their design fails a task whose set is too small.
+  - `capmas-scores`: the same weights with raw cosine scores and thresholds tuned on our dev split, so it can use our recovery rule. This separates their scorer from their system.
+  - `bge-large-zs`: control, the base encoder without their training.
+- **Input:** every method gets the same `Describe(request)` text and candidates. Permissions are rendered for the CAPMAS encoder in their training format ("Using service environment 'S', execute capacity 'O' on 'R' to: …").
+- **Primary comparisons (paired cluster bootstrap over test templates, Holm within each metric):**
+  - MBLA recommended (qwen3-8b, `admitted`, cap 3) vs CAPMAS as published (`capmas`, no recovery)
+  - MBLA recommended vs CAPMAS scorer inside MBLA (`capmas-scores`, `admitted`, cap 3)
+  - `capmas-scores` with our recovery vs `capmas` without it (the value of recovery itself)
+- **Metrics:**
+  - security: attacks that get through after recovery
+  - utility: normal tasks that finish
+  - precision: extra and missed capability permissions, exact match
+  - latency: E5, exclusive GPU
+  - external: FORTIS tasks 1 and 2 with FORTIS's own grading (McNemar on exact match per query)
+- **Note on their headline:** CAPMAS reports "perfect bundle capture", i.e. all needed privileges included (recall), at k = 10 where their precision is 24% and they grant about 7.6 privileges per task. We report both over- and under-granting.

@@ -1,6 +1,7 @@
 import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from itertools import pairwise
 
 QUESTION = "Is this permission required to complete the delegated task? Permission: "
 RERANKER_INSTRUCTION = "Decide whether the delegated task in the Query needs the permission in the Document."
@@ -9,6 +10,7 @@ RERANKER_PREFIX = (
     'Note that the answer can only be "yes" or "no".<|im_end|>\n<|im_start|>user\n'
 )
 RERANKER_CHUNK = 16
+EMBEDDING_LATENT_DIM = 512
 RERANKER_SUFFIX = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
 
@@ -53,9 +55,63 @@ class Laya:
         return [float(answers[f"c{index}"]["noul"]) for index in range(len(candidates))]
 
 
+def capmas_text(candidate):
+    permission, _, meaning = candidate.partition(" (")
+    service, operation, resource = (permission.split(":", 2) + ["", ""])[:3]
+    scope = "" if resource in ("skill", "tool", "") else f" on '{resource}'"
+    return f"Using service environment '{service}', execute capacity '{operation}'{scope} to: {meaning.rstrip(')') or operation}"
+
+
+def elbow_selection(similarities, top_k, drop):
+    ranked = sorted(range(len(similarities)), key=lambda index: -similarities[index])[:top_k]
+    chosen = ranked[:1]
+    for previous, current in pairwise(ranked):
+        if similarities[previous] - similarities[current] > drop:
+            break
+        chosen.append(current)
+    return [1.0 if index in chosen else 0.0 for index in range(len(similarities))]
+
+
+class Embedding:
+    def __init__(self, model_id, revision, checkpoint, selection, top_k, drop):
+        import torch
+        from torch import nn
+        from transformers import AutoModel, AutoTokenizer
+
+        self.torch, self.selection, self.top_k, self.drop = torch, selection, top_k, drop
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision)
+        self.model = nn.Module()
+        self.model.shared_encoder = AutoModel.from_pretrained(model_id, revision=revision)
+        self.model.shared_proj = None
+        if checkpoint:
+            hidden = self.model.shared_encoder.config.hidden_size
+            self.model.shared_proj = nn.Sequential(nn.Linear(hidden, hidden), nn.GELU(), nn.Linear(hidden, EMBEDDING_LATENT_DIM))
+            self.model.logit_scale = nn.Parameter(torch.zeros([]))
+            self.model.load_state_dict(torch.load(checkpoint, map_location="cpu"))
+        self.model.to("cuda").eval()
+
+    def encode(self, texts):
+        batch = self.tokenizer(texts, padding=True, truncation=True, max_length=256, return_tensors="pt").to("cuda")
+        with self.torch.no_grad():
+            tokens = self.model.shared_encoder(**batch)[0]
+            mask = batch["attention_mask"].unsqueeze(-1).float()
+            pooled = (tokens * mask).sum(1) / mask.sum(1).clamp(min=1e-9)
+            projected = self.model.shared_proj(pooled) if self.model.shared_proj is not None else pooled
+            return self.torch.nn.functional.normalize(projected, p=2, dim=-1)
+
+    def score(self, state, candidates):
+        query = self.encode([state])
+        similarities = (self.encode([capmas_text(candidate) for candidate in candidates]) @ query.T).squeeze(1).tolist()
+        if self.selection == "elbow":
+            return elbow_selection(similarities, self.top_k, self.drop)
+        return similarities
+
+
 def load_backend(arguments):
     if arguments.backend == "qwen3-reranker":
         return Qwen3Reranker(arguments.model, arguments.revision)
+    if arguments.backend == "embedding":
+        return Embedding(arguments.model, arguments.revision, arguments.checkpoint, arguments.selection, arguments.top_k, arguments.drop)
     return Laya(arguments.model, arguments.revision)
 
 
@@ -87,7 +143,16 @@ def handler_for(backend, model_label):
 
 def main():
     parser = argparse.ArgumentParser(description="serves a yes/no decision model behind the /score api the go Decision scorer calls")
-    parser.add_argument("--backend", required=True, choices=["qwen3-reranker", "laya"])
+    parser.add_argument("--backend", required=True, choices=["qwen3-reranker", "laya", "embedding"])
+    parser.add_argument("--checkpoint", default=None, help="embedding backend: CAPMAS-trained weights (shared encoder + projection)")
+    parser.add_argument(
+        "--selection",
+        default="scores",
+        choices=["scores", "elbow"],
+        help="embedding backend: raw cosine scores, or CAPMAS top-k + elbow drop",
+    )
+    parser.add_argument("--top-k", type=int, default=10)
+    parser.add_argument("--drop", type=float, default=0.2)
     parser.add_argument("--model", default="")
     parser.add_argument("--revision", default=None)
     parser.add_argument("--port", type=int, required=True)

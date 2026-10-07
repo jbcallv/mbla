@@ -6,7 +6,7 @@ import subprocess
 from collections import Counter
 from pathlib import Path
 
-from mbla_bench import data
+from mbla_bench import data, stats
 
 REPOSITORY = "https://github.com/lili0415/FORTIS-Benchmark"
 PINNED_COMMIT = "c67e8833bff19932c652f3a98b5d3bf7d959a980"
@@ -197,6 +197,34 @@ def report(experiment, items_path):
         )
 
 
+def exact_by_item(rows, items, method, task1_metrics, task2_metrics):
+    return {
+        row["item"]: classify(row, items[row["item"]], task1_metrics, task2_metrics) == "exact_match"
+        for row in rows
+        if row["method"] == method
+    }
+
+
+def compare_methods(experiment, items_path, first, second):
+    items = data.items_by_id(items_path)
+    rows = data.load_predictions(Path("results/raw") / experiment)
+    task1_metrics, task2_metrics = official_metrics("task1"), official_metrics("task2")
+    first_exact = exact_by_item(rows, items, first, task1_metrics, task2_metrics)
+    second_exact = exact_by_item(rows, items, second, task1_metrics, task2_metrics)
+    shared = sorted(set(first_exact) & set(second_exact))
+    result = {
+        "experiment": experiment,
+        "first": first,
+        "second": second,
+        "items": len(shared),
+        "first_exact": sum(first_exact[item] for item in shared) / len(shared),
+        "second_exact": sum(second_exact[item] for item in shared) / len(shared),
+        "mcnemar_p": stats.mcnemar_exact([first_exact[item] for item in shared], [second_exact[item] for item in shared]),
+    }
+    print(json.dumps(result))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="FORTIS external validation: build items from the pinned FORTIS release, score with its official metrics"
@@ -206,9 +234,16 @@ def main():
     report_command = commands.add_parser("report")
     report_command.add_argument("experiment")
     report_command.add_argument("items")
+    compare_command = commands.add_parser("compare")
+    compare_command.add_argument("experiment")
+    compare_command.add_argument("items")
+    compare_command.add_argument("first")
+    compare_command.add_argument("second")
     arguments = parser.parse_args()
     if arguments.command == "build":
         build()
+    elif arguments.command == "compare":
+        compare_methods(arguments.experiment, arguments.items, arguments.first, arguments.second)
     else:
         report(arguments.experiment, arguments.items)
 

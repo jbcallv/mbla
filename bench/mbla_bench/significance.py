@@ -83,6 +83,47 @@ def m4_comparisons(quality):
     return with_holm(rows)
 
 
+SYSTEMS = {
+    "mbla (qwen3-8b, admitted)": ("qwen3-8b", "admitted"),
+    "capmas as published (no recovery)": ("capmas", "none"),
+    "capmas scorer + mbla recovery": ("capmas-scores", "admitted"),
+}
+SYSTEM_PAIRS = [
+    ("mbla (qwen3-8b, admitted)", "capmas as published (no recovery)"),
+    ("mbla (qwen3-8b, admitted)", "capmas scorer + mbla recovery"),
+    ("capmas scorer + mbla recovery", "capmas as published (no recovery)"),
+]
+SYSTEM_RECOVERY_METRICS = ["ras_recovery", "success"]
+SYSTEM_QUALITY_METRICS = ["eac_C", "mac_C", "exact_match"]
+
+
+def system_rows(quality, recovery, name):
+    method, mode = SYSTEMS[name]
+    chosen = recovery[
+        (recovery["method"] == method) & (recovery["mode"] == mode) & (recovery["cap"] == CAP) & (recovery["input"] == "full")
+    ]
+    merged = per_item(chosen, ["method"], SYSTEM_RECOVERY_METRICS).merge(
+        per_item(quality[(quality["method"] == method) & (quality["input"] == "full")], ["method"], SYSTEM_QUALITY_METRICS)[
+            ["item"] + SYSTEM_QUALITY_METRICS
+        ],
+        on="item",
+    )
+    return merged
+
+
+def system_comparisons(quality, recovery):
+    available = set(quality["method"])
+    rows = []
+    for first, second in SYSTEM_PAIRS:
+        if SYSTEMS[first][0] not in available or SYSTEMS[second][0] not in available:
+            continue
+        for metric in SYSTEM_RECOVERY_METRICS + SYSTEM_QUALITY_METRICS:
+            rows.append(
+                compare(system_rows(quality, recovery, first), system_rows(quality, recovery, second), metric, f"{first} - {second}")
+            )
+    return with_holm(rows) if rows else pd.DataFrame()
+
+
 def write(frame, name):
     path = Path("results/tables") / name
     frame.to_csv(path.with_suffix(".csv"), index=False)
@@ -108,6 +149,7 @@ def main():
     write(m3_comparisons(e1_recovery), "significance_m3_recovery")
     write(m1_comparisons(frames_for("e4", items)[0]), "significance_m5_backbone")
     write(m4_comparisons(frames_for("e3", items)[0]), "significance_m4_inputs")
+    write(system_comparisons(e1_quality, e1_recovery), "significance_capmas_systems")
 
 
 if __name__ == "__main__":

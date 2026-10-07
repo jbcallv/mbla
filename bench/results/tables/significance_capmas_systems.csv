@@ -1,0 +1,16 @@
+comparison,metric,difference,low,high,p,p_holm
+"mbla (qwen3-8b, admitted) - capmas as published (no recovery)",ras_recovery,-0.559375,-0.7213585069444445,-0.3928571428571428,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas as published (no recovery)",success,0.4652777777777778,0.2326388888888889,0.6770833333333334,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas as published (no recovery)",eac_C,-0.6550753901448346,-0.8066498316498317,-0.494416482116135,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas as published (no recovery)",mac_C,0.026234567901234566,0.0,0.06331018518518462,0.2008,0.43499999999999994
+"mbla (qwen3-8b, admitted) - capmas as published (no recovery)",exact_match,0.32986111111111105,0.1701388888888889,0.4930555555555556,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas scorer + mbla recovery",ras_recovery,-0.7364583333333333,-0.7955729166666666,-0.6611104910714287,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas scorer + mbla recovery",success,0.06597222222222222,-0.04513888888888889,0.19791666666666666,0.2852,0.2852
+"mbla (qwen3-8b, admitted) - capmas scorer + mbla recovery",eac_C,-0.6205281986531986,-0.7606616512345679,-0.4905484532828283,0.0,0.0
+"mbla (qwen3-8b, admitted) - capmas scorer + mbla recovery",mac_C,0.026234567901234566,-0.004629629629629629,0.06327160493827161,0.145,0.43499999999999994
+"mbla (qwen3-8b, admitted) - capmas scorer + mbla recovery",exact_match,0.31597222222222215,0.1435185185185185,0.48726851851851843,0.0004,0.0008
+capmas scorer + mbla recovery - capmas as published (no recovery),ras_recovery,0.17708333333333334,0.020398319128787874,0.3251953125,0.0282,0.0282
+capmas scorer + mbla recovery - capmas as published (no recovery),success,0.3993055555555556,0.23958333333333334,0.5555555555555556,0.0,0.0
+capmas scorer + mbla recovery - capmas as published (no recovery),eac_C,-0.03454719149163594,-0.14863770809951363,0.08863402543958099,0.5482,0.5482
+capmas scorer + mbla recovery - capmas as published (no recovery),mac_C,0.0,-0.013888888888888888,0.013888888888888888,1.0,1.0
+capmas scorer + mbla recovery - capmas as published (no recovery),exact_match,0.013888888888888888,0.0,0.03819444444444445,0.213,0.213

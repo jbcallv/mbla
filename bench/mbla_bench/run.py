@@ -20,14 +20,16 @@ def config_hash():
     return digest.hexdigest()[:12]
 
 
-def thresholds_for(method_name):
+def thresholds_for(method_name, method):
+    if "fixed_thresholds" in method:
+        return method["fixed_thresholds"]
     chosen_path = Path("results/thresholds.json")
     chosen = json.loads(chosen_path.read_text()) if chosen_path.exists() else {}
     return chosen.get(method_name, DEFAULT_THRESHOLDS)
 
 
 def bench_command(settings, method_name, method, items_path, glossary, input_name, seed, output_path):
-    thresholds = thresholds_for(method_name)
+    thresholds = thresholds_for(method_name, method)
     flags = {
         "-items": items_path,
         "-out": output_path,

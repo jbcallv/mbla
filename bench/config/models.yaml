@@ -69,6 +69,46 @@ methods:
       - command: "clm-serve --port 8700 --emb-url http://127.0.0.1:8090/v1/embeddings --no-ui"
         health: "http://127.0.0.1:8700/health"
 
+  capmas:
+    paradigm: capmas
+    scorer: decision
+    model: capmas
+    endpoint: "http://127.0.0.1:8205"
+    revision: "BAAI/bge-large-en-v1.5@d4aa6901d3a41ba39fb536a557fa166f842b0e09 + CAPMAS training (shared encoder, ASTRA closed_room, their train.py and config)"
+    note: "CAPMAS as published (arXiv 2609.06500): their trained scorer and selection rule (top-10, cut at a cosine drop > 0.2); no recovery"
+    fixed_thresholds: {initial: 0.5, admit: 0.5}
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_closed_room_ASTRA_b128.pt --selection elbow --top-k 10 --drop 0.2 --port 8205"
+        health: "http://127.0.0.1:8205/health"
+
+  capmas-scores:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-scores
+    endpoint: "http://127.0.0.1:8206"
+    revision: "same weights as capmas"
+    note: "CAPMAS's trained scorer, raw cosine scores, thresholds tuned on our dev split; usable with our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_closed_room_ASTRA_b128.pt --selection scores --port 8206"
+        health: "http://127.0.0.1:8206/health"
+
+  bge-large-zs:
+    paradigm: decision
+    scorer: decision
+    model: bge-large-zs
+    endpoint: "http://127.0.0.1:8207"
+    revision: "BAAI/bge-large-en-v1.5@d4aa6901d3a41ba39fb536a557fa166f842b0e09"
+    note: "control: CAPMAS's base encoder without their training"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --selection scores --port 8207"
+        health: "http://127.0.0.1:8207/health"
+
   qwen3-0.6b:
     paradigm: generative
     scorer: chat

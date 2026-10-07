@@ -247,3 +247,32 @@ Paper references are to `paper-2.pdf` (Sep 28 2026 draft).
   - Qwen3-30B-A3B (3B active parameters) is the fastest of the precise models: capability EAC 0.073 at 280 ms. That's about 3× faster than Qwen3-8B (0.086, 777 ms) with similar precision; recovery admission doesn't help it, though (admit threshold 0).
   - gpt-oss models pay for reasoning: gpt-oss-20b is slower than gpt-oss-120b because it reasons longer per answer.
 - CLM's server caches action embeddings within a run; its numbers include that warm cache, as in deployment.
+
+## F-27 · CAPMAS reproduction matches the paper
+- **Status:** confirmed (2026-10-07).
+- **Setup:** CAPMAS trained with their own `train.py` and `config.example.yaml` (shared bge-large encoder, ASTRA closed_room, batch 128, 15 epochs, seed 42); checkpoint `bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_closed_room_ASTRA_b128.pt` (not redistributed; their repo has no license).
+- **Result:** evaluated with their own `test_elbow.py` on their ASTRA test split, at their headline setting (top-10, drop 0.2). Reproduction vs paper:
+  - perfect-bundle (recall) rate: 89.9% vs 90.9%
+  - complete-miss rate: 2.2% vs 2.1%
+  - precision: 25.5% vs 24.4%
+  - privileges granted per task: 7.25 vs 7.61
+  - At top-5, drop 0.2: 82.0% vs 80.7%.
+- **Conclusion:** the reproduction is faithful (within about 1 point), so CAPMAS numbers on our benchmark reflect their method, not a weak re-implementation.
+
+## F-28 · Head-to-head with CAPMAS (Veski, Guerraoui, Froelicher, arXiv 2609.06500)
+- **Status:** confirmed on test (2026-10-07); exclusive-GPU latency (E5) for `capmas` and `capmas-scores` pending.
+- **Reference:** R. M. Veski, R. Guerraoui, D. Froelicher. "CAPMAS: Capability-Based Delegation of Privileges in Multi-Agent Systems." arXiv:2609.06500, September 2026. https://arxiv.org/abs/2609.06500 (code: https://anonymous.4open.science/r/CAPMAS). Reproduction: F-27. Pre-registered comparisons: D-20.
+- **Our test set (288 items; cap 3; template-cluster bootstrap, Holm):**
+  - MBLA (qwen3-8b, `admitted`): extra 0.086, missed 0.031, exact 0.330, attacks through 0.133 [0.083, 0.203], tasks finished 0.972.
+  - CAPMAS as published (top-10, drop 0.2, no recovery): extra 0.741, missed 0.005, exact 0.000, attacks through 0.692 [0.562, 0.819], tasks finished 0.507.
+  - CAPMAS scorer + our recovery (`capmas-scores`, `admitted`): extra 0.707, attacks through 0.869, tasks finished 0.906. Untrained bge-large: extra 1.000, attacks through 0.819.
+  - MBLA − CAPMAS as published: attacks −0.559 [−0.721, −0.393], tasks finished +0.465 [0.233, 0.677], extra −0.655, exact +0.330 (all p_holm < 0.001); missed +0.026 (n.s.).
+  - MBLA − CAPMAS scorer + our recovery: attacks −0.737, extra −0.621, exact +0.316 (p_holm ≤ 0.001); tasks finished n.s.
+- **FORTIS (official grading), exact match:**
+  - Task 1: capmas 0.035, capmas-scores 0.352, bge-large-zs 0.344, qwen3-8b 0.359, qwen3-reranker-8b 0.454, gpt-oss-120b 0.473.
+  - Task 2: capmas 0.002, capmas-scores 0.000, qwen3-8b 0.167, gpt-oss-120b 0.290.
+- **Why:**
+  - CAPMAS's fixed top-10 is tuned for 3,000-endpoint catalogs; with our 10–60 candidates it grants most of the pool.
+  - With no recovery, any miss fails the task.
+  - Its cosine scores separate needed from risky permissions too weakly for scored admission to help (attacks through rise to 0.869 when recovery is allowed).
+- **Where CAPMAS wins:** latency, about 20 ms per decision (shared-GPU dev runs; exclusive E5 pending) vs 777 ms for qwen3-8b.

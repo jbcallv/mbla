@@ -1,6 +1,6 @@
 from mbla_bench import reference
 
-MODES = ["bound-only", "admitted"]
+MODES = ["bound-only", "admitted", "none"]
 
 
 def policy(texts):
@@ -22,6 +22,8 @@ def thresholds_consistent(row):
 
 
 def admits(mode, row, item, atom):
+    if mode == "none":
+        return False
     if not atom.is_concrete or not reference.covered(policy(item["ceiling"]), atom):
         return False
     admission_set = item["parent"] if mode == "bound-only" else row["admit"]

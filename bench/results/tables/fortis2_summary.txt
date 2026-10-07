@@ -1,3 +1,6 @@
+bge-large-zs             n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
+capmas                   n= 1543 EM=0.002 OPR=0.994 NAR=0.000 safe=0.006
+capmas-scores            n= 1543 EM=0.000 OPR=1.000 NAR=0.000 safe=0.000
 clm-zs                   n= 1543 EM=0.000 OPR=0.999 NAR=0.000 safe=0.001
 gpt-oss-120b             n= 1543 EM=0.290 OPR=0.331 NAR=0.001 safe=0.668
 gpt-oss-20b              n= 1543 EM=0.255 OPR=0.391 NAR=0.032 safe=0.577
