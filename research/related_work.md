@@ -11,6 +11,7 @@ Collected 2026-10-02 for MBLA's benchmark design. Details come from arXiv abstra
 | **MiniScope** (arXiv 2512.11147) | permission scopes for tool calls via reconstructed permission hierarchies; compared with an LLM baseline ("LLMScope") | LLM baseline: GPT-5, Claude Sonnet 4.5, Gemini 2.5 Flash, Llama 3.1-70B, Qwen3-30B | 1,558 synthetic requests over 10 real apps (Gmail, Drive, Slack, …) | over-privilege ratio = methods allowed by the LLM's scopes / by MiniScope's (1.04–2.19) | dataset "will be released"; no link |
 | **FORTIS** (Li et al., arXiv 2605.09163) | over-privilege in agent skills: choosing the minimally sufficient skill, then its tools | 10 frontier models (GPT-5.5/5.4/5.4-mini, Claude Sonnet 4.6, Opus 4.7, Gemini 3.1-Pro, 3 Flash, Qwen 3.6-Max, Kimi K2.6, DeepSeek-V4-Flash) | 2,143 queries; email, e-commerce, filesystem; structural ground truth plus manual check of 200 (96.5% agreement) | exact match, over-privilege rate, no-action rate | **released**: github.com/lili0415/FORTIS-Benchmark |
 | **Intent-Governed Tool Authorization** (arXiv 2606.22916) | intent certificate from the trusted request filters the tool manifest and validates actions; models are untrusted advisors | rule-based, hybrid rule+model; 3 models end to end | 176 synthetic instances; 34-task suite; 25-task transfer set from AgentDojo, ToolSandbox, tau-bench, ToolEmu | unsafe tool exposure, unsafe accepted authority, manifest reduction, over-defense | traces and microbenchmarks in appendices |
+| **CAPMAS** (Veski, Guerraoui, Froelicher, arXiv 2609.06500, Sep 2026) | maps a natural-language query to a bounded privilege bundle before execution; Macaroon tokens attenuate privileges across agents | fine-tuned bge-large siamese embedding retriever (contrastive, InfoNCE), top-k with an elbow-drop cutoff; baseline gpt-oss-120b agent | ASTRA (1,217 tools) and XLAM (3,176 tools); 12,239 training pairs; dataset labels as ground truth | perfect-bundle rate 90.9% / 92.3%; complete-miss rate; 99.5% fewer unneeded privileges than full propagation; < 17 ms | code, ASTRA splits, XLAM prep script (anonymous repo); no checkpoint seen |
 | **SkillScope** (Wu et al., arXiv 2605.05868) | over-privileged actions in agent skills via graph and static analysis plus runtime validation | not LLM inference | 68,312 real skills | skill-level F1 for detecting over-privilege (94.5%) | arXiv only |
 
 ## Classic precursor: text → permissions (per-permission classifiers)
@@ -21,9 +22,18 @@ Collected 2026-10-02 for MBLA's benchmark design. Details come from arXiv abstra
 
 - **Bounded Agents** (arXiv 2608.15888), **Delegation Without Trust** (arXiv 2609.00267): attenuation, multi-hop delegation, MCP/OAuth gaps.
 
+## How CAPMAS differs from MBLA
+
+- **Scope:** API privileges only, no sandbox confinement (network, files, programs).
+- **Insufficient set:** the task fails; there is no recovery path.
+- **Threat model:** assumes non-malicious agents and honest infrastructure; a malicious-agent extension is only sketched.
+- **Ground truth:** dataset labels, not human-reviewed.
+- **Evaluation:** retrieval accuracy and latency only, no attack success.
+- Its scorer is a plug-in `DecisionModel` for MBLA. Benchmarking it doubles as the fine-tuned yes/no-scorer experiment (E1b).
+
 ## What nobody has done (MBLA's gap)
 
-1. **Nobody benchmarks decision models** (rerankers, System One models like Jev/Laya/CLM) for permission inference. All prior LLM work generates policies with chat LLMs, mostly hosted frontier APIs.
+1. **Decision models are barely benchmarked.** CAPMAS trains one embedding retriever; nobody compares rerankers, System One models (Jev/Laya/CLM) and generative LLMs on the same tasks.
 2. **No direct minimality metric for generated policies**, except MiniScope's ratio and FORTIS's over-privilege rate. Progent and Conseca report only utility and attack success.
 3. **No latency or cost comparison** of policy inference on the delegation path.
 4. **No human-reviewed minimal references with reported agreement,** except FORTIS's spot check (200 queries).
