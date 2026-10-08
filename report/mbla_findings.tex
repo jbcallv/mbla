@@ -85,7 +85,7 @@ plausible stops most of them.
 Black bars show the range we are 95\% confident the true value falls in. Lower is better.}\end{figure}
 
 \begin{table}[H]\centering\small\input{generated/recovery.tex}
-\caption{Attacks that get through, and how many normal tasks still finish under our rule.}\end{table}
+\caption{Attacks that get through, and how many normal tasks still finish under our rule.}\label{tab:recovery}\end{table}
 
 \paragraph{Bigger LLMs choose tighter permissions; small scorers are faster but too generous.}
 Each dot is one model. Lower is tighter, further left is faster. The mid-size LLMs sit in the lower middle.
@@ -118,6 +118,68 @@ low values on both, the yes/no scorers do not.
 \includegraphics[width=0.49\linewidth]{inputs.pdf}\hfill\includegraphics[width=0.49\linewidth]{curves.pdf}
 \caption{Left: what the model is shown. Right: trade-off as the confidence cutoff moves (lower left is best).}\end{figure}
 
+\section{How we compare to CAPMAS}
+\paragraph{What CAPMAS is.}
+CAPMAS~\cite{capmas} is a recent system from another research group that tackles the same problem: when
+one agent hands work to another, pass on only the permissions the task needs. It uses a small text-matching
+model (a trained version of the publicly available BGE-Large model) that scores how closely each permission's
+description matches the task. It then keeps up to the ten best-scoring permissions, stopping early at the
+first big drop in score. It has no backup list and no way to ask for more: if a needed permission is left
+out, the task fails. In the tables above, \texttt{capmas} is CAPMAS exactly as published, and
+\texttt{capmas-scores} is its scoring model placed inside mbla, with our backup-list rule. Because CAPMAS as
+published cannot ask for more, its ``our rule'' column in Table~\ref{tab:recovery} shows it with no asking at all.
+
+\paragraph{Our copy of CAPMAS matches their paper.}
+We trained CAPMAS with the authors' own code and settings and tested it on their own test tasks. It included
+every needed permission on 89.9\% of tasks, against 90.9\% reported in their paper. The numbers below
+therefore reflect their method, not a weak copy of it. We fixed how we would compare the two systems before
+looking at any CAPMAS test result.
+
+\paragraph{Head to head.}
+Table~\ref{tab:capmas} compares CAPMAS as published with our recommended setup on our 288 test tasks.
+\begin{table}[H]\centering\small
+\begin{tabular}{lrr}
+\toprule
+ & mbla (Qwen3-8B, backup list) & CAPMAS as published \\
+\midrule
+Attacks that get through & 13\% & 69\% \\
+Normal tasks finished & 97\% & 51\% \\
+Extra granted & 9\% & 74\% \\
+Needed but missed & 3\% & under 1\% \\
+Exactly right & 33\% & 0\% \\
+Right skill on FORTIS & 36\% & 3\% \\
+Time per handoff (ms) & 777 & 23 \\
+\bottomrule
+\end{tabular}
+\caption{mbla against CAPMAS on our 288 test tasks, plus the skill task from FORTIS. All differences
+except ``needed but missed'' are far larger than chance would explain.}\label{tab:capmas}\end{table}
+CAPMAS lets through about five times as many planted attacks and finishes only half of normal tasks. It
+rarely misses a needed permission, but only because it grants almost everything the sender holds. On FORTIS,
+it picked exactly the right skill 3\% of the time, against 36\% for Qwen3-8B. Its scoring model on its own
+(\texttt{capmas-scores}, which takes the single best-scoring skill) does as well as Qwen3-8B there (35\%), so
+the weak point is how CAPMAS turns scores into a set of permissions, not the scores themselves.
+
+\paragraph{Why CAPMAS does worse here.}
+\begin{itemize}
+  \item \textbf{Its ``keep up to ten'' rule was tuned for very large catalogs.} CAPMAS was built for agents
+    choosing among about 3,000 possible actions, where ten is a small share. Our handoffs offer 10 to 60
+    permissions, so keeping ten often means handing over most of them.
+  \item \textbf{No way to recover.} Because it cannot ask for a missing permission, every miss ends the task.
+    That is why only half of normal tasks finish.
+  \item \textbf{Its scores do not separate needed from risky permissions well.} Giving its scoring model our
+    backup-list rule raises finished tasks to 91\%, but attacks that get through rise to 87\%, because the
+    risky permissions end up on the backup list too.
+\end{itemize}
+
+\paragraph{Where CAPMAS wins: speed.}
+CAPMAS decides in about 23 milliseconds per handoff, against 777 for Qwen3-8B (each running alone on
+one graphics card). We timed CAPMAS's scoring model; its keep-up-to-ten rule on top adds only microseconds. It is the fastest model-based option we tested.
+
+\paragraph{What to use.}
+Our recommendation does not change: use Qwen3-8B with the backup-list rule. CAPMAS's speed does not make up
+for letting through five times as many attacks and failing half of normal tasks. If speed matters most,
+Qwen3-30B-A3B (about 0.3 seconds) is the better fast choice.
+
 \section{Why we trust these numbers}
 \begin{itemize}
   \item \textbf{A human-checked answer key.} Two people independently marked which permissions each task
@@ -138,5 +200,11 @@ low values on both, the yes/no scorers do not.
   \item \texttt{bench/}: the benchmark that produced every number here.
   \item \texttt{research/findings.md}: the full results log, with statistical details.
 \end{itemize}
+
+\begin{thebibliography}{1}
+\bibitem{capmas} R.~M. Veski, R.~Guerraoui, D.~Froelicher. ``CAPMAS: Capability-Based Delegation of
+  Privileges in Multi-Agent Systems.'' arXiv:2609.06500, September 2026.
+  \url{https://arxiv.org/abs/2609.06500}
+\end{thebibliography}
 
 \end{document}

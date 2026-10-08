@@ -27,6 +27,7 @@ See [`mbla/README.md`](mbla/README.md) for the full delegation flow, with and wi
 - Under the paper's recovery rule, a compromised receiver could reach every attack its parent allowed. Only granting requests the model already rated as plausible brought that down to 13% with Qwen3-8B, while 97% of normal tasks still finished.
 - Mid-size LLMs (Qwen3 4B to 32B) picked the tightest permission sets.
 - Smaller yes/no scoring models were much faster, but granted too much out of the box.
+- Against CAPMAS ([Veski, Guerraoui, Froelicher, 2026](https://arxiv.org/abs/2609.06500)), a recent system for the same problem, 13% of attacks got through with mbla versus 69% with CAPMAS, and 97% of normal tasks finished versus 51%. CAPMAS decides faster.
 
 More detail is in `report/` and `research/findings.md`.
 

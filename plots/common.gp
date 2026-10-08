@@ -8,5 +8,6 @@ set key top left box opaque
 decision_color = "#1b9e77"
 generative_color = "#7570b3"
 baseline_color = "#888888"
+capmas_color = "#e7298a"
 paper_rule_color = "#d95f02"
 our_rule_color = "#1b9e77"

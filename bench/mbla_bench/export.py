@@ -44,12 +44,16 @@ def e5_latency():
     return latency
 
 
+SAME_MODEL_LATENCY = {"capmas": "capmas-scores"}
+
+
 def quality_rows():
     quality = pd.read_csv(TABLES / "e1_quality.csv").set_index("method")
     latency, kinds = e5_latency(), paradigms()
     rows = []
     for method, entry in quality.sort_values("eac_C").iterrows():
-        p50, p95 = latency.get(method, (float("nan"), float("nan")))
+        timed = method if method in latency else SAME_MODEL_LATENCY.get(method, method)
+        p50, p95 = latency.get(timed, (float("nan"), float("nan")))
         rows.append(
             [method, kinds.get(method, ""), p50, p95, entry["eac_C"], entry["mac_C"], entry["exact_match"], entry["over_privileged"]]
         )
@@ -121,7 +125,7 @@ def latex_cell(value):
     return f"{value:.0f}" if value >= 10 else f"{value:.3f}"
 
 
-KIND_NAMES = {"decision": "yes/no scorer", "generative": "LLM", "baseline": "simple rule", "bound": "no reduction"}
+KIND_NAMES = {"decision": "yes/no scorer", "generative": "LLM", "baseline": "simple rule", "bound": "no reduction", "capmas": "CAPMAS"}
 
 
 def percent(value):
