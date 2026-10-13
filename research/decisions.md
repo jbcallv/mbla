@@ -171,3 +171,15 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
   - latency: E5, exclusive GPU
   - external: FORTIS tasks 1 and 2 with FORTIS's own grading (McNemar on exact match per query)
 - **Note on their headline:** CAPMAS reports "perfect bundle capture", i.e. all needed privileges included (recall), at k = 10 where their precision is 24% and they grant about 7.6 privileges per task. We report both over- and under-granting.
+
+## D-21 · Fine-tuning dataset and E1b (pre-registered before any generated item is used)
+- **Decided:** 2026-10-13 (Joseph approved the plan in `finetune_dataset.md`)
+- **Dataset:** 2,000 tasks after filtering (1,500 train / 300 validation / 200 held-out families), 40 families, the paper's three workflows only. Labels come from executing each task's call plan on mock services and covering the logged accesses, never from a model. Three automated checks; two judge models that must both agree, neither of them the generator.
+- **Human vetting:** acceptance sampling. Joseph and Alvi label 93 random tasks (stratified by workflow and family) blind, then adjudicate. Pass if at most 1 task's generated key differs from the adjudicated key (error < 5% at 95% one-sided confidence). On a fail: fix the generator, regenerate, audit a fresh sample.
+- **Models:**
+  - full fine-tuning: Reranker-0.6B and -8B; Qwen3-1.7B, -4B and -8B;
+  - CAPMAS's training applied to bge-large and Qwen3-Embedding-0.6B;
+  - QLoRA: Qwen3-30B-A3B only, always compared at matching precision.
+- **Training:** learning rate chosen from {5e-6, 1e-5, 2e-5} on validation; cosine decay, 3% warmup, 2 epochs; 3 seeds.
+- **Evaluation:** frozen test set, held-out families, FORTIS, AuthBench, mostargate. Metrics and statistics as in D-12/D-20.
+- **Changing this:** any change after generation starts is logged here with its reason, before the affected results are seen.

@@ -31,6 +31,36 @@ Collected 2026-10-02 for MBLA's benchmark design. Details come from arXiv abstra
 - **Evaluation:** retrieval accuracy and latency only, no attack success.
 - Its scorer is a plug-in `DecisionModel` for MBLA. Benchmarking it doubles as the fine-tuned yes/no-scorer experiment (E1b).
 
+## Synthetic datasets and fine-tuning for least privilege (surveyed 2026-10-13)
+
+Used to design the fine-tuning dataset (`finetune_dataset.md`, which has full references).
+- **Task-Conditioned Least-Privilege Learning** (arXiv:2608.18351):
+  - data: 2,000 synthetic tasks from task families; 1,500 train, 300 within-family validation, 200 from excluded families;
+  - checks: deterministic verifiers;
+  - training: Qwen3.5-4B, LoRA (rank 32) plus Dr. GRPO.
+  - Data release not stated. The closest precedent for E1b.
+- **AuthBench** (arXiv:2605.14859):
+  - 120 real terminal tasks;
+  - gold file permissions from strace on the reference solution, cleaned by humans;
+  - no training.
+  - Repo MIT, paper says CC BY-NC-SA. Evaluation only.
+- **ToolPrivBench** (arXiv:2606.20023):
+  - 544 synthetic scenarios;
+  - checks: format filters, two-judge sufficiency check (both must agree), two human annotators plus a tie-breaker;
+  - training: LoRA SFT on about 2k trajectories, then GRPO, on Qwen3-4B/8B.
+- **Noyan / mostargate** (arXiv:2607.22445, 2609.15422):
+  - 600 synthetic enterprise prompts, 15 permissions;
+  - separate generation and labeling passes;
+  - one human reviewed a 10% sample (κ 0.917 → 0.967);
+  - RoBERTa-large fine-tuned, on par with Haiku 4.5.
+  - GPL-3.0.
+- **ASTRA** (arXiv:2510.26702):
+  - synthetic tasks over 12 tool servers; negatives are tools from the same or other servers;
+  - deduplicated and filtered; no human review reported.
+  - Apache-2.0. CAPMAS's training data.
+- **APIGen** (arXiv:2406.18518): three-stage format, execution and semantic verification for synthetic tool-call data.
+- **Gap:** none of these has sender holdings as the candidate pool, receiver ceilings, or recovery, so we build our own dataset.
+
 ## What nobody has done (MBLA's gap)
 
 1. **Decision models are barely benchmarked.** CAPMAS trains one embedding retriever; nobody compares rerankers, System One models (Jev/Laya/CLM) and generative LLMs on the same tasks.
