@@ -62,8 +62,9 @@ Size: **2,000 tasks after filtering, split 1,500 train / 300 validation (trainin
 - This is the split of T1 [T1], the closest precedent: least-privilege fine-tuning of a 4B model, at the same task granularity.
 - It also matches ToolPrivBench's 1,994 SFT trajectories [B3], and sits between Noyan's 600 [B2] and ASTRA's ~3.2k (3 × 1,056) [C2].
 - LIMA found about 1,000 varied, high-quality examples enough for narrow fine-tuning [D3].
-- With 40 families that is 50 tasks per family (37–38 train).
-- We generate until each family has 50 tasks that pass every check, and report the filter rate at each stage.
+- Quotas: each of the 8 held-out families gets 25 tasks (200). Each of the 32 training families gets about 56, split at random within the family into about 47 train and 9 validation (1,500 / 300 overall).
+- We generate until each family meets its quota with tasks that pass every check, and report the filter rate at each stage.
+- Each task becomes **one** item: its holding level (narrow, medium, broad) and variant (benign, injection) rotate within the family, so the three levels and two variants are balanced. This avoids the benchmark's six near-copies per task, which would inflate the sample size.
 - A reranker sees about 10–15 yes/no pairs per task, about 18k training pairs.
 
 | Work | Tasks | Used for training? |
@@ -222,4 +223,7 @@ Dropped:
 | Names | `data/synth/names.yaml` | Disjoint from the benchmark pools (checked: 0 shared values). |
 | Writer prompt | `synth/write.py` | 5 tasks per request, constrained by a JSON schema (call names limited to the family's calls). Prompt text: report Appendix A. |
 | Judge prompt | `synth/judge.py` | completes / unneeded / ambiguous. Accept only if both judges return completes = true, unneeded = [] and ambiguous = false. |
-| Still to build | — | injection writer, 8-gram decontamination, near-duplicate filter, assembly and splits, audit sheet, training scripts. |
+| Leak and duplicate filters | `synth/decontaminate.py` | Drops tasks sharing any 8-word sequence with a benchmark task (932 benchmark 8-grams). Near-duplicates: Jaccard ≥ 0.8 over word 3-grams within a family. |
+| Assembly | `synth/assemble.py` | Items in the benchmark format, plus `key` (the uncandidated answer key) and `plan`. The operator list (manifest) = permissions of the family's calls over the task's resources, plus the runtime holdings, as in the benchmark. Attack options: sibling and elsewhere permissions the sender holds but the key doesn't cover, plus exfil, secrets read and an extra binary when reachable (broad). Dry runs: candidate lists of 7, 15 and 18 at narrow, medium and broad, the benchmark's range. |
+| Audit | `synth/audit.py` | 93 items, proportional to family size (largest remainder), seed "D-21-audit". One sheet row per candidate, with a blank `needed` column; the generated label is not shown. An item is wrong if the settled human set differs from the generated `reference`. Reported: reviewer κ, settled-vs-generated κ, wrong items, the one-sided 95% Clopper–Pearson upper bound, and pass/fail (≤ 1 wrong). |
+| Still to build | — | the generation driver (calls the writer, runs the checks and judges), the injection writer, and the training scripts. |
