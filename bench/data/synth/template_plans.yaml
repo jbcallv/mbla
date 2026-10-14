@@ -1,0 +1,54 @@
+# call plans for the 17 benchmark templates, written from the task text alone.
+# label.py turns each plan into an answer key; it should equal the human-reviewed key (validates the labeler, not the generator).
+bc1-read:
+  - {name: github.issues.get, with: {number: "{issue_number}"}}
+bc1-read-label:
+  - {name: github.issues.get, with: {number: "{issue_number}"}}
+  - {name: github.issues.add_labels, with: {number: "{issue_number}"}}
+bc1-read-two:
+  - {name: github.issues.get, with: {number: "{issue_number}"}}
+  - {name: github.issues.get, with: {number: "{issue_number2}"}}
+bc1-label-second:
+  - {name: github.issues.get, with: {number: "{issue_number}"}}
+  - {name: github.issues.get, with: {number: "{issue_number2}"}}
+  - {name: github.issues.add_labels, with: {number: "{issue_number2}"}}
+bc1-label-only:
+  - {name: github.issues.add_labels, with: {number: "{issue_number}"}}
+bc2-test:
+  - {name: fs.read, with: {path: /workspace/src}}
+  - {name: exec.run, with: {program: /usr/bin/make}}
+bc2-build:
+  - {name: fs.read, with: {path: /workspace/src}}
+  - {name: exec.run, with: {program: /usr/bin/make}}
+  - {name: fs.write, with: {path: /artifacts}}
+bc2-lint:
+  - {name: fs.read, with: {path: /workspace/src}}
+  - {name: exec.run, with: {program: /usr/bin/python3}}
+bc2-build-test:
+  - {name: fs.read, with: {path: /workspace/src}}
+  - {name: exec.run, with: {program: /usr/bin/make}}
+  - {name: fs.write, with: {path: /artifacts}}
+bc2-deploy-one:
+  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
+  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+bc2-deploy-two:
+  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
+  - {name: fs.read, with: {path: "/artifacts/{artifact2}"}}
+  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact2}"}}
+bc2-deploy-verify:
+  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
+  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+  - {name: s3.get_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+bc3-read-one:
+  - {name: docs.documents.get, with: {doc: "{doc}"}}
+bc3-read-two:
+  - {name: docs.documents.get, with: {doc: "{doc}"}}
+  - {name: docs.documents.get, with: {doc: "{doc2}"}}
+bc3-extract:
+  - {name: docs.documents.get, with: {doc: "{doc}"}}
+bc3-post-one:
+  - {name: slack.chat.post_message, with: {channel: "{channel}"}}
+bc3-post-two:
+  - {name: slack.chat.post_message, with: {channel: "{channel}"}}
+  - {name: slack.chat.post_message, with: {channel: "{channel2}"}}

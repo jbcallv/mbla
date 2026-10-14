@@ -57,6 +57,8 @@ receiver allows.
     running alone on one graphics card.
   \item[LLM] A large language model that reads the task and writes out the list of permissions it needs.
   \item[Yes/no scorer] A smaller, faster model that answers ``is this permission needed?'' for each permission separately.
+  \item[Coin flip] No model: each available permission is granted at random with a fixed chance of 25\%
+    (cautious), 50\%, or 75\% (generous). A model has to beat these to show it is using the task at all.
   \item[Simple rule] No model: grant everything, grant what the receiver's operator says the operation
     usually needs (``operator list''), or grant things whose names appear in the task text.
 \end{description}
@@ -213,6 +215,14 @@ The yes/no scorers are fast but grant much more than needed when used without ex
 
 \begin{table}[H]\centering\small\input{generated/quality.tex}
 \caption{All models on our 288 test tasks. ``instant'' means no model is involved.}\end{table}
+
+\paragraph{The models beat chance; the small yes/no scorers barely do.}
+A coin flip that grants each permission with a 25\%, 50\% or 75\% chance shows what no understanding of the task looks like.
+Qwen3-8B with our rule beats all three on every measure: fewer attacks get through, more normal tasks finish,
+and it grants less extra, misses less, and is exactly right more often (each difference holds with at least 99.9\%
+confidence, after correcting for running several tests). The untrained small yes/no scorer Qwen3-Reranker-0.6B is
+only modestly better than a coin flip: it grants 40\% extra, compared with 51\% for the 50\% coin flip, and is
+exactly right on fewer than 1\% of tasks, like the coin flips. This is why we are now training those scorers on task-specific data.
 
 \paragraph{The results hold up on outside data.}
 FORTIS is a benchmark built by another research group for the same question: does an agent pick the least

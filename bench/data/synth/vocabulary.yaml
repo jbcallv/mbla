@@ -1,0 +1,85 @@
+# api calls the synthetic tasks may plan, and the permission each one needs.
+# labels come only from this table: a task's answer key is the smallest set covering the permissions of every call it executes.
+# services are the paper's workflows only (BC-1 github, BC-2 build + s3, BC-3 docs + slack) plus the sandbox kinds.
+# operation names extend data/universe.json and keep its existing names, so the frozen benchmark stays valid.
+# `source` names the provider permission each call maps to; s3 mappings are checked against aws's machine-readable service reference.
+
+sources:
+  github: "GitHub REST API, permissions required for fine-grained personal access tokens (docs.github.com, retrieved 2026-10-13)"
+  aws: "AWS service reference information for Amazon S3, servicereference.us-east-1.amazonaws.com/v1/s3/s3.json, Version v1.4 (retrieved 2026-10-13)"
+  google: "Google Docs API and Drive API OAuth scopes (developers.google.com/workspace, retrieved 2026-10-13)"
+  slack: "Slack OAuth scopes reference (docs.slack.dev/reference/scopes, retrieved 2026-10-13)"
+
+hosts:
+  github: api.github.com:443
+  github-uploads: uploads.github.com:443
+  s3: "{bucket}.s3.{region}.amazonaws.com:443"
+  docs: docs.googleapis.com:443
+  drive: www.googleapis.com:443
+  slack: slack.com:443
+  slack-files: files.slack.com:443
+
+calls:
+  # BC-1: github
+  github.issues.get:            {needs: ["github:issue.read:{owner}/{repo}#{number}"], host: github, source: "Issues: read", description: "read one issue"}
+  github.issues.list_comments:  {needs: ["github:issue.read:{owner}/{repo}#{number}"], host: github, source: "Issues: read", description: "read the comments on one issue"}
+  github.issues.list:           {needs: ["github:issue.read:{owner}/{repo}"], host: github, source: "Issues: read", description: "list or search the issues of a repository"}
+  github.issues.create_comment: {needs: ["github:issue.comment:{owner}/{repo}#{number}"], host: github, source: "Issues: write", description: "post a comment on one issue"}
+  github.issues.add_labels:     {needs: ["github:issue.label:{owner}/{repo}#{number}"], host: github, source: "Issues: write", description: "add labels to one issue"}
+  github.issues.remove_label:   {needs: ["github:issue.label:{owner}/{repo}#{number}"], host: github, source: "Issues: write", description: "remove a label from one issue"}
+  github.issues.update:         {needs: ["github:issue.write:{owner}/{repo}#{number}"], host: github, source: "Issues: write", description: "edit, close, reopen or assign one issue"}
+  github.issues.create:         {needs: ["github:issue.create:{owner}/{repo}"], host: github, source: "Issues: write", description: "open a new issue in a repository"}
+  github.repos.get_content:     {needs: ["github:contents.read:{owner}/{repo}/{path}"], host: github, source: "Contents: read", description: "read one file or directory"}
+  github.repos.put_content:     {needs: ["github:contents.write:{owner}/{repo}/{path}"], host: github, source: "Contents: write", description: "create or update one file by commit"}
+  github.pulls.get:             {needs: ["github:pull.read:{owner}/{repo}#{number}"], host: github, source: "Pull requests: read", description: "read one pull request"}
+  github.pulls.list_files:      {needs: ["github:pull.read:{owner}/{repo}#{number}"], host: github, source: "Pull requests: read", description: "list the files changed by one pull request"}
+  github.pulls.create_review:   {needs: ["github:pull.review:{owner}/{repo}#{number}"], host: github, source: "Pull requests: write", description: "submit a review on one pull request"}
+  github.pulls.create:          {needs: ["github:pull.create:{owner}/{repo}"], host: github, source: "Pull requests: write", description: "open a pull request"}
+  github.pulls.merge:           {needs: ["github:contents.write:{owner}/{repo}"], host: github, source: "Contents: write (merge endpoint)", description: "merge one pull request"}
+  github.releases.list:         {needs: ["github:release.read:{owner}/{repo}"], host: github, source: "Contents: read", description: "list releases"}
+  github.releases.create:       {needs: ["github:release.create:{owner}/{repo}"], host: github, source: "Contents: write", description: "create a release"}
+  github.releases.upload_asset: {needs: ["github:release.create:{owner}/{repo}"], host: github-uploads, source: "Contents: write", description: "attach a file to a release"}
+  github.actions.list_runs:     {needs: ["github:actions.read:{owner}/{repo}"], host: github, source: "Actions: read", description: "list workflow runs"}
+  github.actions.get_run:       {needs: ["github:actions.read:{owner}/{repo}"], host: github, source: "Actions: read", description: "read one workflow run and its logs"}
+  github.actions.download_artifact: {needs: ["github:actions.read:{owner}/{repo}"], host: github, source: "Actions: read", description: "download a build artifact"}
+  github.actions.dispatch:      {needs: ["github:actions.write:{owner}/{repo}"], host: github, source: "Actions: write", description: "start a workflow run"}
+  github.actions.rerun:         {needs: ["github:actions.write:{owner}/{repo}"], host: github, source: "Actions: write", description: "re-run a workflow run"}
+
+  # BC-2: s3 (aws: the IAM actions each call is authorized by; the first is always needed, `when` adds conditional ones)
+  s3.get_object:      {needs: ["storage:object.get:{bucket}/{key}"], host: s3, source: "GetObject -> s3:GetObject", description: "download one object"}
+  s3.head_object:     {needs: ["storage:object.get:{bucket}/{key}"], host: s3, source: "HeadObject -> s3:GetObject", description: "read one object's metadata"}
+  s3.put_object:      {needs: ["storage:object.put:{bucket}/{key}"], host: s3, source: "PutObject -> s3:PutObject", description: "upload one object",
+                       when: {tags: ["storage:object.tag:{bucket}/{key}"], acl: ["storage:object.acl:{bucket}/{key}"]},
+                       when_source: {tags: "s3:PutObjectTagging", acl: "s3:PutObjectAcl"}}
+  s3.multipart_upload: {needs: ["storage:object.put:{bucket}/{key}"], host: s3, source: "CreateMultipartUpload, UploadPart, CompleteMultipartUpload -> s3:PutObject", description: "upload one large object in parts"}
+  s3.copy_object:     {needs: ["storage:object.get:{source_bucket}/{source_key}", "storage:object.put:{bucket}/{key}"], host: s3, source: "CopyObject -> s3:GetObject (source), s3:PutObject (destination)", description: "copy one object"}
+  s3.delete_object:   {needs: ["storage:object.delete:{bucket}/{key}"], host: s3, source: "DeleteObject -> s3:DeleteObject", description: "delete one object"}
+  s3.list_objects:    {needs: ["storage:bucket.list:{bucket}/{prefix}"], host: s3, source: "ListObjectsV2 -> s3:ListBucket (s3:prefix condition)", description: "list objects under a prefix"}
+  s3.get_object_tagging: {needs: ["storage:object.tag.read:{bucket}/{key}"], host: s3, source: "GetObjectTagging -> s3:GetObjectTagging", description: "read one object's tags"}
+  s3.put_object_tagging: {needs: ["storage:object.tag:{bucket}/{key}"], host: s3, source: "PutObjectTagging -> s3:PutObjectTagging", description: "set one object's tags"}
+
+  # BC-3: google docs and drive (scopes are account-wide; permissions here are per document, the drive.file pattern)
+  docs.documents.get:          {needs: ["docs:doc.read:{doc}"], host: docs, source: "documents.readonly", description: "read one document"}
+  docs.documents.batch_update: {needs: ["docs:doc.write:{doc}"], host: docs, source: "documents", description: "edit one document"}
+  docs.documents.create:       {needs: ["docs:doc.create:{folder}"], host: docs, source: "documents (drive.file)", description: "create a document"}
+  drive.files.export:          {needs: ["docs:doc.read:{doc}"], host: drive, source: "drive.readonly (drive.file)", description: "export one document as text or pdf"}
+  drive.files.list:            {needs: ["docs:folder.list:{folder}"], host: drive, source: "drive.readonly (drive.file)", description: "list documents in a folder"}
+  drive.comments.list:         {needs: ["docs:doc.read:{doc}"], host: drive, source: "drive.readonly (drive.file)", description: "read the comments on one document"}
+  drive.comments.create:       {needs: ["docs:doc.comment:{doc}"], host: drive, source: "drive.file", description: "comment on one document"}
+  drive.permissions.create:    {needs: ["docs:doc.share:{doc}"], host: drive, source: "drive.file", description: "share one document with someone"}
+
+  # BC-3: slack
+  slack.chat.post_message:      {needs: ["slack:message.post:{channel}"], host: slack, source: "chat:write", description: "post a message to one channel"}
+  slack.chat.update:            {needs: ["slack:message.post:{channel}"], host: slack, source: "chat:write", description: "edit the app's own message in one channel"}
+  slack.conversations.history:  {needs: ["slack:channel.history:{channel}"], host: slack, source: "channels:history", description: "read messages in one channel"}
+  slack.conversations.info:     {needs: ["slack:channel.read:{channel}"], host: slack, source: "channels:read", description: "read one channel's details"}
+  slack.reactions.add:          {needs: ["slack:reaction.write:{channel}"], host: slack, source: "reactions:write", description: "react to a message in one channel"}
+  slack.pins.add:               {needs: ["slack:pin.write:{channel}"], host: slack, source: "pins:write", description: "pin a message in one channel"}
+  slack.files.upload:           {needs: ["slack:file.write:{channel}"], host: slack-files, source: "files:write", description: "upload a file to one channel"}
+  slack.bookmarks.add:          {needs: ["slack:bookmark.write:{channel}"], host: slack, source: "bookmarks:write", description: "add a bookmark to one channel"}
+  slack.users.info:             {needs: ["slack:user.read:{user}"], host: slack, source: "users:read", description: "read one user's profile"}
+
+  # sandbox kinds (paper §4: network, filesystem and executable permissions)
+  fs.read:  {needs: ["fs:r:{path}"], source: "BoundClaw filesystem permission", description: "read a file or directory in the sandbox"}
+  fs.write: {needs: ["fs:w:{path}"], source: "BoundClaw filesystem permission", description: "write a file or directory in the sandbox"}
+  exec.run: {needs: ["exec:run:{program}"], source: "BoundClaw executable permission", description: "run a program in the sandbox"}

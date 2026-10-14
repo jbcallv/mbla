@@ -2,6 +2,7 @@ package mbla
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -89,5 +90,34 @@ func TestDescribe(t *testing.T) {
 	glossary := Glossary{"github:issue.read": "read one issue"}
 	if got := DescribePermission(MustParse("github:issue.read:a/b#1"), glossary); got != "github:issue.read:a/b#1 (read one issue)" {
 		t.Errorf("describe permission: %q", got)
+	}
+}
+
+func TestRandomScorer(t *testing.T) {
+	candidates := MustParsePolicy("github:issue.read:acme/web#42", "github:issue.comment:acme/web#1", "fs:w:/workspace")
+	ctx := context.Background()
+	first, _ := Random{Seed: 1}.Score(ctx, triageRequest, candidates)
+	again, _ := Random{Seed: 1}.Score(ctx, triageRequest, candidates)
+	other, _ := Random{Seed: 2}.Score(ctx, triageRequest, candidates)
+	expectScores(t, "same seed", again, first)
+	if first[0] == other[0] && first[1] == other[1] && first[2] == other[2] {
+		t.Error("different seeds gave identical scores")
+	}
+	for _, score := range first {
+		if score < 0 || score >= 1 {
+			t.Errorf("score %v outside [0, 1)", score)
+		}
+	}
+}
+
+func TestRandomScorerIsUniform(t *testing.T) {
+	below := 0
+	for index := range 10000 {
+		if uniform(strconv.Itoa(index)) < 0.25 {
+			below++
+		}
+	}
+	if below < 2350 || below > 2650 {
+		t.Errorf("got %d of 10000 below 0.25, want about 2500", below)
 	}
 }

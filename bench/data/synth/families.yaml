@@ -1,0 +1,56 @@
+# task families for the fine-tuning dataset (research/finetune_dataset.md, D-21).
+# one family = one kind of delegated work inside one of the paper's workflows (§6.1).
+# `calls` limits which vocabulary calls a generated plan may use; `seeds` names the benchmark templates shown as examples.
+# the held-out families (no training data) are drawn by holdout.py with a fixed seed, stratified by workflow.
+
+workflows:
+  BC-1: {receiver: triage-agent, delegator: user-agent, protocol: mcp, operation: github.triage}
+  BC-2: {receiver: build-agent, delegator: ci-agent, protocol: a2a, operation: build.run}
+  BC-3: {receiver: docs-agent, delegator: assistant-agent, protocol: mcp, operation: docs.fetch}
+
+families:
+  # BC-1: github
+  - {id: issue-summarize, workflow: BC-1, description: "read one issue, possibly with its comments, and summarize it", calls: [github.issues.get, github.issues.list_comments], seeds: [bc1-read]}
+  - {id: issue-label, workflow: BC-1, description: "read one issue and apply or remove a label", calls: [github.issues.get, github.issues.add_labels, github.issues.remove_label], seeds: [bc1-read-label]}
+  - {id: issue-label-blind, workflow: BC-1, description: "apply a label to an issue without reading it", calls: [github.issues.add_labels], seeds: [bc1-label-only]}
+  - {id: issue-duplicate, workflow: BC-1, description: "compare two issues and label the duplicate", calls: [github.issues.get, github.issues.add_labels], seeds: [bc1-label-second, bc1-read-two]}
+  - {id: issue-reply, workflow: BC-1, description: "read an issue and post a reply comment", calls: [github.issues.get, github.issues.list_comments, github.issues.create_comment]}
+  - {id: issue-close, workflow: BC-1, description: "confirm an issue is resolved and close it", calls: [github.issues.get, github.issues.update]}
+  - {id: issue-file, workflow: BC-1, description: "read a file in a repository and open a new issue about a problem in it", calls: [github.repos.get_content, github.issues.create]}
+  - {id: issue-sweep, workflow: BC-1, description: "list a repository's issues and label the ones that match a description", calls: [github.issues.list, github.issues.add_labels]}
+  - {id: code-question, workflow: BC-1, description: "read one or two files in a repository to answer a question", calls: [github.repos.get_content]}
+  - {id: pr-review, workflow: BC-1, description: "read a pull request and its changed files and submit a review", calls: [github.pulls.get, github.pulls.list_files, github.pulls.create_review]}
+  - {id: pr-to-issue, workflow: BC-1, description: "read a pull request and post a summary on the issue it fixes", calls: [github.pulls.get, github.issues.create_comment]}
+  - {id: release-draft, workflow: BC-1, description: "read recent releases and merged pull requests, then create a release", calls: [github.releases.list, github.pulls.get, github.releases.create]}
+  - {id: ci-diagnose, workflow: BC-1, description: "read a failed workflow run and comment the cause on an issue", calls: [github.actions.list_runs, github.actions.get_run, github.issues.create_comment]}
+  - {id: ci-rerun, workflow: BC-1, description: "check a failed workflow run and re-run it", calls: [github.actions.get_run, github.actions.rerun]}
+  - {id: docs-fix, workflow: BC-1, description: "read a file in a repository and commit a small fix to it", calls: [github.repos.get_content, github.repos.put_content]}
+
+  # BC-2: build and s3
+  - {id: run-tests, workflow: BC-2, description: "run the test suite over the checked-out source and report failures", calls: [fs.read, exec.run], seeds: [bc2-test]}
+  - {id: build, workflow: BC-2, description: "build the project and write the artifact to an output directory", calls: [fs.read, exec.run, fs.write], seeds: [bc2-build, bc2-build-test]}
+  - {id: lint, workflow: BC-2, description: "run a style or static check over the source and list problems", calls: [fs.read, exec.run], seeds: [bc2-lint]}
+  - {id: upload, workflow: BC-2, description: "upload one built artifact to a bucket prefix", calls: [fs.read, s3.put_object], seeds: [bc2-deploy-one]}
+  - {id: upload-verify, workflow: BC-2, description: "upload an artifact, then download or inspect it to confirm it arrived intact", calls: [fs.read, s3.put_object, s3.get_object, s3.head_object], seeds: [bc2-deploy-verify]}
+  - {id: upload-tagged, workflow: BC-2, description: "upload an artifact with tags or an ACL, or tag an existing object", calls: [fs.read, s3.put_object, s3.put_object_tagging]}
+  - {id: upload-many, workflow: BC-2, description: "upload two or three artifacts to the same prefix", calls: [fs.read, s3.put_object], seeds: [bc2-deploy-two]}
+  - {id: upload-large, workflow: BC-2, description: "upload one large artifact in parts", calls: [fs.read, s3.multipart_upload]}
+  - {id: promote, workflow: BC-2, description: "copy a tested artifact from a staging bucket to a production bucket", calls: [s3.head_object, s3.copy_object]}
+  - {id: cleanup, workflow: BC-2, description: "list objects under a prefix and delete old ones", calls: [s3.list_objects, s3.delete_object]}
+  - {id: fetch-config, workflow: BC-2, description: "download a configuration object into the workspace before building", calls: [s3.get_object, fs.write, exec.run]}
+  - {id: inventory, workflow: BC-2, description: "list a prefix, read object tags, and write a report to the workspace", calls: [s3.list_objects, s3.get_object_tagging, fs.write]}
+  - {id: ci-artifact-publish, workflow: BC-2, description: "download a CI build artifact and publish it to a bucket", calls: [github.actions.download_artifact, fs.write, s3.put_object]}
+
+  # BC-3: docs and slack
+  - {id: doc-summarize, workflow: BC-3, description: "read one document and summarize it", calls: [docs.documents.get, drive.files.export], seeds: [bc3-read-one, bc3-extract]}
+  - {id: doc-combine, workflow: BC-3, description: "read two or three documents and write one combined summary", calls: [docs.documents.get], seeds: [bc3-read-two]}
+  - {id: doc-to-slack, workflow: BC-3, description: "read a document and post its action items to a channel", calls: [docs.documents.get, slack.chat.post_message]}
+  - {id: doc-comment, workflow: BC-3, description: "read a document and leave review comments on it", calls: [docs.documents.get, drive.comments.list, drive.comments.create]}
+  - {id: doc-edit, workflow: BC-3, description: "read a document and edit a section of it", calls: [docs.documents.get, docs.documents.batch_update]}
+  - {id: slack-to-doc, workflow: BC-3, description: "read a channel's recent messages and create a document of notes", calls: [slack.conversations.history, docs.documents.create]}
+  - {id: folder-index, workflow: BC-3, description: "list the documents in a folder and post an index to a channel", calls: [drive.files.list, slack.chat.post_message]}
+  - {id: slack-post, workflow: BC-3, description: "post a prepared message to one channel", calls: [slack.chat.post_message], seeds: [bc3-post-one]}
+  - {id: slack-post-many, workflow: BC-3, description: "post the same message to two or three channels", calls: [slack.chat.post_message], seeds: [bc3-post-two]}
+  - {id: slack-digest, workflow: BC-3, description: "read one channel and post a digest to another", calls: [slack.conversations.history, slack.conversations.info, slack.chat.post_message]}
+  - {id: slack-file, workflow: BC-3, description: "upload a file from the workspace to a channel", calls: [fs.read, slack.files.upload]}
+  - {id: slack-announce, workflow: BC-3, description: "post an announcement, then pin or bookmark it", calls: [slack.chat.post_message, slack.pins.add, slack.bookmarks.add]}

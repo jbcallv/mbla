@@ -8,6 +8,11 @@ methods:
   set-only: {scorer: set-only, paradigm: bound}
   manifest-only: {scorer: manifest-only, paradigm: baseline}
   lexical: {scorer: lexical, paradigm: baseline}
+  # coin-flip controls: each candidate gets a seeded uniform score; fixed cutoffs grant about 25%, 50% or 75% of candidates.
+  # admit = initial, so the backup list adds nothing beyond the coin flips.
+  random-25: {scorer: random, paradigm: chance, seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fixed_thresholds: {initial: 0.75, admit: 0.75}}
+  random-50: {scorer: random, paradigm: chance, seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fixed_thresholds: {initial: 0.5, admit: 0.5}}
+  random-75: {scorer: random, paradigm: chance, seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fixed_thresholds: {initial: 0.25, admit: 0.25}}
 
   laya:
     paradigm: decision

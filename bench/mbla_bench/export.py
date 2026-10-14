@@ -74,8 +74,12 @@ def recovery_rows():
     return rows
 
 
+# on FORTIS the coin flips coincide: task 1 picks the top random score whatever the cutoff, and every cutoff over-grants task 2.
+FORTIS_DUPLICATES = {"random-25", "random-75"}
+
+
 def fortis_rows():
-    task1 = {entry["method"]: entry for entry in json.loads((TABLES / "fortis1_fortis_metrics.json").read_text())}
+    task1 = {entry["method"]: entry for entry in json.loads((TABLES / "fortis1_fortis_metrics.json").read_text()) if entry["method"] not in FORTIS_DUPLICATES}
     task2 = {entry["method"]: entry for entry in json.loads((TABLES / "fortis2_fortis_metrics.json").read_text())}
     order = sorted(task1, key=lambda method: -task1[method]["exact_match"])
     return [
@@ -125,7 +129,7 @@ def latex_cell(value):
     return f"{value:.0f}" if value >= 10 else f"{value:.3f}"
 
 
-KIND_NAMES = {"decision": "yes/no scorer", "generative": "LLM", "baseline": "simple rule", "bound": "no reduction", "capmas": "CAPMAS"}
+KIND_NAMES = {"decision": "yes/no scorer", "generative": "LLM", "baseline": "simple rule", "bound": "no reduction", "capmas": "CAPMAS", "chance": "coin flip"}
 
 
 def percent(value):

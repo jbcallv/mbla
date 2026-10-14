@@ -7,6 +7,8 @@ from mbla_bench import data, report, stats
 
 M1_METRICS = ["mac_C", "eac_C", "eac", "mac"]
 M1_REFERENCE = "clm-zs"
+# added after the main results (D-22); kept out of the pre-registered test families so their Holm corrections don't change.
+POST_HOC = ["random-25", "random-50", "random-75"]
 CAP = 3
 
 
@@ -87,11 +89,19 @@ SYSTEMS = {
     "mbla (qwen3-8b, admitted)": ("qwen3-8b", "admitted"),
     "capmas as published (no recovery)": ("capmas", "none"),
     "capmas scorer + mbla recovery": ("capmas-scores", "admitted"),
+    "coin flip, grants 25%": ("random-25", "admitted"),
+    "coin flip, grants 50%": ("random-50", "admitted"),
+    "coin flip, grants 75%": ("random-75", "admitted"),
 }
 SYSTEM_PAIRS = [
     ("mbla (qwen3-8b, admitted)", "capmas as published (no recovery)"),
     ("mbla (qwen3-8b, admitted)", "capmas scorer + mbla recovery"),
     ("capmas scorer + mbla recovery", "capmas as published (no recovery)"),
+]
+COIN_FLIP_PAIRS = [
+    ("mbla (qwen3-8b, admitted)", "coin flip, grants 25%"),
+    ("mbla (qwen3-8b, admitted)", "coin flip, grants 50%"),
+    ("mbla (qwen3-8b, admitted)", "coin flip, grants 75%"),
 ]
 SYSTEM_RECOVERY_METRICS = ["ras_recovery", "success"]
 SYSTEM_QUALITY_METRICS = ["eac_C", "mac_C", "exact_match"]
@@ -111,10 +121,10 @@ def system_rows(quality, recovery, name):
     return merged
 
 
-def system_comparisons(quality, recovery):
+def system_comparisons(quality, recovery, pairs):
     available = set(quality["method"])
     rows = []
-    for first, second in SYSTEM_PAIRS:
+    for first, second in pairs:
         if SYSTEMS[first][0] not in available or SYSTEMS[second][0] not in available:
             continue
         for metric in SYSTEM_RECOVERY_METRICS + SYSTEM_QUALITY_METRICS:
@@ -144,12 +154,15 @@ def main():
     arguments = parser.parse_args()
     items = data.items_by_id(arguments.items)
     e1_quality, e1_recovery = frames_for("e1", items)
-    write(m1_comparisons(e1_quality), "significance_m1_quality")
-    write(exact_match_tests(e1_quality), "significance_m1_exact_match")
-    write(m3_comparisons(e1_recovery), "significance_m3_recovery")
+    registered_quality = e1_quality[~e1_quality["method"].isin(POST_HOC)]
+    registered_recovery = e1_recovery[~e1_recovery["method"].isin(POST_HOC)]
+    write(m1_comparisons(registered_quality), "significance_m1_quality")
+    write(exact_match_tests(registered_quality), "significance_m1_exact_match")
+    write(m3_comparisons(registered_recovery), "significance_m3_recovery")
     write(m1_comparisons(frames_for("e4", items)[0]), "significance_m5_backbone")
     write(m4_comparisons(frames_for("e3", items)[0]), "significance_m4_inputs")
-    write(system_comparisons(e1_quality, e1_recovery), "significance_capmas_systems")
+    write(system_comparisons(e1_quality, e1_recovery, SYSTEM_PAIRS), "significance_capmas_systems")
+    write(system_comparisons(e1_quality, e1_recovery, COIN_FLIP_PAIRS), "significance_coin_flip")
 
 
 if __name__ == "__main__":

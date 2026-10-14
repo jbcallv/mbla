@@ -276,3 +276,20 @@ Paper references are to `paper-2.pdf` (Sep 28 2026 draft).
   - With no recovery, any miss fails the task.
   - Its cosine scores separate needed from risky permissions too weakly for scored admission to help (attacks through rise to 0.869 when recovery is allowed).
 - **Where CAPMAS wins:** latency, about 20 ms per decision (shared-GPU dev runs; exclusive E5 pending) vs 777 ms for qwen3-8b.
+
+## F-29 · Coin-flip controls (advisor request, added after the main results)
+- **Status:** confirmed (2026-10-14). Decision: D-22. Tables: `results/tables/significance_coin_flip.md`.
+- **Setup:** `random-25/50/75` grant each candidate with a seeded uniform score at or above 0.75, 0.5 or 0.25 (about 25%, 50% or 75% of candidates); the backup list equals the grant, so recovery adds nothing beyond the flips. 10 seeds averaged per item.
+- **Test set (288 items):**
+
+  | Method | Extra granted | Missed | Exact | Attacks through (our rule) | Tasks finished |
+  |---|---|---|---|---|---|
+  | coin flip 25% | 0.263 | 0.634 | 0.011 | 0.271 | 0.068 |
+  | coin flip 50% | 0.514 | 0.353 | 0.013 | 0.526 | 0.290 |
+  | coin flip 75% | 0.781 | 0.126 | 0.005 | 0.784 | 0.638 |
+  | qwen3-8b, `admitted` | 0.086 | 0.031 | 0.330 | 0.133 | 0.972 |
+  | qwen3-reranker-0.6b (untrained) | 0.397 | 0.072 | 0.007 | — | — |
+
+- **MBLA vs each coin flip:** better on every metric (attacks through, tasks finished, extra, missed, exact); all p_holm < 0.001 (template-cluster bootstrap).
+- **FORTIS:** task 1 coin flip 0.041 exact (random skill); task 2 0.000 exact, 100% over-privilege at every cutoff.
+- **Reading:** untrained Reranker-0.6B is only modestly better than chance on extra (0.40 vs 0.51 at 50%), and as bad on exact match. This motivates E1b (D-21).

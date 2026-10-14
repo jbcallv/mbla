@@ -183,3 +183,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Training:** learning rate chosen from {5e-6, 1e-5, 2e-5} on validation; cosine decay, 3% warmup, 2 epochs; 3 seeds.
 - **Evaluation:** frozen test set, held-out families, FORTIS, AuthBench, mostargate. Metrics and statistics as in D-12/D-20.
 - **Changing this:** any change after generation starts is logged here with its reason, before the affected results are seen.
+
+## D-22 · Coin-flip controls
+- **Decided:** 2026-10-14, at the advisor's suggestion. Added **after** the main results were known; reported as a sanity control, not a pre-registered comparison.
+- **What:** seeded uniform scores per (task, candidate) via SHA-256, so runs reproduce. Fixed cutoffs 0.75, 0.5 and 0.25 grant about 25%, 50% and 75% of candidates (cautious, even, generous). The admit cutoff equals the grant cutoff. 10 seeds, averaged per item. Not tuned.
+- **Comparisons:** MBLA recommended (qwen3-8b, `admitted`, cap 3) vs each coin flip, on attacks through, tasks finished, extra, missed and exact match. Paired template-cluster bootstrap, Holm within each metric.
+- **Note:** the advisor's note says "gaussian"; a uniform distribution is what gives fixed grant rates (a 0.5 cutoff grants 50% only under a symmetric distribution, and a uniform one makes 0.25 and 0.75 mean 75% and 25%).

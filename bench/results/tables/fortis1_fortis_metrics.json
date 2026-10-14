@@ -180,6 +180,36 @@
     "fail_rate": 0.3920552677029361
   },
   {
+    "method": "random-25",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
+  },
+  {
+    "method": "random-50",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
+  },
+  {
+    "method": "random-75",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
+  },
+  {
     "method": "set-only",
     "items": 579,
     "exact_match": 0.017271157167530225,

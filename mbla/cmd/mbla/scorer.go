@@ -23,10 +23,10 @@ type scorerConfig struct {
 
 func addScorerFlags(flags *flag.FlagSet) *scorerConfig {
 	config := &scorerConfig{}
-	flags.StringVar(&config.name, "scorer", "set-only", "set-only | manifest-only | lexical | systemone | decision | chat")
+	flags.StringVar(&config.name, "scorer", "set-only", "set-only | manifest-only | lexical | random | systemone | decision | chat")
 	flags.StringVar(&config.endpoint, "endpoint", "", "model endpoint url")
 	flags.StringVar(&config.model, "model", "", "model name (chat) or label (systemone, decision)")
-	flags.IntVar(&config.seed, "seed", 0, "sampling seed for chat scorers")
+	flags.IntVar(&config.seed, "seed", 0, "sampling seed for chat and random scorers")
 	flags.StringVar(&config.glossaryPath, "glossary", "", "universe.json with permission descriptions")
 	flags.StringVar(&config.extraBody, "extra", "", "json object merged into chat request bodies")
 	flags.DurationVar(&config.timeout, "timeout", 120*time.Second, "per-request timeout")
@@ -47,6 +47,8 @@ func newScorer(config scorerConfig) (mbla.Scorer, error) {
 		return mbla.ManifestOnly{}, nil
 	case "lexical":
 		return mbla.Lexical{}, nil
+	case "random":
+		return mbla.Random{Seed: config.seed}, nil
 	case "systemone":
 		return &mbla.SystemOne{Label: config.model, Endpoint: config.endpoint, APIKey: apiKey, Glossary: glossary, Client: client}, nil
 	case "decision":

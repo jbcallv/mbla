@@ -1,0 +1,16 @@
+comparison,metric,difference,low,high,p,p_holm
+"mbla (qwen3-8b, admitted) - coin flip, grants 25%",ras_recovery,-0.13805555555555554,-0.18325985863095234,-0.0748580729166667,0.0004,0.0004
+"mbla (qwen3-8b, admitted) - coin flip, grants 25%",success,0.9045138888888888,0.8479166666666668,0.9461805555555556,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 25%",eac_C,-0.17669253714392602,-0.21043023989898987,-0.1471820344650206,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 25%",mac_C,-0.6033950617283951,-0.6435185185185185,-0.5617283950617284,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 25%",exact_match,0.31875000000000003,0.15856192129629634,0.481484375,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 50%",ras_recovery,-0.3934375,-0.4482182384672619,-0.3295354662698413,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 50%",success,0.6826388888888889,0.6301996527777778,0.7329947916666666,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 50%",eac_C,-0.4280536515953183,-0.4713219362941585,-0.38259229697771363,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 50%",mac_C,-0.32245370370370374,-0.3648206018518518,-0.2819444444444445,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 50%",exact_match,0.31666666666666665,0.15451388888888887,0.4794039351851852,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 75%",ras_recovery,-0.6507291666666667,-0.6970753205128204,-0.5910817504084968,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 75%",success,0.3340277777777778,0.2833333333333333,0.3753472222222223,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 75%",eac_C,-0.6942987914862914,-0.7219282620350328,-0.6690616553264123,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 75%",mac_C,-0.09513888888888887,-0.12407407407407407,-0.062037037037037036,0.0,0.0
+"mbla (qwen3-8b, admitted) - coin flip, grants 75%",exact_match,0.3246527777777778,0.1635387731481482,0.48717013888888866,0.0,0.0

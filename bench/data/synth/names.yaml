@@ -1,0 +1,13 @@
+# name pools for synthetic tasks. disjoint from the benchmark pools (data/templates/delegations.yaml), checked by decontaminate.py.
+owner: [northwind, contoso, fabrikam, tailspin, adatum, litware, proseware, woodgrove, lucerne, alpine, coho, margie, trey, wingtip, fourthcoffee, blueyonder]
+repo: [billing, gateway, scheduler, ledger, portal, crawler, notifier, search, payments, inventory, auth-service, analytics, frontend, backend, toolkit, pipeline]
+label: [triage, wontfix, duplicate, help-wanted, performance, vuln, ux, flaky-test, blocked, in-progress, p1, p2, needs-design, docs-needed, backport, stale]
+bucket_suffix: [artifacts, staging, prod, backups, logs, assets, dist, cache]
+key_prefix: [nightly, v2, ios, desktop, server, archive, candidates, hotfix]
+file: [server.tar.gz, client.zip, bundle.tgz, installer.msi, firmware.bin, report.pdf, manifest.json, assets.zip, wheels.tar, release-notes.md, sbom.json, checksums.txt]
+doc: [hiring-plan, postmortem-311, okr-draft, vendor-review, style-guide, sprint-23-notes, migration-runbook, pricing-memo, security-audit, faq-draft, offsite-agenda, eng-handbook]
+folder: [team-shared, planning, reviews, archive-2025, onboarding, legal]
+channel: [platform-team, deploys, support-escalations, random-chatter, leadership, data-eng, qa-reports, customer-success, launches, infra-alerts]
+user: [U04QX7Z2LMN, U07ABCD1234, U02ZZZ9YY88, U09KLMN4567, U05PQRS8901, U03TUVW2345]
+program: [/usr/bin/make, /usr/bin/python3, /usr/bin/npm, /usr/bin/go, /usr/bin/cargo, /usr/bin/pytest]
+region: [us-east-1, us-west-2, eu-west-1]
