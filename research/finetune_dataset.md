@@ -209,3 +209,17 @@ Dropped:
 - [D5] J. Cohen. A Coefficient of Agreement for Nominal Scales. Educational and Psychological Measurement, 1960.
 - [D6] J. R. Landis, G. G. Koch. The Measurement of Observer Agreement for Categorical Data. Biometrics, 1977.
 - [D7] C. J. Clopper, E. S. Pearson. The Use of Confidence or Fiducial Limits Illustrated in the Case of the Binomial. Biometrika, 1934.
+
+## Implementation (as built; `bench/mbla_bench/synth/`, `bench/data/synth/`)
+
+| Piece | File | Status and checks |
+|---|---|---|
+| Vocabulary | `data/synth/vocabulary.yaml`, `synth/vocabulary.py` | 52 calls. S3 mappings checked against AWS's service reference v1.4: 0 problems, and injected wrong mappings are caught. Each call adds `net:connect` for its host. Conditional S3 actions (tags, ACL) are added only when the call uses that feature, because AWS lists every action an operation *may* need. |
+| Labeler | `synth/label.py` | Key = minimal set covering every logged permission. Training label = for each key permission, the narrowest candidate covering it (candidates built exactly like `mbla.Candidates`; the Python port matches Go on 408/408 items). **Validation: call plans for the 17 templates reproduce the human-reviewed reference on 408/408 benchmark items.** Before narrowing to candidates, 14/17 template keys match exactly; the other 3 are strictly narrower (a file inside `/artifacts` instead of the directory). |
+| Mock execution | `synth/execute.py` | Per-argument format rules (GitHub, S3 and Slack naming rules; sandbox paths limited to /workspace, /artifacts and /tmp) plus grounding: every resource a call touches must appear in the task text or arguments. Passes all 408 benchmark items and rejects malformed or ungrounded plans. |
+| Sender holdings | `synth/holdings.py` | narrow: up to one sibling operation per needed capability (same resource) plus one same-operation-elsewhere permission. medium: needed and sibling operations widened to the container (repository, bucket prefix, or all docs/channels). broad: widened to organisation or bucket plus `net:connect:*`, `fs:r:*`, `exec:run:*`. Runtime holdings as in the benchmark. Siblings are operations sharing a named resource template (`{doc}`, `{channel}`, `{owner}/{repo}#{number}`, …). |
+| Families | `data/synth/families.yaml`, `synth/holdout.py` | 40 families (BC-1 15, BC-2 13, BC-3 12). Held out with seed "D-21", 3/3/2 per workflow: ci-diagnose, issue-reply, pr-review, cleanup, promote, upload-many, doc-combine, slack-post. |
+| Names | `data/synth/names.yaml` | Disjoint from the benchmark pools (checked: 0 shared values). |
+| Writer prompt | `synth/write.py` | 5 tasks per request, constrained by a JSON schema (call names limited to the family's calls). Prompt text: report Appendix A. |
+| Judge prompt | `synth/judge.py` | completes / unneeded / ambiguous. Accept only if both judges return completes = true, unneeded = [] and ambiguous = false. |
+| Still to build | — | injection writer, 8-gram decontamination, near-duplicate filter, assembly and splits, audit sheet, training scripts. |

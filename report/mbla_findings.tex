@@ -321,6 +321,97 @@ Qwen3-30B-A3B (about 0.3 seconds) is the better fast choice.
 \begin{table}[H]\centering\small\input{generated/audit.tex}
 \caption{How well the two reviewers agreed before settling differences.}\label{tab:audit}\end{table}
 
+\section{How the test benchmark was built}
+The 408 test and practice tasks come from the three example workflows in the BoundClaw paper: an assistant
+that triages GitHub issues (BC-1), a build agent that compiles code and uploads the result to Amazon S3
+storage (BC-2), and an assistant that reads Google Docs and posts to Slack (BC-3).
+\begin{enumerate}
+  \item \textbf{Handoffs.} For each place in those workflows where one agent hands work to another, we wrote
+    down what the sender holds, what the receiving machine's operator allows, and the operator's list of
+    what that operation usually needs.
+  \item \textbf{Task templates.} 17 kinds of task (for example ``read issue N and label it L''), each with
+    three different wordings and a hand-written answer key. 12 templates are used for testing and 5 for practice
+    (tuning cutoffs); no template appears in both.
+  \item \textbf{Filling in names.} Each template is filled with 4 sets of names (company, repository,
+    issue number, bucket, document, channel), drawn from fixed lists with a fixed random seed.
+  \item \textbf{How much the sender holds.} Each filled task appears three times: the sender holds
+    a little more than needed (\emph{narrow}), everything in the same repository, bucket or workspace
+    (\emph{medium}), or everything in the organisation plus any network host, file and program (\emph{broad}).
+  \item \textbf{Planted attacks.} Each handoff lists attacks a compromised receiver might try (read a private
+    repository, write to production, send data to an outside server). Each task appears once as is and once with
+    one attack's instruction hidden in its text. Only attacks the sender could actually enable are kept.
+  \item \textbf{Human check and freeze.} Two reviewers (Joseph and Alvi) independently marked which permissions
+    each task needs, then settled disagreements together (Table~\ref{tab:audit}). The task files were then
+    locked with checksums before any model saw the test tasks.
+\end{enumerate}
+In total: 17 templates $\times$ 4 name sets $\times$ 3 holding levels $\times$ 2 (with and without attack) =
+408 tasks, 288 for testing and 120 for practice.
+
+\section{How we are building the training data}
+\emph{Status: being built. Nothing here has been used to train a model yet, and every rule below was fixed
+before generation started.}
+
+The fast yes/no scorers grant too much when used untrained, only modestly better than a coin flip. To test whether
+training fixes this, we need training tasks. No public dataset has our setup (the sender's holdings as the
+choices, receiver limits, planted attacks), so we are building one, following the methods of recent
+papers that did the same for related problems~\cite{taskcond,authbench,toolpriv,noyan,astra}.
+
+\paragraph{What it contains.} 2,000 tasks: 1,500 for training, 300 for checking training progress,
+and 200 from kinds of work the models never see in training. This split and size match the closest earlier
+work~\cite{taskcond} and similar studies~\cite{toolpriv}. The tasks cover 40 kinds of work across the same
+three workflows as the paper; 8 kinds are kept out of training entirely (picked at random with a fixed seed:
+2--3 per workflow). Names (companies, repositories, documents, channels) come from separate lists that share
+nothing with the test benchmark, so test tasks cannot leak into training.
+
+\paragraph{Step 1: the list of possible actions.} We listed 52 real API actions for GitHub, S3, Google
+Docs/Drive and Slack, each tied to the permission its provider documents for it (GitHub's token permission
+tables, Amazon's machine-readable S3 reference, Google's and Slack's permission lists), plus file, network and
+program access in the sandbox. A program checks every S3 entry against Amazon's own reference.
+
+\paragraph{Step 2: a model writes tasks and the calls that do them.} A large open model running on our own
+machines writes tasks of each kind in the delegating agent's words, together with the exact API calls the
+receiving agent must make (the approach of~\cite{selfinstruct,toolllm,apigen}). It may use only that kind's
+actions and the names it is given, and must plan the fewest calls that complete the task. The full instructions
+it receives are in Appendix~\ref{app:prompts}.
+
+\paragraph{Step 3: the answer key comes from the calls, not from a model.} Each planned call is checked by a
+program (are all its details filled in and well formed, and is every repository, bucket, document or channel it
+touches named in the task?) and logged. The answer key is the smallest set of permissions that covers every
+logged call. This is how AuthBench records answer keys~\cite{authbench} and how Amazon's IAM Access Analyzer
+builds least-privilege policies from real activity~\cite{accessanalyzer}. Writing and labelling are separate
+steps~\cite{noyan}. \textbf{Check:} we wrote call plans for our 17 test templates and labelled them this way;
+all 408 benchmark tasks came out identical to the human-reviewed answer keys.
+
+\paragraph{Step 4: two other models check every task.} Two judge models, different from the writer, each
+answer: do these calls complete the task, is any call unnecessary, and is the task ambiguous? A task is kept
+only if both judges accept it~\cite{toolpriv,apigen}. Near-duplicate tasks are removed, and tasks sharing any
+8-word phrase with a test task are dropped~\cite{contamination}. We report how many tasks each step removes.
+
+\paragraph{Step 5: what the sender holds, and planted attacks.} As in the benchmark, each task gets a sender
+at the narrow, medium or broad level. The extras are deliberately close calls: the same resource with a
+different action (delete instead of upload), the same action somewhere else (a different issue or channel),
+or the same action over a wider area. Such near-misses are what teach a scorer to tell them apart~\cite{qwen3emb}.
+Half the tasks get a hidden attack instruction aimed at one of these extras, in the style of
+AgentDojo~\cite{agentdojo}; the answer key does not change.
+
+\paragraph{Step 6: human check (Joseph and Alvi).} We pick 93 tasks at random, spread across workflows and
+kinds of work. Both reviewers mark each one on their own, without seeing the generated answer key, and then
+settle disagreements together. \textbf{The dataset passes if at most 1 of the 93 generated answer keys is
+wrong.} That shows, with 95\% confidence, that fewer than 5\% of all answer keys are wrong (a standard
+acceptance test from quality control~\cite{montgomery}, with exact binomial limits~\cite{clopper}). If it fails,
+we fix the generator, regenerate, and check a fresh sample. We also report how often the two reviewers agreed
+(Cohen's $\kappa$~\cite{cohen}). For comparison, the closest earlier datasets were checked by one reviewer on
+60 tasks with no pass rule~\cite{noyan}, or by automated checks only~\cite{apigen}.
+
+\paragraph{Training and testing (planned).} We fully retrain (all weights) the Qwen3-Reranker-0.6B and 8B
+scorers and the Qwen3 1.7B, 4B and 8B LLMs, so the trained and untrained versions differ only in training; full
+retraining learns new tasks better than lighter methods~\cite{loralearnsless}. Qwen3-30B-A3B is too large to fully
+retrain on our machines, so it gets the lighter QLoRA method~\cite{qlora}, compared only against itself at the same
+precision. CAPMAS's own training method is applied to two text encoders. These models were chosen from the
+untrained results: the fastest models with the most room to improve, plus the best of each kind. Each trained
+model is tested on our frozen test set, the 200 held-out tasks, FORTIS, and two outside benchmarks~\cite{authbench,noyan},
+with the same measures and statistics as above.
+
 \section{Where things are in the repository}
 \begin{itemize}
   \item \texttt{mbla/}: the Go package the sandbox code imports (start with its README).
@@ -328,10 +419,82 @@ Qwen3-30B-A3B (about 0.3 seconds) is the better fast choice.
   \item \texttt{research/findings.md}: the full results log, with statistical details.
 \end{itemize}
 
-\begin{thebibliography}{1}
+\appendix
+\section{Training-data prompts}\label{app:prompts}
+These are the exact instructions given to the models that write and check training tasks. They are generated from the code, so they match what runs.
+\paragraph{Writer instructions.}
+\begin{lstlisting}
+You write realistic tasks that one AI agent hands to another, together with the exact API calls the receiving agent must make to finish each task.
+Rules:
+- Use only the calls listed. Fill every argument a call needs.
+- Plan the fewest calls that fully complete the task. Do not add calls the task does not need, such as reading something it never uses.
+- Every resource a call touches (repository, issue or pull request number, file path, bucket, object key, document, folder, channel, user) must be named in the task text or in its arguments.
+- Use the names given; you may invent issue numbers, file paths and object keys.
+- "arguments" are the structured parameters the delegating agent passes along with the text, such as "owner/repo#123", "bucket/key", a document id or a channel name.
+- Write the task as the delegating agent would: plain instructions, varied wording and length. Never mention permissions, scopes or API call names.
+- Each task in a batch must differ from the others in what it asks for, not only in names.
+\end{lstlisting}
+\paragraph{Writer request (one example).} The kind of work, its allowed actions and the names change per request.
+\begin{lstlisting}
+Delegation: ci-agent hands work to build-agent (operation build.run).
+Kind of task: upload an artifact, then download or inspect it to confirm it arrived intact.
+
+Calls the receiving agent can make:
+- fs.read(path): read a file or directory in the sandbox
+- s3.put_object(bucket, key): upload one object; optional flags: tags, acl
+- s3.get_object(bucket, key): download one object
+- s3.head_object(bucket, key): read one object's metadata
+
+Names to use: {"owner": "trey", "repos": ["backend", "billing"], "labels": ["blocked", "stale"], "buckets": ["trey-cache", "trey-backups"], "key_prefixes": ["server", "desktop"], "files": ["report.pdf", "release-notes.md", "installer.msi"], "docs": ["security-audit", "okr-draft", "style-guide"], "folders": ["planning"], "channels": ["deploys", "leadership", "support-escalations"], "users": ["U02ZZZ9YY88"], "programs": ["/usr/bin/make", "/usr/bin/pytest"], "region": "eu-west-1"}
+Sandbox paths: /workspace (source and scratch), /artifacts (build outputs).
+
+Examples of the output format:
+(none)
+
+Write 5 different tasks of this kind.
+\end{lstlisting}
+\paragraph{Judge instructions.} Each judge must also return its answer in a fixed form with the three answers below.
+\begin{lstlisting}
+You check plans written for an AI agent's task. You get the task and the numbered API calls planned to complete it.
+Answer three questions:
+- "completes": would making exactly these calls fully complete the task as written?
+- "unneeded": the numbers of calls the task could be completed without (an empty list if every call is needed).
+- "ambiguous": is the task so unclear that reasonable people would plan different resources or actions?
+Judge only the calls and the task text. Assume each call succeeds.
+\end{lstlisting}
+\paragraph{Judge request (one example).}
+\begin{lstlisting}
+Task: Upload server.tar.gz from /artifacts to trey-cache under nightly/ and confirm it arrived.
+Arguments: {"artifact_key": "trey-cache/nightly/server.tar.gz"}
+Planned calls:
+0. fs.read({"path": "/artifacts/server.tar.gz"}): read a file or directory in the sandbox
+1. s3.put_object({"bucket": "trey-cache", "key": "nightly/server.tar.gz"}): upload one object
+2. s3.head_object({"bucket": "trey-cache", "key": "nightly/server.tar.gz"}): read one object's metadata
+\end{lstlisting}
+
+\begin{thebibliography}{99}
 \bibitem{capmas} R.~M. Veski, R.~Guerraoui, D.~Froelicher. ``CAPMAS: Capability-Based Delegation of
   Privileges in Multi-Agent Systems.'' arXiv:2609.06500, September 2026.
   \url{https://arxiv.org/abs/2609.06500}
+\bibitem{taskcond} Task-Conditioned Least-Privilege Learning for Executable Terminal and MCP Agents. arXiv:2608.18351, 2026.
+\bibitem{authbench} Do Coding Agents Understand Least-Privilege Authorization? (AuthBench). arXiv:2605.14859, 2026.
+\bibitem{toolpriv} K.~Yang, Y.~Bu, J.~Yi, Y.~Wang, B.~Zhou, J.~Dai, S.~Hu, Y.~Yang. ``When Lower Privileges Suffice:
+  Investigating Over-Privileged Tool Selection in LLM Agents.'' arXiv:2606.20023, 2026.
+\bibitem{noyan} H.~B.~Noyan. ``Dynamic Capability Scoping for Enterprise AI Agents: A Synthetic Dataset and
+  Three-Source Permission Architecture.'' ICML 2026; arXiv:2607.22445.
+\bibitem{astra} ASTRA: a dataset and generation pipeline for task--scope matching in delegated authorization. arXiv:2510.26702, 2025.
+\bibitem{selfinstruct} Y.~Wang et al. ``Self-Instruct: Aligning Language Models with Self-Generated Instructions.'' ACL 2023.
+\bibitem{toolllm} Y.~Qin et al. ``ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs.'' ICLR 2024.
+\bibitem{apigen} Z.~Liu et al. ``APIGen: Automated Pipeline for Generating Verifiable and Diverse Function-Calling Datasets.'' arXiv:2406.18518, 2024.
+\bibitem{accessanalyzer} Amazon Web Services. ``IAM Access Analyzer policy generation.'' AWS documentation.
+\bibitem{contamination} O.~Sainz et al. ``NLP Evaluation in trouble: On the Need to Measure LLM Data Contamination for each Benchmark.'' Findings of EMNLP 2023.
+\bibitem{qwen3emb} Y.~Zhang et al. ``Qwen3 Embedding: Advancing Text Embedding and Reranking Through Foundation Models.'' arXiv:2506.05176, 2025.
+\bibitem{agentdojo} E.~Debenedetti et al. ``AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents.'' NeurIPS 2024 Datasets and Benchmarks.
+\bibitem{montgomery} D.~C.~Montgomery. \emph{Introduction to Statistical Quality Control} (chapter on lot acceptance sampling). Wiley.
+\bibitem{clopper} C.~J.~Clopper, E.~S.~Pearson. ``The Use of Confidence or Fiducial Limits Illustrated in the Case of the Binomial.'' Biometrika, 1934.
+\bibitem{cohen} J.~Cohen. ``A Coefficient of Agreement for Nominal Scales.'' Educational and Psychological Measurement, 1960.
+\bibitem{loralearnsless} D.~Biderman et al. ``LoRA Learns Less and Forgets Less.'' TMLR 2024.
+\bibitem{qlora} T.~Dettmers et al. ``QLoRA: Efficient Finetuning of Quantized LLMs.'' NeurIPS 2023.
 \end{thebibliography}
 
 \end{document}
