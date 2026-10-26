@@ -189,3 +189,25 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **What:** seeded uniform scores per (task, candidate) via SHA-256, so runs reproduce. Fixed cutoffs 0.75, 0.5 and 0.25 grant about 25%, 50% and 75% of candidates (cautious, even, generous). The admit cutoff equals the grant cutoff. 10 seeds, averaged per item. Not tuned.
 - **Comparisons:** MBLA recommended (qwen3-8b, `admitted`, cap 3) vs each coin flip, on attacks through, tasks finished, extra, missed and exact match. Paired template-cluster bootstrap, Holm within each metric.
 - **Note:** the advisor's note says "gaussian"; a uniform distribution is what gives fixed grant rates (a 0.5 cutoff grants 50% only under a symmetric distribution, and a uniform one makes 0.25 and 0.75 mean 75% and 25%).
+
+## D-23 · Final methodology aligned with the current paper draft (proposed)
+- **Decided:** 2026-10-26, draft for advisor and collaborator review (`report/methodology.tex`). It replaces the preliminary study design where the two differ.
+- **Alignment with the draft (paper §3–§4.5):**
+  - $P=(N,\mathit{plain},D)$ with whole-volume mounts and no executable component;
+  - remote receivers get no volume candidates;
+  - task context = text, receiver identity, current bounds, upstream context, plus an optional signed manifest, with no structured arguments; concretization uses resource names found in the context;
+  - recovery covers capability atoms and destinations only, one per request, bounded by $A$, cap $k$; volume denials are final;
+  - a helper failure refuses the delegation.
+- **Benchmark v2:** the 408 tasks re-expressed in that model. File labels map to volumes; execute labels and the 40 exec-only attacks are dropped; the two reviewers re-label the volume component.
+- **Final helpers:**
+  - Qwen3-8B, Qwen3-4B and Qwen3-1.7B, prompted and fully fine-tuned;
+  - Qwen3-30B-A3B, prompted and QLoRA;
+  - Qwen3-Reranker-0.6B and -8B, prompted and fully fine-tuned;
+  - CAPMAS as published, and its method retrained on our data (bge-large, Qwen3-Embedding-0.6B);
+  - gpt-oss-120b as the upper reference;
+  - set-only, manifest-only, lexical and the coin flips.
+  - Open-weight, local models only.
+- **New evaluations:**
+  - B4, the helper inside the end-to-end S3 harness;
+  - B5 attacks: held-out injection styles, an adaptive attacker with a query budget, and manifest inflation.
+- **Dropped:** AuthBench as an external test, because path-level file and execute permissions are no longer in the policy model.

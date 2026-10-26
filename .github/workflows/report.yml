@@ -22,4 +22,5 @@ jobs:
           name: mbla-findings
           path: |
             report/mbla_findings.pdf
+            report/methodology.pdf
             plots/out/*.pdf
