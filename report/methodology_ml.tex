@@ -23,7 +23,8 @@
 \maketitle
 
 \noindent This note restates the evaluation methodology (\texttt{methodology.pdf}) as a machine-learning
-problem. It changes nothing in that plan; it only translates it. Each section names the part of the
+problem. It changes nothing in that plan; it only translates it. How each model works, the exact prompts, the
+pilot figures and the open format questions for the advisor are in the helper specification (\texttt{helper\_spec.pdf}). Each section names the part of the
 methodology it covers, in the form \M{\S1}.
 
 \section{The learning problem}
@@ -62,9 +63,11 @@ point prediction and \emph{plausible} is a backup set. A large backup set fixes 
 attacker who triggers a request get more; a small one is safe but fixes less. Folder (volume) permissions get
 no second chance, so missing one fails the task.
 
-\paragraph{Two passes, keep the minimum.} Each candidate is scored twice: once against the root task and once
-against the subtask. The lower score is kept. This is a conservative two-view ensemble: if an attacker edits
-the subtask to ask for extra permission, the root task, which the attacker did not write, still scores it low.
+\paragraph{Two passes, keep the minimum (done by \BC{}, not by us).} \BC{} wraps whatever model we supply: it calls
+it twice in parallel, once with the root task and once with the subtask, and keeps the lower score per candidate.
+This is a conservative two-view ensemble: if an attacker edits the subtask to ask for extra permission, the root
+task, which the attacker did not write, still scores it low. We report results under this wrapper and on the subtask
+alone; latency per handoff is the slower of the two calls.
 
 \paragraph{Abstention.} A timeout, an error, or output that breaks the format (an unknown key, an index out of
 range, trailing text) refuses the whole handoff. There is no default answer; invalid output is never
@@ -125,8 +128,8 @@ numbers are \emph{not} reported as results; they only explain the design. Main l
     compared with allowing any permission the first agent holds, and what does it cost honest tasks?
   \item[RQ3 Adversarial robustness.] How much of the RQ1 gain survives (a) planted prompt injections, (b)
     injection styles never seen in training (distribution shift), (c) a white-box adaptive attacker, (d) an
-    edited subtask, with and without the two-pass minimum, and (e) a poisoned manifest hint?
-  \item[RQ4 Inference cost.] Latency per handoff (two passes) and abstention rate.
+    edited subtask, under \BC{}'s two-pass minimum and alone, and (e) a poisoned manifest hint?
+  \item[RQ4 Inference cost.] Latency per handoff (two parallel calls) and abstention rate.
   \item[RQ5 Fine-tuning.] Can small, fast models match the best prompted model after training, including on task
     families and attack styles never seen in training (out-of-distribution)?
 \end{description}

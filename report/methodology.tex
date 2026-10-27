@@ -30,7 +30,8 @@ $(C_i, P_i)$ with $P = (N, \plain, D)$, the authority the subtask needs. \BC{}'s
 allowed; the helper only decides how much of the least-privilege benefit a delegation gets. The checks in
 our library (attenuation, ceiling, recovery admission) are advisory and exist so the benchmark can simulate
 \BC{}'s checker offline. Table~\ref{tab:interface} fixes the interface every helper is evaluated under; it
-follows the current draft and \BC{}'s adapter (\texttt{cmd/bc-mbla}).
+follows the current draft and \BC{}'s adapter (\texttt{cmd/bc-mbla}). How each helper works, its exact prompts,
+and the open input and output format questions are in the companion helper specification (\texttt{helper\_spec.pdf}).
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.15\linewidth}Y}
@@ -43,8 +44,8 @@ only, one per volume mount $(v,\mu)$ in $D_i$. \emph{Not scored:} hosts with a p
 $C$; peers are chosen by the agent's next-peer choice; the model endpoint is always kept. \\
 Output & Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal),
 plausible (the admission set $A$), unneeded. \\
-Scoring rule & Each candidate is scored against the root task and against the subtask; the lower score is
-kept. A subtask steered toward extra authority therefore cannot raise a candidate the root task does not justify. \\
+Root-task wrapper & \BC{}'s adapter calls the helper twice in parallel, with the root task and with the
+subtask, and keeps the lower score per candidate. Results are reported under this wrapper and on the subtask alone. \\
 Failure & Timeout, error, unparsable output, an out-of-range index or an unknown key refuses the delegation.
 There is no fallback proposal. \\
 Receiver & $C$ is bounded by the parent only (no capability ceiling). A proposal whose $P'$ is not within the
@@ -106,9 +107,9 @@ The only reviewer disagreements were on path-level file and executable labels; t
   \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside
     the task, compared with a parent-bounded rule, and what does it cost legitimate tasks?
   \item[RQ3 Robustness.] How much of the RQ1 benefit survives planted injections, injection styles never seen in
-    training, an adaptive attacker, a steered subtask (with and without the root-task rule), and an inflated
-    manifest?
-  \item[RQ4 Cost.] What latency does inference add per delegation (the root-task rule needs two scoring passes),
+    training, an adaptive attacker, a steered subtask (under \BC{}'s root-task wrapper and on the subtask
+    alone), and an inflated manifest?
+  \item[RQ4 Cost.] What latency does inference add per delegation (the wrapper's two calls run in parallel, so the slower one counts),
     and how often does the helper refuse?
   \item[RQ5 Training.] Does task-specific training let small, fast helpers match the best prompted helper on
     RQ1--RQ3, and does it hold on task families and attack styles never seen in training?
@@ -191,8 +192,8 @@ ceiling rejections, task completion, oracle-detected attack outcomes, and delega
 (b) injection styles from published corpora never used in training~\cite{injecagent,agentdojo}; (c) an adaptive
 attacker that knows the design, candidate format and output schema, has the open weights, and searches for
 text that places a target candidate in the proposal or in $A$ with an attacker-model loop under a fixed query
-budget~\cite{carlini,attackersecond,pair}, reported as success versus budget; (d) a steered subtask, scored with
-and without the root-task rule; (e) a receiver operator who signs a manifest listing the attack's target as
+budget~\cite{carlini,attackersecond,pair}, reported as success versus budget; (d) a steered subtask, under the wrapper and on
+the subtask alone; (e) a receiver operator who signs a manifest listing the attack's target as
 usually needed.
 
 \section{Training}\label{sec:training}
@@ -248,6 +249,8 @@ seeds.
   \item Which hosts are plain in each workflow.
   \item Whether end-to-end runs may log helper candidates, tiers and $A$.
 \end{enumerate}
+Input and output format questions on the model side (prompt structure, candidate order, training targets) are listed
+with recommendations in the helper specification and are decided by our side before the final runs.
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.06\linewidth}Y}
@@ -256,7 +259,7 @@ Ask & Where this plan meets it \\
 \midrule
 B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}, common format) \\
 B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}) \\
-B3 & Root task in every task; min rule is the evaluated configuration, subtask-only is an ablation (RQ3d) \\
+B3 & Note from \BC{}: its adapter applies the root-task rule. Every task carries a root task and results are reported under it (RQ3d) \\
 B4 & Hosts are parsed, plain or peers; only unparsed hosts are scored (Table~\ref{tab:interface}) \\
 B5 & $C$ bounded by the parent; ceiling miss rejects the delegation and is a reported metric \\
 B6 & $k$ counts requests; fixed in \texttt{Recovery.Decide} \\

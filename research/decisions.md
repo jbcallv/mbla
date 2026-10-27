@@ -223,3 +223,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
   - B6: the recovery cap counts requests.
 - **Done in code:** L1 (chat scorer refuses out-of-range indices, unknown keys and trailing text; the bench records the refusal), B6 (`Recovery.Decide` counts every request), D1–D3 (README and spec wording).
 - **Open:** D4 (paper_alignment.md) and the benchmark and synthetic-data changes, after advisor and team sign-off; whether non-S3 services stay as httpapi atoms.
+
+## D-25 · Helper design specification; root-task rule is BoundClaw's wrapper (proposed)
+- **Decided:** 2026-10-27. BoundClaw clarified that B3 is a note: its adapter wraps any scorer with two parallel calls (root task, subtask) and keeps the minimum. Input and output formats are the AI side's decision.
+- **What:** `report/helper_spec.tex` specifies the fixed security requirements (R1–R9), how each model family works with its exact prompts, the preliminary figures behind each choice, and eight open format questions (P1–P8) with recommendations, for the advisor to decide before final runs.
+- **Methodology changes:** the root-task rule is described as BoundClaw's wrapper; results are reported under it and on the subtask alone; per-delegation latency is the slower of the two parallel calls.

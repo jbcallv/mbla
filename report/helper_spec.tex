@@ -1,0 +1,318 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,columns=fullflexible,frame=single,keepspaces=true}
+\setlist{nosep}
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+\graphicspath{{../plots/out/}}
+\newcommand{\plain}{\mathit{plain}}
+\newcommand{\ceil}{P_{\mathrm{ceil}}}
+\newcommand{\BC}{{\mdseries\textsc{BoundClaw}}}
+\newcommand{\M}[1]{\textit{[Methodology #1]}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{The Policy-Inference Helper: Design Specification}
+\date{Draft for advisor decision, \today}
+
+\begin{document}
+\maketitle
+
+\noindent This document specifies the model side of \BC{}'s policy inference: what the model receives, what it
+returns, how each model family computes its answer, and why. Section~\ref{sec:req} lists the requirements
+the security design imposes; they are fixed and not ours to change. Sections~\ref{sec:problem}--\ref{sec:models}
+describe the models as they run today, with their exact prompts. Section~\ref{sec:evidence} gives the
+preliminary results behind each design choice. Section~\ref{sec:proposals} lists open design questions, each
+with options, evidence and a recommendation, \textbf{for the advisor to decide} before the final runs.
+Section~\ref{sec:training} fixes how training data matches the inference format. The evaluation plan itself
+is in \texttt{methodology.pdf}; tags such as \M{\S1} point to it.
+
+\section{Requirements from the security design}\label{sec:req}
+\M{\S1, Table 1}
+
+These come from the current paper draft and \BC{}'s adapter (review of Oct 26). Every model must work within them.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.04\linewidth}L{0.2\linewidth}Y}
+\toprule
+& Requirement & Content \\
+\midrule
+R1 & Policy model & Confinement $P=(N,\plain,D)$: $N$ network hosts, $\plain\subseteq N$ hosts reached without credentials,
+$D$ whole-volume mounts $(v,\mu)$ with $\mu\in\{\mathrm{ro},\mathrm{rw}\}$. No executable permissions (the operator's base fixes
+them). Capability $C$: prefix grants on services; S3 atoms are (s3, verb, bucket, key prefix), verb in \{GET, PUT, DELETE, LIST\}. \\
+R2 & Context & Task text, receiver identity, current bounds $(C_i,P_i)$, upstream context, optional signed manifest
+(a hint, possibly wrong or inflated). No structured operation or arguments. \\
+R3 & Candidates & Built by \BC{}'s policy engine, not by the model: every grant in $C_i$, plus a narrower grant for each
+resource the context names under a granted prefix; every host in $N_i$ \emph{without} a parser (choosing it puts it in
+$\plain'$); for a local receiver only, every volume in $D_i$. Not scored: hosts with a parser (S3, httpapi), which follow
+$C$; peers, chosen by the agent; the model endpoint, always kept. \\
+R4 & Output & Indices into the candidate list only, in three tiers: required (the grant), plausible (the admission set
+$A$), unneeded. \\
+R5 & Failure & Timeout (60\,s), error, unparsable output, an out-of-range index or an unknown key refuses the delegation.
+No fallback. Output at most 64\,KiB. \\
+R6 & Receiver ceiling & A proposal whose $P'$ exceeds the receiver's hidden $\ceil$ is rejected whole. $C$ has no ceiling;
+it is bounded by the parent. \\
+R7 & Recovery & Started by the tunnel. One atom or host per request, granted only if within the parent and in $A$ (an
+unparsed host must also be in $\plain_i$). Volume denials are final. At most $k$ requests, refused ones included. \\
+R8 & Root-task wrapper & \BC{}'s adapter calls the scorer twice in parallel, once with the root task (the user's request)
+and once with the subtask, and keeps the lower score per candidate. \\
+R9 & Deployment & The helper runs in a sandbox that can reach only the model endpoint; the model is self-hosted. \\
+\bottomrule
+\end{tabularx}
+\caption{Fixed requirements.}\label{tab:req}
+\end{table}
+
+\paragraph{What these mean for the model design.}
+\begin{itemize}
+  \item The model is a scorer $s(x, c_j)$ over a closed list (R3, R4). It cannot invent a permission, so its worst output
+    (select everything) equals the parent's authority. Robustness is measured as lost benefit, not as a breach.
+  \item Errors cost differently. Over-selection grants unneeded authority and can now trigger a ceiling rejection (R6).
+    Under-selection fails the task unless the missing item is a plausible capability atom or host; a missing volume is
+    unrecoverable (R7).
+  \item The plausible tier is the only route to later authority, so it must be a calibrated ``maybe'' set, not a by-product.
+  \item The model must always emit valid output (R5); we enforce this with constrained decoding, not repair.
+  \item Under R8, deployed quality is the minimum of two calls and per-delegation latency is the slower of two parallel
+    calls. Quality on the subtask alone is not deployed quality.
+\end{itemize}
+
+\section{Problem formulation}\label{sec:problem}
+For a delegation with context $x$ and candidates $c_1,\dots,c_n$, each candidate has a label
+$y_j\in\{\text{required},\text{plausible},\text{unneeded}\}$. A model produces a score $s_j\in[0,1]$; two thresholds
+$\tau_{\mathrm{init}}\ge\tau_{\mathrm{admit}}$ map it to tiers: required if $s_j\ge\tau_{\mathrm{init}}$, plausible if
+$\tau_{\mathrm{admit}}\le s_j<\tau_{\mathrm{init}}$. Generative models emit tiers directly, mapped to scores 1, 0.5 and 0.
+Thresholds are tuned on the development split only: $\tau_{\mathrm{init}}$ maximizes mean F1 of the required tier;
+$\tau_{\mathrm{admit}}$ is the tightest value keeping simulated task completion $\ge 95\%$ with $k=3$ (decision D-12).
+The task is listwise when the model sees all candidates at once and pointwise when it scores each alone.
+
+\section{How each model works}\label{sec:models}
+\M{\S4}
+
+\subsection{Listwise generative LLMs (Qwen3 1.7B--30B-A3B, gpt-oss-120b)}
+One call per delegation. A system prompt states the task; the user message renders the context and the numbered
+candidates; a strict JSON schema restricts the answer to two lists of in-range indices. Decoding: vLLM with grammar-constrained
+decoding (xgrammar), temperature 0, fixed seed, thinking disabled for Qwen3, at most 1,024 output tokens. The schema makes
+invalid output impossible in practice; R5 still refuses anything that does not parse.
+
+\paragraph{System prompt (verbatim, \texttt{mbla/remote.go}).}
+\begin{lstlisting}
+You choose the permissions a delegated agent needs for one task.
+You get the delegated request and a numbered list of candidate permissions.
+Return "required": the indices the task cannot complete without.
+Return "plausible": other indices the task might reasonably need.
+Leave out every other index.
+\end{lstlisting}
+\paragraph{User message template.} One labelled line per context field present, then the candidates. Each candidate is
+its permission string followed by a plain-English gloss of its operation.
+\begin{lstlisting}
+Delegated request:
+<field>: <value>        (one line per field: task, receiver, bounds, history, manifest)
+
+Candidate permissions:
+0. <permission> (<gloss>)
+1. ...
+\end{lstlisting}
+\paragraph{Output schema.} \texttt{\{"required": [int], "plausible": [int]\}}, integers in $[0, n-1]$, at most $n$ each,
+no other keys.
+
+\paragraph{Illustrative call in the final policy model} (local receiver; the format of the strings follows \BC{}'s adapter).
+\begin{lstlisting}
+Delegated request:
+task: Upload /workspace/out/app.tar.gz to acme-artifacts under staging/build/ and report the key.
+receiver: build-agent (local)
+history: user: ship tonight's build to staging
+manifest: storage:object.put:acme-artifacts/staging/*
+
+Candidate permissions:
+0. storage:object.get:acme-artifacts/source/* (download objects)
+1. storage:object.put:acme-artifacts/staging/build/* (upload objects)
+2. storage:object.put:acme-artifacts/prod/* (upload objects)
+3. storage:object.put:acme-artifacts/staging/build/app.tar.gz (upload objects)
+4. net:connect:pypi.org:443 (reach a host without credentials)
+5. fs:w:/workspace (mount volume workspace read-write)
+
+Answer: {"required": [3, 5], "plausible": [1]}
+\end{lstlisting}
+Candidate 3 is the narrower grant the engine adds because the task names that object (R3). Candidate 5 is the only
+volume; a remote receiver would not see it. The S3 host is not a candidate because S3 has a parser.
+
+\subsection{Pointwise cross-encoders (Qwen3-Reranker 0.6B, 8B)}
+One forward pass per candidate (batched). The model reads the context and one candidate in its native reranking template
+and the score is the probability of ``yes'' against ``no'' at the last position:
+$s_j=\exp(\ell_{\text{yes}})/(\exp(\ell_{\text{yes}})+\exp(\ell_{\text{no}}))$. Tiers come from the two thresholds.
+\paragraph{Template (verbatim, \texttt{bench/serve/decision\_server.py}).}
+\begin{lstlisting}
+<|im_start|>system
+Judge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>
+<|im_start|>user
+<Instruct>: Decide whether the delegated task in the Query needs the permission in the Document.
+<Query>: <rendered context, as above>
+<Document>: <permission> (<gloss>)<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+
+\end{lstlisting}
+It never sees the other candidates, so it cannot reason that one candidate makes another redundant (for example, the
+exact object grant versus its prefix).
+
+\subsection{Bi-encoder (CAPMAS)}
+The context and each candidate are embedded separately (mean pooling, projection, $\ell_2$ normalization) and scored by cosine
+similarity. Candidates are rendered in CAPMAS's training format:
+\begin{lstlisting}
+Using service environment '<service>', execute capacity '<operation>' on '<resource>' to: <gloss>
+\end{lstlisting}
+As published, CAPMAS keeps up to the 10 best candidates, stopping at the first large drop in similarity, and has no
+recovery. We run it that way and, separately, with its similarities passed through our two thresholds. Candidate
+embeddings can be cached, which is why it is the fastest learned model.
+
+\subsection{Model-free baselines}
+Set-only (every candidate is required: G1 alone); manifest-only (candidates the manifest covers); lexical (candidates whose
+resource names appear in the task); coin flips granting each candidate with probability 25\%, 50\% or 75\% (seeded).
+
+\section{Preliminary evidence behind the design}\label{sec:evidence}
+\M{\S2, Table 2}
+
+These results come from an exploratory study on the earlier policy model (path-level files, executables, structured
+arguments). They are not final results; they justify choices. Numbers are on 288 test tasks, with 95\% confidence
+intervals from resampling templates.
+
+\begin{figure}[H]\centering\includegraphics[width=0.8\linewidth]{quality_latency.pdf}
+\caption{Share of unneeded authority granted against median latency per call (one model per GPU).}\label{fig:ql}\end{figure}
+
+\paragraph{Model families (Figure~\ref{fig:ql}).} Mid-size listwise LLMs are the most precise: Qwen3-4B, 8B and 30B-A3B grant
+6--9\% of unneeded authority. Scale stops paying around 4--8B: gpt-oss-120b grants 14\%. Pointwise and embedding models
+are 5--40$\times$ faster (21--150\,ms) but grant 38--85\% untrained; Qwen3-Reranker-0.6B grants 40\% against 51\% for a fair
+coin. \emph{Design consequence:} listwise LLMs are the reference; pointwise models are kept as training targets, not dropped.
+
+\paragraph{Same weights, different output format.} Qwen3-8B used three ways: generating index lists grants 8\% unneeded
+authority and is exactly right on 38\% of tasks; the same weights as a yes/no reranking head grant 38\% (2\% exact); as
+contrastive heads (CLM), 71\% (0\% exact). \emph{Design consequence:} the listwise index output is the main format; the
+gap is the format, not the model.
+
+\begin{figure}[H]\centering\includegraphics[width=0.9\linewidth]{recovery.pdf}
+\caption{Planted attacks whose target authority becomes reachable with up to 3 recovery requests: any parent permission
+allowed (bound only) versus only plausible-tier items (admission set).}\label{fig:rec}\end{figure}
+
+\paragraph{The plausible tier (Figure~\ref{fig:rec}).} If any parent permission can be recovered, every planted attack
+stays reachable for every model. Restricting recovery to the plausible tier cuts this to 13\% for Qwen3-8B, with 97\% of
+tasks completing. Models whose scores are nearly binary (30B-A3B, 32B, the 0.6B models) cannot separate the tiers;
+tuning set their $\tau_{\mathrm{admit}}$ to 0, giving no protection. \emph{Design consequence:} three tiers are required
+(R4), and training must teach the plausible tier explicitly.
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\linewidth]{inputs.pdf}\hfill\includegraphics[width=0.49\linewidth]{curves.pdf}
+\caption{Left: unneeded authority as inputs are added. Right: unneeded against missing authority as the threshold moves
+(lower left is better).}\label{fig:inputs}\end{figure}
+
+\paragraph{Inputs (Figure~\ref{fig:inputs}).} The manifest cuts Qwen3-8B's unneeded authority from about 23\% to 9\% with
+missing authority flat near 2\%. Structured arguments helped only keyword matching and CLM, and the final design has none
+(R2). Pointwise models cannot reach low values on both axes at any threshold; LLMs can. \emph{Design consequence:} show
+every context field the design provides, the manifest included.
+
+\paragraph{Injections.} A planted instruction in the task text raises unneeded authority for listwise LLMs (Qwen3-8B 18\%
+to 27\%; gpt-oss-120b 14\% to 25\%) but barely moves pointwise models, which already over-grant. \emph{Design consequence:}
+robustness to text written by an agent is an open design question (P1).
+
+\section{Open design questions for the advisor}\label{sec:proposals}
+Each question lists the options, what supports them, the cost, and our recommendation. Doing nothing is always an option:
+the current design (Section~\ref{sec:models}) is complete and meets every requirement. Whatever is chosen is fixed before
+any final result is seen and settled on the development split and synthetic validation data only.
+
+\paragraph{P1. Trusted and agent-written text.} The root task comes from the user; the subtask and upstream context are
+written by agents and may carry injections. \BC{}'s wrapper (R8) already takes the minimum over a root-task call and a
+subtask call. Options: (a) rely on the wrapper only; (b) also mark, inside one prompt, the root task as the instruction and
+the agent-written text as data, as in the instruction hierarchy~\cite{hierarchy}, spotlighting~\cite{spotlight} and
+StruQ~\cite{struq}, and fine-tune on injected examples with unchanged labels~\cite{struq,secalign}; Task Shield~\cite{taskshield}
+similarly checks each action against the user's goal. \emph{Cost:} (b) adds one prompt variant and one ablation. \emph{Recommendation:}
+(a) for every model; report results under the wrapper and on the subtask alone. Add (b) only if the advisor wants a
+model-level robustness claim.
+
+\paragraph{P2. Which context fields.} Options: show every field R2 provides (current), or settle it with a leave-one-out
+ablation. Context-conditioned policy generation in prior work uses the user's task and the action's context~\cite{progent,conseca}.
+\emph{Cost:} one dev run per field. \emph{Recommendation:} show all fields; run the leave-one-out ablation only if a reviewer
+needs it, since the manifest result above already covers the field that matters most.
+
+\paragraph{P3. Candidate order.} Listwise LLMs are sensitive to where an item sits in a long list~\cite{lostmiddle}; our
+order follows the delegator's holdings and is fixed. Options: keep it; shuffle once per task; average over several shuffles
+(permutation self-consistency~\cite{permsc}), which multiplies cost. \emph{Recommendation:} one check on dev with shuffled
+order; adopt averaging only if results change by more than their confidence interval.
+
+\paragraph{P4. Answer directly or reason first.} Forcing a format can hurt reasoning~\cite{speakfreely}; letting the model
+think before the JSON costs latency. The reasoning models in the pilot (gpt-oss) took 2.5--4\,s and were not tighter.
+\emph{Recommendation:} keep direct, schema-constrained answers.
+
+\paragraph{P5. Pointwise training target.} Binary needed/not-needed labels give near-binary scores, which cannot form a
+plausible tier (Figure~\ref{fig:rec}). Graded labels improve pointwise LLM rankers~\cite{beyondyesno}. Options: binary target;
+soft target 1 / 0.5 / 0 for required / plausible / unneeded. \emph{Recommendation:} soft target.
+
+\paragraph{P6. Candidate rendering.} Raw permission strings, or strings with a plain-English gloss (current). Models
+pretrained on natural language usually do better with the gloss. \emph{Recommendation:} keep the gloss; no study.
+
+\paragraph{P7. Read-only volume candidates (request to \BC{}).} R3 offers each volume at the delegator's mode. Offering
+$(v,\mathrm{ro})$ alongside $(v,\mathrm{rw})$ would let the model narrow volumes too, within $D'\sqsubseteq D$. Candidate
+building belongs to \BC{}, so this is a suggestion to them. \emph{Recommendation:} ask.
+
+\paragraph{P8. Few-shot examples in the prompt.} Prompted models are currently zero-shot. Options: zero-shot; $k$ examples
+from the synthetic training split. \emph{Recommendation:} zero-shot, so prompted and fine-tuned models differ only by
+training.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.05\linewidth}Y L{0.33\linewidth}L{0.14\linewidth}}
+\toprule
+& Question & Recommendation & Extra cost \\
+\midrule
+P1 & Trusted vs.\ agent-written text & \BC{} wrapper; report subtask-only too & none \\
+P2 & Context fields & all fields & none \\
+P3 & Candidate order & one shuffle check on dev & one dev run \\
+P4 & Reason before answering & no & none \\
+P5 & Pointwise target & soft 1 / 0.5 / 0 & none \\
+P6 & Candidate rendering & keep gloss & none \\
+P7 & Read-only volume candidates & ask \BC{} & none for us \\
+P8 & Few-shot & zero-shot & none \\
+\bottomrule
+\end{tabularx}
+\caption{Summary. Following every recommendation adds one development run.}\label{tab:proposals}
+\end{table}
+
+\section{Training formats}\label{sec:training}
+\M{\S5, \S6}
+
+A training example uses exactly the inference input of Section~\ref{sec:models}, so a fine-tuned model is deployed with the
+prompt it was trained on. Labels come from mock execution of the generated call plans (methodology \S5).
+\begin{itemize}
+  \item \emph{Listwise LLMs:} input = system prompt and user message; target = the JSON answer; loss on answer tokens only.
+  \item \emph{Pointwise models:} one example per (context, candidate) pair; target per P5.
+  \item \emph{Bi-encoder:} CAPMAS's own contrastive objective over (context, needed candidate) pairs.
+  \item \emph{Two views per task (follows from R8):} the deployed scorer is called with the root task and with the subtask, so
+    each synthetic task yields both views with the same label. In an injected task the target stays unneeded in both
+    views, which teaches the model to ignore the injection.
+  \item \emph{Candidate order} in training is shuffled per example, so the model cannot learn position.
+\end{itemize}
+Full fine-tuning up to 8B, QLoRA for 30B-A3B, schedule and seeds are in methodology \S6.
+
+\begin{thebibliography}{99}\small
+\bibitem{hierarchy} E.~Wallace et al. The instruction hierarchy: Training LLMs to prioritize privileged instructions. arXiv:2404.13208, 2024.
+\bibitem{spotlight} K.~Hines et al. Defending against indirect prompt injection attacks with spotlighting. arXiv:2403.14720, 2024.
+\bibitem{struq} S.~Chen, J.~Piet, C.~Sitawarin, D.~Wagner. StruQ: Defending against prompt injection with structured queries. USENIX Security, 2025.
+\bibitem{secalign} S.~Chen et al. SecAlign: Defending against prompt injection with preference optimization. ACM CCS, 2025.
+\bibitem{taskshield} F.~Jia, T.~Wu, X.~Qin, A.~Squicciarini. The Task Shield: Enforcing task alignment to defend against indirect prompt injection in LLM agents. arXiv:2412.16682, 2024.
+\bibitem{progent} T.~Shi et al. Progent: Securing AI agents with privilege control. arXiv:2504.11703, 2025.
+\bibitem{conseca} L.~Tsai, E.~Bagdasarian. Contextual agent security: A policy for every purpose. HotOS, 2025.
+\bibitem{lostmiddle} N.~F.~Liu et al. Lost in the middle: How language models use long contexts. TACL, 2024.
+\bibitem{permsc} R.~Tang, X.~Zhang, X.~Ma, J.~Lin, F.~Ture. Found in the middle: Permutation self-consistency improves listwise ranking in large language models. NAACL, 2024.
+\bibitem{speakfreely} Z.~R.~Tam et al. Let me speak freely? A study on the impact of format restrictions on performance of large language models. EMNLP Industry Track, 2024.
+\bibitem{beyondyesno} H.~Zhuang et al. Beyond yes and no: Improving zero-shot LLM rankers via scoring fine-grained relevance labels. NAACL, 2024.
+\end{thebibliography}
+\end{document}
