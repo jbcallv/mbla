@@ -1,0 +1,231 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+\setlist{nosep}
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+\newcommand{\BC}{{\mdseries\textsc{BoundClaw}}}
+\newcommand{\M}[1]{\textit{[Methodology #1]}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{Policy Inference in \BC: the Machine-Learning View}
+\date{Companion to the evaluation methodology, \today}
+
+\begin{document}
+\maketitle
+
+\noindent This note restates the evaluation methodology (\texttt{methodology.pdf}) as a machine-learning
+problem. It changes nothing in that plan; it only translates it. Each section names the part of the
+methodology it covers, in the form \M{\S1}.
+
+\section{The learning problem}
+\M{\S1, Table 1}
+
+\paragraph{Setting.} One agent hands a subtask to another agent. Before the second agent starts, a model
+decides which of the first agent's permissions to pass along. Passing too many is a security cost; passing
+too few can make the task fail.
+
+\paragraph{Input.} Text, plus a list of candidates:
+\begin{itemize}
+  \item the \emph{root task}: the user's original request;
+  \item the \emph{subtask}: the text the first agent wrote for the second;
+  \item context: who receives the subtask, earlier conversation, and an optional ``manifest'' in which the
+    receiver's operator lists what it usually needs (a hint that may be wrong);
+  \item a numbered \emph{candidate list}, built by a fixed program, not a model. Each candidate is one
+    permission the first agent already holds, such as ``write objects under \texttt{staging/build/}'',
+    ``connect to \texttt{docs.example}'' or ``mount the \texttt{workspace} folder read-only''. When the text names a
+    specific file inside a broader permission, the narrower permission is added as a further candidate.
+\end{itemize}
+
+\paragraph{Output.} One label per candidate, in three classes: \emph{required} (granted now),
+\emph{plausible} (may be granted later, see below) and \emph{unneeded}. The model outputs only candidate
+indices in fixed JSON. It is a \textbf{set-selection task over a closed list}, which is per-item three-class
+classification conditioned on the text and on the whole list.
+
+\paragraph{What the model cannot do.} It cannot name a permission outside the list, so its worst possible
+output (select everything) equals passing every permission along, which is the no-model baseline. Rules
+outside the model enforce this. The model therefore affects \emph{how much} permission is passed, never
+whether the system's hard limits hold. We evaluate it as a component whose errors are bounded.
+
+\paragraph{The ``plausible'' class is a second chance.} If the receiver later hits a permission it lacks, the
+system may grant it, one permission per request and at most $k=3$ requests per subtask (refused requests
+count). It grants one only if the model put that candidate in \emph{plausible}. So \emph{required} is the
+point prediction and \emph{plausible} is a backup set. A large backup set fixes missed permissions but lets an
+attacker who triggers a request get more; a small one is safe but fixes less. Folder (volume) permissions get
+no second chance, so missing one fails the task.
+
+\paragraph{Two passes, keep the minimum.} Each candidate is scored twice: once against the root task and once
+against the subtask. The lower score is kept. This is a conservative two-view ensemble: if an attacker edits
+the subtask to ask for extra permission, the root task, which the attacker did not write, still scores it low.
+
+\paragraph{Abstention.} A timeout, an error, or output that breaks the format (an unknown key, an index out of
+range, trailing text) refuses the whole handoff. There is no default answer; invalid output is never
+repaired.
+
+\paragraph{Receiver limit.} Each receiver has a maximum it will accept (its ``ceiling'') that the model never
+sees. If the selected network or folder permissions exceed it, the handoff is rejected. Over-selection can
+therefore cause failures too, not only security cost.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.3\linewidth}Y}
+\toprule
+Security term (methodology) & Meaning here \\
+\midrule
+Helper & The model \\
+Delegator, receiver & The agent handing off the subtask, and the agent receiving it \\
+$C$ (capability) & Permissions on services, such as reading or writing objects under a storage path \\
+$N$, \emph{plain} & Network hosts the receiver may contact; \emph{plain} hosts are reached without credentials \\
+$D$ (volumes) & Folders mounted into the receiver, read-only or read-write \\
+Proposal & The \emph{required} class \\
+Admission set $A$ & The \emph{plausible} class \\
+Recovery & The second-chance request at run time \\
+G1, checker & Hard rules outside the model; they bound every output \\
+Ceiling $P_{\mathrm{ceil}}$ & The receiver's hidden maximum; exceeding it rejects the handoff \\
+Fail closed, refusal & Abstention: no output means no handoff \\
+Injection & Prompt injection: text planted in the input to make the model select extra permissions \\
+\bottomrule
+\end{tabularx}
+\caption{Terms used in the methodology and their meaning in this note.}
+\end{table}
+
+\section{Why this design: what the pilot study showed}
+\M{\S2, Table 2}
+
+We first ran a broad pilot: 23 model configurations of four kinds on an earlier version of the task. The pilot
+numbers are \emph{not} reported as results; they only explain the design. Main lessons:
+\begin{itemize}
+  \item \textbf{The backup set is the key safety lever.} Without the plausible gate, every planted attack could
+    get its permission through the second chance. With it, 13\% could, and 97\% of tasks still finished.
+  \item \textbf{Models must output three classes.} Models whose scores were nearly binary could not separate
+    ``required'' from ``plausible'', so their backup set gave no protection.
+  \item \textbf{Mid-size listwise LLMs were the most precise.} Qwen3-4B, 8B and 30B-A3B passed 6--9\% of
+    unneeded permissions; the largest model (gpt-oss-120b) passed 14\%.
+  \item \textbf{Fast pointwise models need training.} A 0.6B reranker answers in 28\,ms but, untrained, passed 40\%
+    of unneeded permissions, against 51\% for a fair coin. They lack task knowledge, which training can supply.
+  \item \textbf{The manifest hint helps} (23\% to 9\% unneeded for Qwen3-8B), so a poisoned hint is an attack worth testing.
+  \item \textbf{Top-10 retrieval does not fit.} CAPMAS, the closest prior system, keeps a fixed top 10 and passed 74\%.
+  \item \textbf{Local open-weight models only}, because the model reads possibly confidential text and open
+    weights allow white-box attacks.
+\end{itemize}
+
+\section{Research questions}
+\M{\S3}
+\begin{description}
+  \item[RQ1 Precision and recall.] How many unneeded permissions does the model remove, how many needed ones does
+    it miss, and how often does over-selection hit the receiver limit?
+  \item[RQ2 The backup set as a gate.] Does restricting second chances to the plausible class stop attacks,
+    compared with allowing any permission the first agent holds, and what does it cost honest tasks?
+  \item[RQ3 Adversarial robustness.] How much of the RQ1 gain survives (a) planted prompt injections, (b)
+    injection styles never seen in training (distribution shift), (c) a white-box adaptive attacker, (d) an
+    edited subtask, with and without the two-pass minimum, and (e) a poisoned manifest hint?
+  \item[RQ4 Inference cost.] Latency per handoff (two passes) and abstention rate.
+  \item[RQ5 Fine-tuning.] Can small, fast models match the best prompted model after training, including on task
+    families and attack styles never seen in training (out-of-distribution)?
+\end{description}
+
+\section{Models}
+\M{\S4, Table 3}
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.24\linewidth}L{0.2\linewidth}L{0.2\linewidth}Y}
+\toprule
+Model & Architecture & Variants & Why \\
+\midrule
+Qwen3-8B & listwise LLM & prompted, fine-tuned & Best pilot trade-off; the reference model \\
+Qwen3-4B, 1.7B & listwise LLM & prompted, fine-tuned & Smaller sizes \\
+Qwen3-30B-A3B & mixture-of-experts LLM & prompted, QLoRA & Fastest precise LLM; must learn the plausible class \\
+Qwen3-Reranker-0.6B, 8B & pointwise cross-encoder & prompted, fine-tuned & Fastest model, and best pointwise one \\
+CAPMAS & bi-encoder, contrastive & as published; retrained & Closest prior system \\
+gpt-oss-120b & listwise LLM & prompted & Upper reference, too slow to deploy \\
+Baselines & -- & -- & Select all; manifest only; keyword match; coin flips at 25/50/75\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+Listwise LLMs read the whole candidate list and return index lists. Pointwise models score each candidate
+alone, and two thresholds turn scores into the three classes (tuned on the development split).
+
+\section{Data}
+\M{\S5}
+\paragraph{Evaluation set (human-labeled).} 408 tasks from 17 templates: 288 test and 120 development, split
+\emph{by template} so no template leaks across. Each template varies over 4 name sets, 3 levels of how many
+extra permissions the first agent holds (how many distractor candidates the model sees), and with or without
+one prompt injection. Injections appear in the subtask or context, never in the root task. Two annotators label
+every candidate independently and resolve disagreements; we report agreement (Cohen's $\kappa$). The test set is
+frozen by checksum before any model runs.
+
+\paragraph{Synthetic training set.} No public dataset fits, so we generate one.
+\begin{itemize}
+  \item \emph{Size and split.} 2,000 tasks in 40 task families: 1,500 train and 300 validation from 32 families,
+    and 200 test tasks from 8 families held out entirely (out-of-distribution test). Size follows the closest
+    prior work. Tasks sharing any 8-word sequence or name with the evaluation set are removed (decontamination).
+  \item \emph{Generation.} A local LLM writes the root task, the subtask, and the API calls that complete the
+    subtask, optionally with a second valid plan.
+  \item \emph{Programmatic labels.} The calls run against mock services that log which permissions they used.
+    The \emph{required} label is the smallest candidate set covering that log; \emph{plausible} is what the second
+    plan adds. No model writes labels. Checked: this labeler reproduces the human labels on all 408 evaluation tasks.
+  \item \emph{Filtering.} Format checks, mock execution, and two judge LLMs (not the writer) that must both
+    accept the task; near-duplicates are removed. We report how many tasks survive each step.
+  \item \emph{Distractors and injections.} As in the evaluation set. Half the tasks carry an injection with an
+    unchanged label, so the model learns to ignore it.
+  \item \emph{Human audit.} Two people label 93 random tasks without seeing the generated labels. The set passes
+    if at most one generated label is wrong, which bounds the label error rate below 5\% with 95\% confidence.
+    Otherwise we fix the generator and redo it.
+\end{itemize}
+
+\paragraph{External benchmarks.} FORTIS and the mostargate prompts, from other groups, for transfer. Test only.
+
+\paragraph{System test.} The models run inside the real \BC{} prototype on object-storage workflows with scripted
+and live agents, and an automatic judge that reads system logs, not the agent's reply.
+
+\paragraph{Attack suite.} The five RQ3 attacks. The adaptive attacker knows the format and has the weights, and an
+attacker LLM searches for injected text that gets a target permission selected, under a fixed query budget; we
+report success against budget.
+
+\section{Training}
+\M{\S6}
+Training cannot make the system safer in a hard sense; the external rules do that. It can make small models
+more precise and faster.
+\begin{itemize}
+  \item \emph{Targets.} Pointwise models: needed or not per candidate. Listwise LLMs: the three-class index output.
+    CAPMAS: its own contrastive objective.
+  \item \emph{Method.} Full fine-tuning (all weights) up to 8B, so trained and untrained versions differ only by
+    training. QLoRA for the 30B model, compared only at the same precision.
+  \item \emph{Settings.} Cosine schedule, 3\% warm-up, 2 epochs, loss on output tokens only; learning rate from
+    $\{5\!\times\!10^{-6}, 10^{-5}, 2\!\times\!10^{-5}\}$ chosen on validation; 3 seeds.
+  \item \emph{No leakage.} Only synthetic training and validation data are used for training and model selection.
+    The held-out families are scored once.
+\end{itemize}
+
+\section{Metrics and statistics}
+\M{\S7}
+Permissions that cover many items (a whole path prefix) count for every item they cover.
+\begin{itemize}
+  \item \textbf{Excess}: share of the unneeded permissions that the model still grants (selecting everything
+    scores 1). A false-positive rate normalized by the baseline.
+  \item \textbf{Missing}: share of needed permissions not granted ($1-$recall). \textbf{Exact match}: everything right.
+  \item \textbf{Limit rejections}: share of handoffs rejected by the receiver's hidden maximum.
+  \item \textbf{Attack success after second chances}: share of attacks whose target is granted at once or within 3
+    requests (also 1 and 5), with and without the plausible gate.
+  \item \textbf{Task completion}, counting abstentions, rejections and missing folders as failures.
+  \item \textbf{Gain retained under attack}: 1 means the attack gained nothing, 0 means the model was pushed back to
+    selecting everything.
+  \item \textbf{Latency}: median and 95th percentile, one model per GPU.
+\end{itemize}
+Comparisons and pass rules are fixed before results are seen. Confidence intervals use bootstrap resampling
+by template or family, since tasks from one template are correlated. Paired yes/no outcomes use McNemar's
+test; multiple comparisons use Holm correction; trained models report mean and spread over seeds.
+
+\section{Open questions}
+\M{\S8}
+Decisions the systems team still has to make: which services besides object storage stay in the task; which
+receivers are local or remote and what each one's limit is; the request cap (we propose 3) and the model
+timeout; which hosts are reached without credentials; and whether system tests may log model outputs.
+
+\end{document}

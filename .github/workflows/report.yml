@@ -23,4 +23,5 @@ jobs:
           path: |
             report/mbla_findings.pdf
             report/methodology.pdf
+            report/methodology_ml.pdf
             plots/out/*.pdf
