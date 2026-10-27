@@ -24,5 +24,4 @@ jobs:
             report/mbla_findings.pdf
             report/methodology.pdf
             report/methodology_ml.pdf
-            report/helper_spec.pdf
             plots/out/*.pdf

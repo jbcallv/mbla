@@ -24,95 +24,87 @@
 \begin{document}
 \maketitle
 
+\noindent A companion document (\texttt{methodology\_ml.pdf}) gives the same plan in machine-learning terms,
+with the preliminary charts, how each helper computes its answer, and the exact prompts.
+
 \section{What is evaluated}\label{sec:interface}
 At each delegation, \BC{}'s policy engine asks an untrusted helper to select, from the delegator's
-$(C_i, P_i)$ with $P = (N, \plain, D)$, the authority the subtask needs. \BC{}'s checker decides what is
-allowed; the helper only decides how much of the least-privilege benefit a delegation gets. The checks in
-our library (attenuation, ceiling, recovery admission) are advisory and exist so the benchmark can simulate
-\BC{}'s checker offline. Table~\ref{tab:interface} fixes the interface every helper is evaluated under; it
-follows the current draft and \BC{}'s adapter (\texttt{cmd/bc-mbla}). How each helper works, its exact prompts,
-and the open input and output format questions are in the companion helper specification (\texttt{helper\_spec.pdf}).
+$(C_i, P_i)$ with $P = (N, \plain, D)$, the authority the task needs. \BC{}'s checker decides what is allowed;
+the helper only decides how much of the least-privilege benefit a delegation gets. The checks in our library
+are advisory and let the benchmark simulate \BC{}'s checker offline. Table~\ref{tab:interface} fixes the
+interface every helper is evaluated under; it follows the current draft and \BC{}'s adapter (\texttt{cmd/bc-mbla}).
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.15\linewidth}Y}
 \toprule
-Input & Root task (the user's request); subtask text written by the delegating agent; receiver identity and
-kind (local or remote); current bounds $(C_i,P_i)$; upstream context; optional signed manifest, shown as a hint only. \\
-Candidates & One per grant in $C_i$, plus a narrower grant for each resource the context names under a
-granted prefix; one per destination in $N_i$ that has no parser (selected into $\plain'$); for a local receiver
-only, one per volume mount $(v,\mu)$ in $D_i$. \emph{Not scored:} hosts with a parser (S3, httpapi) follow
-$C$; peers are chosen by the agent's next-peer choice; the model endpoint is always kept. \\
-Output & Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal),
-plausible (the admission set $A$), unneeded. \\
-Root-task wrapper & \BC{}'s adapter calls the helper twice in parallel, with the root task and with the
-subtask, and keeps the lower score per candidate. Results are reported under this wrapper and on the subtask alone. \\
-Failure & Timeout, error, unparsable output, an out-of-range index or an unknown key refuses the delegation.
-There is no fallback proposal. \\
-Receiver & $C$ is bounded by the parent only (no capability ceiling). A proposal whose $P'$ is not within the
-receiver's $\ceil$ is rejected as a whole, not clipped; the delegator never sees $\ceil$. \\
-Recovery & Started by the tunnel only. Each request names one atom or one host. It is granted only if it is
-within the parent and in $A$ (a host without a parser must also be in $\plain_i$), and the receiver installs
-a host only within $\ceil$. Volume denials are final. The cap $k$ counts requests, granted or not. \\
+Task context & Task text written by the delegator; receiver identity and kind (local or remote); current bounds
+$(C_i,P_i)$, presented as the candidate list; upstream context; optional signed manifest, shown as a hint only. \\
+Candidates & One per grant in $C_i$, plus a narrower grant for each resource the context names under a granted
+prefix; one per destination in $N_i$ without a parser (selected into $\plain'$); for a local receiver only, one per
+volume mount $(v,\mu)$ in $D_i$. Not scored: destinations with a parser (S3, httpapi) follow $C$; peers are chosen
+by the agent; the model endpoint is always kept. \\
+Output & Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal), plausible
+(the admission set $A$), unneeded. \\
+Failure & Timeout, error, unparsable output, an out-of-range index or an unknown key refuses the delegation. No
+fallback proposal. \\
+Receiver & $C$ is bounded by the parent only. A proposal whose $P'$ is not within $\ceil$ is rejected whole;
+the delegator never sees $\ceil$. \\
+Recovery & Started by the tunnel. One atom or one destination per request, granted only if within the parent and
+in $A$ (a destination without a parser must also be in $\plain_i$); the receiver installs a destination only within
+$\ceil$. Volume denials are final. The cap $k$ counts requests, granted or not. \\
+Deployment & \BC{}'s adapter may call the helper once with the root task and once with the task text, in parallel,
+and keep the lower score. This applies in the end-to-end runs; standalone results are per call, as the helper
+takes one task text per call. \\
 \bottomrule
 \end{tabularx}
 \caption{Helper interface. Every number in the paper is measured under these rules.}\label{tab:interface}
 \end{table}
 
-The evaluation does not need to show that inference is safe: G1 bounds every output, and a fully
-compromised helper reproduces at most the parent's authority. It shows three things: (1) inference removes
-authority that G1 alone would pass downstream without breaking tasks; (2) bounding recovery by $A$ keeps an
-injected instruction from turning a denial into a grant; (3) the benefit survives an adversary who targets
-the helper. Cost is the fourth axis, because the helper is on the path of every delegation.
+The evaluation does not need to show that inference is safe: G1 bounds every output, and a fully compromised
+helper reproduces at most the parent's authority. It shows that (1) inference removes authority that G1 alone
+would pass downstream without breaking tasks; (2) bounding recovery by $A$ keeps an injected instruction from
+turning a denial into a grant; (3) the benefit survives an adversary who targets the helper. Cost is the fourth
+axis, because the helper is on the path of every delegation.
 
 \section{How the preliminary study shaped the design}\label{sec:prelim}
-Before fixing this plan we ran an exploratory study: 23 helper configurations of four kinds on our
-earlier policy model (findings report, F-01 to F-29). \textbf{Its numbers are not part of the final
-evaluation.} We use them only to justify the choices below; every result in the paper comes from the
-protocol in Sections~\ref{sec:rq}--\ref{sec:stats}.
+We first ran an exploratory study of 23 helper configurations on our earlier policy model; charts and full tables
+are in the companion document. \textbf{Its numbers are not part of the final evaluation}; they justify the choices below.
 
 \begin{table}[H]\centering\small
-\begin{tabularx}{\linewidth}{L{0.33\linewidth}YL{0.07\linewidth}}
+\begin{tabularx}{\linewidth}{L{0.33\linewidth}Y}
 \toprule
-Design choice & Preliminary evidence & Ref. \\
+Design choice & Preliminary evidence \\
 \midrule
 Recovery bounded by $A$ is the main security question (RQ2) &
-With parent-bounded recovery every planted attack stayed reachable; with $A$-bounded recovery 13\% did,
-while 97\% of tasks finished & F-22, F-24 \\
-The helper must emit three tiers &
-Helpers with near-binary scores cannot separate the proposal from $A$; their tuned $A$ gave no protection & F-16 \\
-Main candidates: mid-size generative helpers that see the whole list &
-Qwen3-4B/8B/30B-A3B granted 6--9\% of unneeded authority; the largest model (gpt-oss-120b) 14\% & F-24 \\
-Train fast helpers rather than drop them &
-Qwen3-Reranker-0.6B decides in 28\,ms but grants 40\% of unneeded authority, against 51\% for a fair coin
-& F-26, F-29 \\
-Show the manifest as a hint; attack it with inflation &
-The manifest cut unneeded authority from 23\% to 9\% for Qwen3-8B & F-24 \\
-Compare with CAPMAS's method, not only its release &
-As published (top-10 cut, no recovery) it granted 74\% of unneeded authority and finished 51\% of tasks & F-28 \\
-Local, open-weight helpers only &
-The helper reads possibly confidential context and its sandbox reaches only the model endpoint; open weights
-also allow white-box attacks & F-09 \\
-Whole volumes, no executable permissions &
-The only reviewer disagreements were on path-level file and executable labels; the draft drops both & F-20 \\
+With parent-bounded recovery every planted attack stayed reachable; with $A$-bounded recovery 13\% did, while 97\% of
+tasks finished \\
+The helper emits three tiers & Helpers with near-binary scores cannot separate the proposal from $A$; their $A$ gave no protection \\
+Main helpers: mid-size generative models that see the whole candidate list &
+Qwen3-4B/8B/30B-A3B granted 7--9\% of unneeded authority; the largest model (gpt-oss-120b) 14\% at three times the latency \\
+Train fast helpers rather than drop them & Qwen3-Reranker-0.6B decides in 28\,ms but grants 40\% of unneeded
+authority, against 51\% for a fair coin \\
+Show the manifest; attack it with inflation & The manifest cut unneeded authority from 23\% to 9\% for Qwen3-8B \\
+Compare with CAPMAS's method, not only its release & As published (top-10, no recovery) it granted 74\% of unneeded
+authority and finished 51\% of tasks \\
+No structured arguments in the task context & They did not change the generative helpers' results; \BC{} does not supply them \\
+Local, open-weight helpers & The helper reads possibly confidential context and reaches only the model endpoint; open
+weights also allow white-box attacks \\
 \bottomrule
 \end{tabularx}
-\caption{Each design choice and the preliminary result that motivates it.}\label{tab:prelim}
+\caption{Each design choice and the preliminary result behind it.}\label{tab:prelim}
 \end{table}
 
 \section{Research questions}\label{sec:rq}
 \begin{description}
-  \item[RQ1 Least privilege.] How much of the authority G1 alone would pass downstream does inference remove,
-    per component ($C$, $N$, $\plain$, $D$), at what missing authority, and how often does over-selection get a
-    proposal rejected at $\ceil$?
-  \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside
-    the task, compared with a parent-bounded rule, and what does it cost legitimate tasks?
+  \item[RQ1 Least privilege.] How much of the authority G1 alone would pass downstream does inference remove, per
+    component ($C$, $N$, $\plain$, $D$), at what missing authority, and how often is a proposal rejected at $\ceil$?
+  \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside the
+    task, compared with a parent-bounded rule, and what does it cost legitimate tasks?
   \item[RQ3 Robustness.] How much of the RQ1 benefit survives planted injections, injection styles never seen in
-    training, an adaptive attacker, a steered subtask (under \BC{}'s root-task wrapper and on the subtask
-    alone), and an inflated manifest?
-  \item[RQ4 Cost.] What latency does inference add per delegation (the wrapper's two calls run in parallel, so the slower one counts),
-    and how often does the helper refuse?
-  \item[RQ5 Training.] Does task-specific training let small, fast helpers match the best prompted helper on
-    RQ1--RQ3, and does it hold on task families and attack styles never seen in training?
+    training, an adaptive attacker, and an inflated manifest?
+  \item[RQ4 Cost.] What latency does inference add per delegation, and how often does the helper refuse?
+  \item[RQ5 Training.] Does task-specific training let small, fast helpers match the best prompted helper on RQ1--RQ3,
+    including on task families and attack styles never seen in training?
 \end{description}
 
 \section{Helpers}\label{sec:helpers}
@@ -121,154 +113,134 @@ The only reviewer disagreements were on path-level file and executable labels; t
 \toprule
 Helper & Variants & Role \\
 \midrule
-Qwen3-8B & prompted, fine-tuned & Best security--utility trade-off; the reference helper \\
+Qwen3-8B & prompted, fine-tuned & Reference helper \\
 Qwen3-4B, Qwen3-1.7B & prompted, fine-tuned & Smaller generative helpers \\
-Qwen3-30B-A3B & prompted, QLoRA & Fastest precise generative helper; training must teach the plausible tier \\
-Qwen3-Reranker-0.6B, -8B & prompted, fine-tuned & Fastest helper and strongest per-candidate classifier \\
+Qwen3-30B-A3B & prompted, QLoRA & Fastest precise generative helper \\
+Qwen3-Reranker-0.6B, -8B & prompted, fine-tuned & Fastest helper and strongest per-candidate scorer \\
 CAPMAS~\cite{capmas} & as published; retrained on our data & Closest prior system \\
-gpt-oss-120b & prompted & Upper reference point, not a deployment candidate \\
+gpt-oss-120b & prompted & Upper reference point \\
 Set-only, manifest-only, lexical, coin flips (25/50/75\%) & -- & G1 alone, operator hint alone, keyword match, chance \\
 \bottomrule
 \end{tabularx}
-\caption{Helpers. Others from the exploratory study were dominated by these or cannot be trained the same way.}
+\caption{Helpers. The others from the exploratory study were dominated by these or cannot be trained the same way.}
 \end{table}
 
 \section{Datasets}\label{sec:data}
-\paragraph{Common format.} Every task is one delegation: root task, subtask, receiver (identity, local or
-remote, $\ceil$), delegator holdings $(C_i, N_i, \plain_i, D_i)$, upstream context, optional manifest, and an
-optional injected instruction with the authority it targets. Labels give, per component, the minimal
-authority $X^\star$ (required) and the extra authority any alternative valid plan needs (plausible).
-S3 atoms follow the prototype: (s3, verb, bucket, key prefix) with verb in \{GET, PUT, DELETE, LIST\}.
-Hosts are parsed (S3, httpapi), plain, or peers. Volumes are $(v,\mu)$ with $\mu\in\{\mathrm{ro},\mathrm{rw}\}$.
-There are no executable permissions.
-
-\paragraph{Labeled evaluation set (primary; RQ1--RQ4).} 408 tasks from 17 templates over the paper's
-workflows: 288 test and 120 development, with no template in both. Each template varies over 4 name
-bindings, 3 levels of delegator over-provisioning (narrow, medium, broad: extra authority on the same
-resource with another verb, on sibling resources, and wider prefixes), and with or without one injected
-instruction aimed at authority the delegator holds but the task does not need. The injection sits in the
-subtask or upstream context, never in the root task. Two reviewers label every candidate independently and
-then adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files are frozen by checksum before any helper
-runs, and thresholds are tuned on development only.
-
-\paragraph{Synthetic set (training and held-out generalization; RQ5).} No public dataset has our setting
-(holdings as the choice set, ceilings, recovery, injections), so we generate one with methods from recent
-least-privilege datasets~\cite{taskcond,toolpriv,authbench}.
+\paragraph{Policy model of every task.} Each task is one delegation: task text, receiver (identity, local or remote,
+$\ceil$), delegator holdings $(C_i, N_i, \plain_i, D_i)$, upstream context, optional manifest, and an optional injected
+instruction with the authority it targets. Labels give, per component, the minimal authority (required) and what an
+alternative valid plan adds (plausible). Following \BC{}'s review, permissions are restricted to what \BC{} enforces:
 \begin{itemize}
-  \item \emph{Size and split.} 2,000 tasks in 40 families: 1,500 train and 300 validation from 32 families;
-    200 test tasks from 8 families never trained on (seeded draw, stratified by workflow). Size follows the
-    closest prior work~\cite{taskcond}. No name is shared with the labeled set, and tasks sharing any
-    8-word sequence with it are dropped~\cite{contamination}.
-  \item \emph{Generation.} A local open model writes the root task and subtask as the agents would, plus the
-    API calls that complete the subtask and optionally an alternative valid plan~\cite{selfinstruct,apigen}.
-    Receivers vary over local and remote, and tasks over one and two hops.
-  \item \emph{Labels come from execution.} Each call runs against a mock service that checks its arguments
-    and that every resource it touches is named in the context, and logs the atoms, hosts and volumes it uses.
-    The required tier is the minimal candidate set covering the log, as IAM Access Analyzer derives policies
-    from activity~\cite{accessanalyzer} and AuthBench derives labels from traces~\cite{authbench}; the
-    plausible tier is what the alternative plan adds. Each call's permission comes from the provider's
-    published reference (for S3, AWS's machine-readable service reference, checked automatically). The
-    labeler reproduces the human labels on all 408 labeled tasks from their call plans.
-  \item \emph{Checks.} Format, mock execution, and two judge models other than the writer, which must both
-    agree the plan completes the task, uses no unneeded call and is unambiguous~\cite{toolpriv,apigen};
-    near-duplicates are removed. We report the yield of each stage.
-  \item \emph{Holdings and injections.} Built as in the labeled set; half the tasks carry an injection and
-    its label does not change.
-  \item \emph{Human acceptance test.} Two reviewers label 93 random tasks blind to the generated labels and
-    adjudicate. The set is accepted if at most one generated label is wrong, which shows a label error rate
-    below 5\% with 95\% confidence (one-sided binomial acceptance sampling~\cite{montgomery,clopper}).
-    Otherwise we fix the generator, regenerate and draw a fresh sample.
+  \item \emph{$C$:} S3 atoms (s3, $o$, bucket, key prefix), $o\in\{$GET, PUT, DELETE, LIST$\}$; operations outside these
+    verbs are removed. Other services as decided in \S\ref{sec:decisions}.
+  \item \emph{$N$ and $\plain$:} a destination is a candidate only if it has no parser, and choosing it places it in
+    $\plain'$. Destinations with a parser, peers and the model endpoint are not candidates.
+  \item \emph{$D$:} whole volumes $(v,\mu)$, $\mu\in\{\mathrm{ro},\mathrm{rw}\}$, for local receivers only; remote receivers
+    have $D'=\emptyset$. No executable permissions.
+  \item \emph{Recovery and ceilings:} a task needing a volume it lacks fails; recovery requests name one atom or
+    destination; a proposal exceeding $\ceil$ is a rejected delegation.
 \end{itemize}
 
-\paragraph{External benchmarks.} FORTIS tasks 1 and 2~\cite{fortis} (official grading) and the mostargate
-prompts~\cite{noyan}, to test whether conclusions transfer to another group's tasks and labels. Evaluation only.
+\paragraph{Labeled evaluation set (RQ1--RQ4).} 408 tasks from 17 templates over the paper's workflows: 288 test and
+120 development, with no template in both. Each template varies over 4 name bindings, 3 levels of delegator
+over-provisioning (same resource with another verb, sibling resources, wider prefixes), and with or without one
+injected instruction aimed at authority the delegator holds but the task does not need. Two reviewers label every
+candidate independently and adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files are frozen by checksum
+before any helper runs; thresholds are tuned on development only.
+
+\paragraph{Synthetic set (training and held-out generalization; RQ5).} No public dataset has this setting, so we
+generate one with methods from recent least-privilege datasets~\cite{taskcond,toolpriv,authbench}.
+\begin{itemize}
+  \item \emph{Size and split.} 2,000 tasks in 40 families: 1,500 train and 300 validation from 32 families; 200 test tasks
+    from 8 families never trained on. Size follows the closest prior work~\cite{taskcond}. No name is shared with the
+    labeled set, and tasks sharing any 8-word sequence with it are dropped~\cite{contamination}.
+  \item \emph{Generation.} A local open model writes the task text as a delegator would, plus the API calls that complete
+    it and optionally an alternative valid plan~\cite{selfinstruct,apigen}. Receivers vary over local and remote.
+  \item \emph{Labels from execution.} Each call runs against a mock service that logs the atoms, destinations and volumes it
+    uses. The required tier is the minimal candidate set covering the log, as IAM Access Analyzer derives policies from
+    activity~\cite{accessanalyzer}; the plausible tier is what the alternative plan adds. Each call's permission comes from
+    the provider's published reference (for S3, AWS's machine-readable service reference). The labeler reproduces the
+    human labels on all 408 labeled tasks.
+  \item \emph{Checks.} Format, mock execution, and two judge models other than the writer that must both accept the
+    task~\cite{toolpriv,apigen}; near-duplicates removed; yield reported per stage.
+  \item \emph{Injections.} Half the tasks carry one; its label does not change.
+  \item \emph{Human acceptance test.} Two reviewers label 93 random tasks blind and adjudicate. The set is accepted if at
+    most one generated label is wrong, showing a label error rate below 5\% with 95\% confidence~\cite{montgomery,clopper}.
+\end{itemize}
+
+\paragraph{External benchmarks.} FORTIS tasks 1 and 2~\cite{fortis} and the mostargate prompts~\cite{noyan}. Evaluation only.
 
 \paragraph{End-to-end runs in \BC{} (RQ1, RQ2, RQ4).} The paper's object-storage workflows in \BC{}'s harness
-(S3-compatible store, stub internet, scripted and live agents, deterministic oracle with canary strings), with
-the subprocess proposer running each final helper through the adapter. We measure denials, recovery requests,
-ceiling rejections, task completion, oracle-detected attack outcomes, and delegation latency through the tunnel.
+(S3-compatible store, stub internet, scripted and live agents, deterministic oracle with canary strings), with the
+subprocess proposer running each final helper through the adapter. We measure denials, recovery requests, ceiling
+rejections, task completion, oracle-detected attack outcomes, and delegation latency through the tunnel.
 
-\paragraph{Attack suite (RQ3).} On the labeled test set and the end-to-end runs: (a) the planted injections;
-(b) injection styles from published corpora never used in training~\cite{injecagent,agentdojo}; (c) an adaptive
-attacker that knows the design, candidate format and output schema, has the open weights, and searches for
-text that places a target candidate in the proposal or in $A$ with an attacker-model loop under a fixed query
-budget~\cite{carlini,attackersecond,pair}, reported as success versus budget; (d) a steered subtask, under the wrapper and on
-the subtask alone; (e) a receiver operator who signs a manifest listing the attack's target as
-usually needed.
+\paragraph{Attack suite (RQ3).} On the labeled test set and the end-to-end runs: (a) the planted injections; (b) injection
+styles from published corpora never used in training~\cite{injecagent,agentdojo}; (c) an adaptive attacker that knows the
+design, candidate format and output schema, has the open weights, and searches for text that places a target candidate
+in the proposal or in $A$ under a fixed query budget~\cite{carlini,attackersecond,pair}, reported as success versus
+budget; (d) a receiver operator who signs a manifest listing the attack's target as usually needed.
 
 \section{Training}\label{sec:training}
-Training cannot add a guarantee; G1 supplies those. It changes precision and cost: the fast helpers failed on
-task knowledge, not on the mechanism (Table~\ref{tab:prelim}). Training on injected examples with unchanged
-labels also teaches a helper to ignore injected requests; held-out attack styles test whether that generalizes.
+Training cannot add a guarantee; G1 supplies those. It changes precision and cost: the fast helpers failed on task
+knowledge, not on the mechanism (Table~\ref{tab:prelim}).
 \begin{itemize}
-  \item \emph{Targets.} Classifiers learn needed or not per candidate; generative helpers learn the three-tier
-    index output; CAPMAS uses its own contrastive training code.
-  \item \emph{Method.} Full fine-tuning of all weights for models up to 8B, so a trained model differs from its
-    untrained version only by training; full fine-tuning learns new tasks better than low-rank
-    adaptation~\cite{loralearnsless}. Qwen3-30B-A3B is too large for our hardware and uses QLoRA~\cite{qlora},
-    compared only at matching precision.
-  \item \emph{Settings.} Cosine schedule, 3\% warm-up, 2 epochs, loss on output tokens only; learning rate from
-    $\{5\!\times\!10^{-6}, 10^{-5}, 2\!\times\!10^{-5}\}$ on synthetic validation; three seeds. Thresholds tuned on
-    the labeled development split.
+  \item \emph{Targets.} Generative helpers learn the three-tier index output; per-candidate scorers learn graded targets
+    (1, 0.5, 0) so their scores separate the tiers~\cite{beyondyesno}; CAPMAS uses its own contrastive training code.
+  \item \emph{Method.} Full fine-tuning up to 8B~\cite{loralearnsless}; Qwen3-30B-A3B uses QLoRA~\cite{qlora}, compared
+    only at matching precision.
+  \item \emph{Settings.} Cosine schedule, 3\% warm-up, 2 epochs; learning rate from $\{5\!\times\!10^{-6}, 10^{-5},
+    2\!\times\!10^{-5}\}$ on synthetic validation; three seeds.
   \item \emph{Isolation.} No labeled, external, end-to-end or attack data is used for training or selection.
-    The synthetic held-out families are used once, for the final report.
 \end{itemize}
 
 \section{Metrics and statistics}\label{sec:stats}
-Per task and per component $X\in\{C,N,\plain,D\}$, against $X^\star$, comparing authority on witness atoms so a
-prefix counts for everything it covers:
+Per task and per component $X\in\{C,N,\plain,D\}$, against the minimal authority $X^\star$, on witness atoms so a prefix
+counts for everything it covers:
 \begin{itemize}
   \item \textbf{Excess authority} $|\den{X'}\setminus\den{X^\star}| / |\den{X_i}\setminus\den{X^\star}|$ (set-only $=1$);
     \textbf{missing authority} $|\den{X^\star}\setminus\den{X'}| / |\den{X^\star}|$; exact match.
   \item \textbf{Ceiling rejections}: share of proposals rejected at $\ceil$.
-  \item \textbf{Attack reachability after recovery}: share of attacks whose target is granted at delegation or
-    reachable within $k=3$ requests under the rules of Table~\ref{tab:interface} (sensitivity $k\in\{1,5\}$),
-    with $A$-bounded and parent-bounded admission.
-  \item \textbf{Task completion} under the same rules (a missing volume, a refusal or a ceiling rejection is a
-    failure); recovery requests per task; refusal rate.
-  \item \textbf{Benefit retained under attack} $(E_{\mathrm{G1}}-E_{\mathrm{attack}})/(E_{\mathrm{G1}}-E_{\mathrm{clean}})$
-    on the attacked authority: 1 means the attack gained nothing, 0 means the helper fell back to the parent.
-  \item \textbf{Latency}: helper time (median, p95), each model alone on one GPU, and delegation setup time
-    end to end.
+  \item \textbf{Attack reachability after recovery}: share of attacks whose target is granted at delegation or reachable
+    within $k=3$ requests (sensitivity $k\in\{1,5\}$), under $A$-bounded and parent-bounded admission.
+  \item \textbf{Task completion} (a missing volume, a refusal or a ceiling rejection is a failure); recovery requests per
+    task; refusal rate.
+  \item \textbf{Benefit retained under attack} $(E_{\mathrm{G1}}-E_{\mathrm{attack}})/(E_{\mathrm{G1}}-E_{\mathrm{clean}})$.
+  \item \textbf{Latency}: helper time per call (median, p95), and delegation setup time end to end.
 \end{itemize}
-\textbf{Protocol.} Helpers, metrics, comparisons and pass rules are fixed in our decision log before results
-are seen; anything added later is labeled post hoc. Primary comparisons, each Holm-corrected within its
-metric: best helper vs.\ set-only (RQ1); $A$-bounded vs.\ parent-bounded recovery (RQ2); each fine-tuned helper
-vs.\ its untrained version and vs.\ prompted Qwen3-8B (RQ5); best helper vs.\ CAPMAS and vs.\ each coin flip.
-Confidence intervals (95\%) come from bootstrap resampling of templates or task families, since tasks within one
-are correlated; paired binary outcomes use McNemar's exact test; trained models report the mean and spread over
-seeds.
+Helpers, metrics, comparisons and pass rules are fixed in our decision log before results are seen. Primary comparisons,
+each Holm-corrected within its metric: best helper vs.\ set-only (RQ1); $A$-bounded vs.\ parent-bounded recovery (RQ2);
+each fine-tuned helper vs.\ its untrained version and vs.\ prompted Qwen3-8B (RQ5); best helper vs.\ CAPMAS and vs.\ each
+coin flip. 95\% intervals by bootstrap over templates or task families; McNemar's exact test for paired binary outcomes.
 
 \section{Open decisions and the \BC{} asks}\label{sec:decisions}
 \begin{enumerate}
-  \item \textbf{Services beyond S3.} Only S3 and httpapi have parsers. We propose keeping the issue-tracker,
-    document and chat workflows as httpapi atoms if httpapi's atom form fits them; otherwise their hosts are
-    plain only and the capability results come from S3 alone.
+  \item \textbf{Services beyond S3.} Only S3 and httpapi have parsers. We propose keeping the issue-tracker, document and
+    chat workflows as httpapi atoms if httpapi's atom form fits them; otherwise their destinations are $\plain$ only and
+    capability results come from S3 alone.
   \item Local or remote receiver for each handoff, and $\ceil$ for each receiver role.
   \item The cap $k$ (we propose 3) and the helper timeout (prototype: 60\,s).
-  \item Which hosts are plain in each workflow.
+  \item Which destinations are $\plain$ in each workflow.
   \item Whether end-to-end runs may log helper candidates, tiers and $A$.
 \end{enumerate}
-Input and output format questions on the model side (prompt structure, candidate order, training targets) are listed
-with recommendations in the helper specification and are decided by our side before the final runs.
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.06\linewidth}Y}
 \toprule
 Ask & Where this plan meets it \\
 \midrule
-B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}, common format) \\
+B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}) \\
 B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}) \\
-B3 & Note from \BC{}: its adapter applies the root-task rule. Every task carries a root task and results are reported under it (RQ3d) \\
-B4 & Hosts are parsed, plain or peers; only unparsed hosts are scored (Table~\ref{tab:interface}) \\
-B5 & $C$ bounded by the parent; ceiling miss rejects the delegation and is a reported metric \\
+B3 & Root-task rule applied by \BC{}'s adapter in the end-to-end runs; standalone results are per call \\
+B4 & Only destinations without a parser are candidates (Table~\ref{tab:interface}, \S\ref{sec:data}) \\
+B5 & $C$ bounded by the parent; a ceiling miss rejects the delegation and is reported \\
 B6 & $k$ counts requests; fixed in \texttt{Recovery.Decide} \\
 L1 & Out-of-range indices, unknown keys and trailing text refuse; fixed in the chat scorer \\
-D1--D3 & Library README and spec now say \BC{}'s checker decides, describe recovery as above, and reject at the ceiling \\
-D4 & Paper-alignment notes remapped to the current draft (with the benchmark rebuild) \\
+D1--D3 & Library README and spec updated \\
+D4 & Paper-alignment notes remapped to the current draft with the benchmark rebuild \\
 \bottomrule
 \end{tabularx}
-\caption{How the plan answers \BC{}'s requests to the policy-inference side (Oct 26).}
+\caption{How the plan answers \BC{}'s requests (Oct 26).}
 \end{table}
 
 \begin{thebibliography}{99}\small
@@ -290,6 +262,7 @@ D4 & Paper-alignment notes remapped to the current draft (with the benchmark reb
 \bibitem{carlini} N.~Carlini et al. On evaluating adversarial robustness. arXiv:1902.06705, 2019.
 \bibitem{attackersecond} M.~Nasr et al. The attacker moves second: Stronger adaptive attacks bypass defenses against LLM jailbreaks and prompt injections. arXiv:2510.09023, 2025.
 \bibitem{pair} P.~Chao et al. Jailbreaking black box large language models in twenty queries. arXiv:2310.08419, 2023.
+\bibitem{beyondyesno} H.~Zhuang et al. Beyond yes and no: Improving zero-shot LLM rankers via scoring fine-grained relevance labels. NAACL, 2024.
 \bibitem{loralearnsless} D.~Biderman et al. LoRA learns less and forgets less. TMLR, 2024.
 \bibitem{qlora} T.~Dettmers et al. QLoRA: Efficient finetuning of quantized LLMs. NeurIPS, 2023.
 \end{thebibliography}

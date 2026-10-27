@@ -228,3 +228,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Decided:** 2026-10-27. BoundClaw clarified that B3 is a note: its adapter wraps any scorer with two parallel calls (root task, subtask) and keeps the minimum. Input and output formats are the AI side's decision.
 - **What:** `report/helper_spec.tex` specifies the fixed security requirements (R1–R9), how each model family works with its exact prompts, the preliminary figures behind each choice, and eight open format questions (P1–P8) with recommendations, for the advisor to decide before final runs.
 - **Methodology changes:** the root-task rule is described as BoundClaw's wrapper; results are reported under it and on the subtask alone; per-delegation latency is the slower of the two parallel calls.
+
+## D-26 · Two documents; method unchanged; root task stays outside the helper (supersedes D-25's helper spec)
+- **Decided:** 2026-10-27, at Joseph's request.
+- **Documents:** `methodology_ml.tex` (pilot results with charts and tables, how each model works, exact prompts, the final plan in machine-learning terms) and `methodology.tex` (the same plan in the paper's notation for the BoundClaw team). `helper_spec.tex` is removed; its format proposals are dropped.
+- **Method:** unchanged from the pilot: same helpers, prompts, thresholds and recovery admission. The helper takes one task text per call. BoundClaw's root-task wrapper is applied by its adapter in end-to-end runs; standalone results are per call. No root task in benchmark items.
+- **Benchmark changes only (per BoundClaw's review):** S3 limited to GET/PUT/DELETE/LIST; only unparsed hosts are candidates (into plain); whole volumes for local receivers only; no executables; recovery one atom or host per request, cap counts requests, volume denials final; ceiling miss rejects; no structured arguments (pilot: no effect on generative helpers).
+- **Training additions:** per-candidate scorers use graded targets (1, 0.5, 0); candidate order shuffled per training example.
