@@ -36,14 +36,18 @@ default:
 
 ## Receiver side
 
+The receiver rejects a proposal that is not within its ceiling.
+
 ```go
-installed, dropped := mbla.ApplyCeiling(proposal, ceiling)
+if _, dropped := mbla.ApplyCeiling(proposal, ceiling); len(dropped) > 0 {
+	return reject(proposal)
+}
 
 if ceiling.Covers(requested) {
 	askDelegator(requested)
 }
 if granted && mbla.NeedsNewSandbox(requested) {
-	applyNewPolicy(installed.Add(requested))
+	applyNewPolicy(proposal.Add(requested))
 }
 ```
 
@@ -60,7 +64,7 @@ Turning a denied request into a `Permission` is the enforcement side's job. `Net
 | `&mbla.DecisionModel{...}` | any yes/no decision model behind a `/score` endpoint (Qwen3-Reranker and Laya via `bench/serve/decision_server.py`) |
 | `&mbla.ChatModel{...}` | any OpenAI-compatible chat endpoint |
 
-A scorer is untrusted. Only `CheckAttenuation`, `ApplyCeiling` and `Decide` decide what is allowed.
+A scorer is untrusted. Inside BoundClaw, BoundClaw's checker decides what is allowed. MBLA's `CheckAttenuation`, `ApplyCeiling` and `Decide` are advisory and serve the benchmark.
 
 ## Permission format
 

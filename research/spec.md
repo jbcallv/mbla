@@ -19,9 +19,9 @@ At every delegation, BoundClaw's enforcement layer must propose a policy for the
    - `Initial`: what the receiver starts with.
    - `Admit`: what recovery may later grant.
 5. The trusted checks run on the result: attenuation on the delegator side, the ceiling on the receiver side.
-6. When the receiver is denied mid-task, it sends one recovery request, which the delegator decides using `Decide`.
+6. The tunnel starts recovery. Each request names one atom or one host. A delegation can send up to k requests; the delegator decides each with `Decide`.
 
-**The scorer is untrusted.** Safety comes only from the checks in step 5 and `Decide`. Everything else affects policy quality, never safety.
+**The scorer is untrusted.** Inside BoundClaw, BoundClaw's checker decides what is allowed; MBLA's checks in step 5 and `Decide` are advisory and serve the benchmark. Everything else affects policy quality, never safety.
 
 ---
 
@@ -206,7 +206,7 @@ func Bound(parent, ceiling Policy) Policy
 ```
 
 - `CheckAttenuation` returns `fmt.Errorf("%w: %s", ErrExceedsParent, first)` for the first uncovered permission.
-- `ApplyCeiling` runs on the receiver side. It installs `proposal ∩ ceiling` and reports what was dropped. The paper says the receiver *rejects* a proposal that exceeds its ceiling. Clipping is strictly narrower and avoids failing a delegation over one stray permission (finding F-12). A receiver that wants strict behavior rejects when `dropped` is non-empty.
+- `ApplyCeiling` runs on the receiver side and reports what lies outside the ceiling. The receiver rejects a proposal that is not within its ceiling: a non-empty `dropped` means reject, never install the rest (paper §4.4; finding F-12 records the clipping alternative we no longer propose).
 - `Bound` is used by the benchmark and tests. At runtime nobody computes it in one place, because the delegator never sees the ceiling (finding F-02).
 
 ### 5.4 recovery.go
@@ -239,7 +239,7 @@ type Recovery struct {
 	Admit    Policy
 	Mode     Mode
 	Cap      int
-	granted  int
+	asked    int
 }
 
 func (recovery *Recovery) Decide(request RecoveryRequest) Decision
@@ -250,21 +250,23 @@ func NeedsNewSandbox(permission Permission) bool
 ```go
 func (recovery *Recovery) Decide(request RecoveryRequest) Decision {
 	requested := request.Permission
+	if recovery.asked >= recovery.Cap {
+		return CapReached
+	}
+	recovery.asked++
 	switch {
 	case !requested.IsConcrete():
 		return NotConcrete
-	case recovery.granted >= recovery.Cap:
-		return CapReached
 	case !recovery.Holdings.Covers(requested):
 		return OutsideParent
 	case recovery.Mode == Admitted && !recovery.Admit.Covers(requested):
 		return NotAdmitted
 	}
-	recovery.granted++
 	return Granted
 }
 ```
 
+- The cap counts requests, granted or not, as BoundClaw does, so denied requests cannot probe `Admit`.
 - `Holdings` is the delegator's **current** holdings, including anything the delegator itself gained through recovery (paper §4.2).
 - `BoundOnly` is the paper's current rule. `Admitted` is our proposed fix (finding F-01). The benchmark reports both.
 - The receiver's enforcement layer checks `ceiling.Covers(requested)` **before** sending a request, so the two sides together enforce `Bound` without either knowing the other's half.

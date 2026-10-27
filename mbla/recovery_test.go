@@ -56,8 +56,20 @@ func TestDecideCap(t *testing.T) {
 	if got := ask(recovery, "github:issue.read:acme/web#2"); got != CapReached {
 		t.Fatalf("second: got %v", got)
 	}
-	if recovery.Granted() != 1 {
-		t.Fatalf("granted count %d", recovery.Granted())
+	if recovery.Asked() != 1 {
+		t.Fatalf("asked count %d", recovery.Asked())
+	}
+}
+
+func TestDecideCountsRefusedRequests(t *testing.T) {
+	recovery := recoveryFor(BoundOnly, 3)
+	ask(recovery, "github:issue.read:globex/site#1")
+	ask(recovery, "github:issue.read:globex/site#2")
+	if got := ask(recovery, "github:issue.read:acme/web#1"); got != Granted {
+		t.Fatalf("third: got %v", got)
+	}
+	if got := ask(recovery, "github:issue.read:acme/web#2"); got != CapReached {
+		t.Fatalf("fourth: got %v", got)
 	}
 }
 

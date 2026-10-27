@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const chatInstructions = `You choose the permissions a delegated agent needs for one task.
@@ -142,16 +143,17 @@ type chatSelection struct {
 }
 
 func (chat *ChatModel) Score(ctx context.Context, request Request, candidates Policy) ([]float64, error) {
+	chat.lastCall = CallReport{}
 	var response chatResponse
 	if err := postJSON(ctx, chat.Client, chat.Endpoint+"/chat/completions", chat.APIKey, chat.requestBody(request, candidates), &response); err != nil {
 		return nil, err
 	}
 	chat.lastCall = CallReport{Version: response.Model, InputTokens: response.Usage.PromptTokens}
-	selection, err := parseSelection(response)
+	selection, err := parseSelection(response, len(candidates))
 	if err != nil {
 		chat.lastCall.ParseFailed = true
 		chat.lastCall.RawOutput = rawContent(response)
-		return make([]float64, len(candidates)), nil
+		return nil, fmt.Errorf("invalid selection: %w", err)
 	}
 	return selectionScores(selection, len(candidates)), nil
 }
@@ -207,26 +209,42 @@ func rawContent(response chatResponse) string {
 	return response.Choices[0].Message.Content
 }
 
-func parseSelection(response chatResponse) (chatSelection, error) {
+// parseSelection refuses anything but the schema: unknown keys, trailing text and out-of-range indices are errors, never dropped.
+func parseSelection(response chatResponse, count int) (chatSelection, error) {
 	var selection chatSelection
 	if len(response.Choices) == 0 {
 		return selection, fmt.Errorf("no choices")
 	}
-	err := json.Unmarshal([]byte(response.Choices[0].Message.Content), &selection)
-	return selection, err
+	decoder := json.NewDecoder(strings.NewReader(response.Choices[0].Message.Content))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&selection); err != nil {
+		return selection, err
+	}
+	if decoder.More() {
+		return selection, fmt.Errorf("trailing text after the selection")
+	}
+	if err := checkIndices(selection.Required, count); err != nil {
+		return selection, err
+	}
+	return selection, checkIndices(selection.Plausible, count)
+}
+
+func checkIndices(indices []int, count int) error {
+	for _, index := range indices {
+		if index < 0 || index >= count {
+			return fmt.Errorf("index %d out of range (0..%d)", index, count-1)
+		}
+	}
+	return nil
 }
 
 func selectionScores(selection chatSelection, count int) []float64 {
 	scores := make([]float64, count)
 	for _, index := range selection.Plausible {
-		if index >= 0 && index < count {
-			scores[index] = 0.5
-		}
+		scores[index] = 0.5
 	}
 	for _, index := range selection.Required {
-		if index >= 0 && index < count {
-			scores[index] = 1
-		}
+		scores[index] = 1
 	}
 	return scores
 }

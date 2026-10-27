@@ -27,27 +27,29 @@ type Recovery struct {
 	Admit    Policy
 	Mode     Mode
 	Cap      int
-	granted  int
+	asked    int
 }
 
+// Decide counts every request against the cap, granted or not, so repeated denied requests cannot probe Admit.
 func (recovery *Recovery) Decide(request RecoveryRequest) Decision {
 	requested := request.Permission
+	if recovery.asked >= recovery.Cap {
+		return CapReached
+	}
+	recovery.asked++
 	switch {
 	case !requested.IsConcrete():
 		return NotConcrete
-	case recovery.granted >= recovery.Cap:
-		return CapReached
 	case !recovery.Holdings.Covers(requested):
 		return OutsideParent
 	case recovery.Mode == Admitted && !recovery.Admit.Covers(requested):
 		return NotAdmitted
 	}
-	recovery.granted++
 	return Granted
 }
 
-func (recovery *Recovery) Granted() int {
-	return recovery.granted
+func (recovery *Recovery) Asked() int {
+	return recovery.asked
 }
 
 func (decision Decision) String() string {

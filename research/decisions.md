@@ -211,3 +211,15 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
   - B4, the helper inside the end-to-end S3 harness;
   - B5 attacks: held-out injection styles, an adaptive attacker with a query budget, and manifest inflation.
 - **Dropped:** AuthBench as an external test, because path-level file and execute permissions are no longer in the policy model.
+
+## D-24 · BoundClaw's asks adopted; methodology shortened (proposed)
+- **Decided:** 2026-10-27, after the BoundClaw team's review "MBLA expectations vs BoundClaw design" (Oct 26, asks B1–B6, D1–D4, L1). BoundClaw's design wins on every conflict. Supersedes D-23 where they differ.
+- **Methodology:** `report/methodology.tex` cut to about five pages. The preliminary study only motivates design choices (one table, pointing to findings); it is not part of the final evaluation, and the final benchmark is described on its own terms (no "v2").
+- **Adopted into the evaluation:**
+  - B1, B2: $P=(N,\mathit{plain},D)$, whole volumes, no executables; volumes granted at delegation only.
+  - B3: every task carries a root task; each candidate is scored against the root task and the subtask and the lower score is kept. This is the evaluated configuration; subtask-only is an ablation.
+  - B4: hosts with a parser (S3, httpapi) follow C and are not scored; other hosts are plain candidates; peers and the model endpoint are not scored.
+  - B5: C is bounded by the parent only; a proposal outside $P_{ceil}$ is rejected whole, reported as ceiling rejections. F-12's clipping proposal is withdrawn.
+  - B6: the recovery cap counts requests.
+- **Done in code:** L1 (chat scorer refuses out-of-range indices, unknown keys and trailing text; the bench records the refusal), B6 (`Recovery.Decide` counts every request), D1–D3 (README and spec wording).
+- **Open:** D4 (paper_alignment.md) and the benchmark and synthetic-data changes, after advisor and team sign-off; whether non-S3 services stay as httpapi atoms.

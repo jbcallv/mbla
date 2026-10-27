@@ -59,7 +59,7 @@ func TestDecisionScore(t *testing.T) {
 }
 
 func TestChatModelScore(t *testing.T) {
-	reply := `{"model":"qwen3-8b","choices":[{"message":{"content":"{\"required\":[0],\"plausible\":[1,7]}"}}],"usage":{"prompt_tokens":300}}`
+	reply := `{"model":"qwen3-8b","choices":[{"message":{"content":"{\"required\":[0],\"plausible\":[1]}"}}],"usage":{"prompt_tokens":300}}`
 	server := serveJSON(t, reply, func(body map[string]any) {
 		schema := body["response_format"].(map[string]any)["json_schema"].(map[string]any)["schema"].(map[string]any)
 		required := schema["properties"].(map[string]any)["required"].(map[string]any)
@@ -74,12 +74,27 @@ func TestChatModelScore(t *testing.T) {
 	}
 }
 
-func TestChatModelParseFailureScoresZero(t *testing.T) {
+func TestChatModelParseFailureRefuses(t *testing.T) {
 	server := serveJSON(t, `{"choices":[{"message":{"content":"not json"}}]}`, nil)
 	chat := &ChatModel{Endpoint: server.URL}
-	scores, err := chat.Score(context.Background(), triageRequest, twoCandidates)
-	if err != nil || scores[0] != 0 || !chat.LastCall().ParseFailed || chat.LastCall().RawOutput != "not json" {
-		t.Fatalf("scores %v err %v report %+v", scores, err, chat.LastCall())
+	_, err := chat.Score(context.Background(), triageRequest, twoCandidates)
+	if err == nil || !chat.LastCall().ParseFailed || chat.LastCall().RawOutput != "not json" {
+		t.Fatalf("err %v report %+v", err, chat.LastCall())
+	}
+}
+
+func TestChatModelRefusesInvalidSelection(t *testing.T) {
+	for _, content := range []string{
+		`{"required":[0],"plausible":[17]}`,
+		`{"required":[-1],"plausible":[]}`,
+		`{"required":[0],"plausible":[1],"note":"x"}`,
+		`{"required":[0],"plausible":[1]} {"required":[1]}`,
+	} {
+		reply, _ := json.Marshal(map[string]any{"choices": []any{map[string]any{"message": map[string]any{"content": content}}}})
+		server := serveJSON(t, string(reply), nil)
+		if _, err := (&ChatModel{Endpoint: server.URL}).Score(context.Background(), triageRequest, twoCandidates); err == nil {
+			t.Errorf("%s: want error", content)
+		}
 	}
 }
 

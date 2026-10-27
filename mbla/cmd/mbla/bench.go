@@ -104,12 +104,12 @@ func benchOne(scorer mbla.Scorer, item benchItem, config benchConfig) benchRow {
 	started := time.Now()
 	proposal, err := mbla.ProposeAmong(context.Background(), scorer, forInput(item.Request, config.input), candidates, *config.thresholds)
 	row.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
+	recordCall(&row, scorer)
 	if err != nil {
 		row.Error = err.Error()
 		return row
 	}
 	row.Scores, row.Initial, row.Admit = proposal.Scores, proposal.Initial, proposal.Admit
-	recordCall(&row, scorer)
 	return row
 }
 
