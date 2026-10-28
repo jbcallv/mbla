@@ -52,9 +52,9 @@ the delegator never sees $\ceil$. \\
 Recovery & Started by the tunnel. One atom or one destination per request, granted only if within the parent and
 in $A$ (a destination without a parser must also be in $\plain_i$); the receiver installs a destination only within
 $\ceil$. Volume denials are final. The cap $k$ counts requests, granted or not. \\
+Budget & 45\,s per model call; past it the call is a timeout and refuses. \\
 Deployment & \BC{}'s adapter may call the helper once with the root task and once with the task text, in parallel,
-and keep the lower score. This applies in the end-to-end runs; standalone results are per call, as the helper
-takes one task text per call. \\
+and keep the lower score. \BC{} reports that effect. Every result here is per call, for the helper alone. \\
 \bottomrule
 \end{tabularx}
 \caption{Helper interface. Every number in the paper is measured under these rules.}\label{tab:interface}
@@ -99,10 +99,10 @@ weights also allow white-box attacks \\
   \item[RQ1 Least privilege.] How much of the authority G1 alone would pass downstream does inference remove, per
     component ($C$, $N$, $\plain$, $D$), at what missing authority, and how often is a proposal rejected at $\ceil$?
   \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside the
-    task, compared with a parent-bounded rule, and what does it cost legitimate tasks?
+    task, compared with a parent-bounded rule, and what does it cost legitimate tasks in the offline simulation?
   \item[RQ3 Robustness.] How much of the RQ1 benefit survives planted injections, injection styles never seen in
     training, an adaptive attacker, and an inflated manifest?
-  \item[RQ4 Cost.] What latency does inference add per delegation, and how often does the helper refuse?
+  \item[RQ4 Cost.] What latency does one helper call add, and how often does the helper refuse?
   \item[RQ5 Training.] Does task-specific training let small, fast helpers match the best prompted helper on RQ1--RQ3,
     including on task families and attack styles never seen in training?
 \end{description}
@@ -122,7 +122,8 @@ gpt-oss-120b & prompted & Upper reference point \\
 Set-only, manifest-only, lexical, coin flips (25/50/75\%) & -- & G1 alone, operator hint alone, keyword match, chance \\
 \bottomrule
 \end{tabularx}
-\caption{Helpers. The others from the exploratory study were dominated by these or cannot be trained the same way.}
+\caption{Helpers. Laya is dropped because Qwen3-Reranker-0.6B is as fast and grants half as much unneeded authority;
+CLM is dropped because its frozen Qwen3-8B backbone is already tested, and does better, as a generative helper.}
 \end{table}
 
 \section{Datasets}\label{sec:data}
@@ -132,7 +133,8 @@ instruction with the authority it targets. Labels give, per component, the minim
 alternative valid plan adds (plausible). Following \BC{}'s review, permissions are restricted to what \BC{} enforces:
 \begin{itemize}
   \item \emph{$C$:} S3 atoms (s3, $o$, bucket, key prefix), $o\in\{$GET, PUT, DELETE, LIST$\}$; operations outside these
-    verbs are removed. Other services as decided in \S\ref{sec:decisions}.
+    verbs are removed. httpapi's vocabulary (\texttt{verify}, \texttt{priorauth}) does not cover the paper's issue-tracker,
+    document and chat workflows, so those are $\plain$ and $D$ only and capability results come from S3.
   \item \emph{$N$ and $\plain$:} a destination is a candidate only if it has no parser, and choosing it places it in
     $\plain'$. Destinations with a parser, peers and the model endpoint are not candidates.
   \item \emph{$D$:} whole volumes $(v,\mu)$, $\mu\in\{\mathrm{ro},\mathrm{rw}\}$, for local receivers only; remote receivers
@@ -144,7 +146,10 @@ alternative valid plan adds (plausible). Following \BC{}'s review, permissions a
 \paragraph{Labeled evaluation set (RQ1--RQ4).} 408 tasks from 17 templates over the paper's workflows: 288 test and
 120 development, with no template in both. Each template varies over 4 name bindings, 3 levels of delegator
 over-provisioning (same resource with another verb, sibling resources, wider prefixes), and with or without one
-injected instruction aimed at authority the delegator holds but the task does not need. Two reviewers label every
+injected instruction aimed at authority the delegator holds but the task does not need. Because $C$ is S3 only, we add
+S3 templates (object reads, listings, writes and deletes, with sibling buckets and wider prefixes as decoys) until they make
+up at least half of the test templates. Receiver kind, $\ceil$ and $\plain$ destinations per handoff come from \BC{}; the
+candidate lists are generated from them and regenerated if they change. Two reviewers label every
 candidate independently and adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files are frozen by checksum
 before any helper runs; thresholds are tuned on development only.
 
@@ -170,12 +175,7 @@ generate one with methods from recent least-privilege datasets~\cite{taskcond,to
 
 \paragraph{External benchmarks.} FORTIS tasks 1 and 2~\cite{fortis} and the mostargate prompts~\cite{noyan}. Evaluation only.
 
-\paragraph{End-to-end runs in \BC{} (RQ1, RQ2, RQ4).} The paper's object-storage workflows in \BC{}'s harness
-(S3-compatible store, stub internet, scripted and live agents, deterministic oracle with canary strings), with the
-subprocess proposer running each final helper through the adapter. We measure denials, recovery requests, ceiling
-rejections, task completion, oracle-detected attack outcomes, and delegation latency through the tunnel.
-
-\paragraph{Attack suite (RQ3).} On the labeled test set and the end-to-end runs: (a) the planted injections; (b) injection
+\paragraph{Attack suite (RQ3).} On the labeled test set: (a) the planted injections; (b) injection
 styles from published corpora never used in training~\cite{injecagent,agentdojo}; (c) an adaptive attacker that knows the
 design, candidate format and output schema, has the open weights, and searches for text that places a target candidate
 in the proposal or in $A$ under a fixed query budget~\cite{carlini,attackersecond,pair}, reported as success versus
@@ -191,7 +191,7 @@ knowledge, not on the mechanism (Table~\ref{tab:prelim}).
     only at matching precision.
   \item \emph{Settings.} Cosine schedule, 3\% warm-up, 2 epochs; learning rate from $\{5\!\times\!10^{-6}, 10^{-5},
     2\!\times\!10^{-5}\}$ on synthetic validation; three seeds.
-  \item \emph{Isolation.} No labeled, external, end-to-end or attack data is used for training or selection.
+  \item \emph{Isolation.} No labeled, external or attack data is used for training or selection.
 \end{itemize}
 
 \section{Metrics and statistics}\label{sec:stats}
@@ -202,26 +202,26 @@ counts for everything it covers:
     \textbf{missing authority} $|\den{X^\star}\setminus\den{X'}| / |\den{X^\star}|$; exact match.
   \item \textbf{Ceiling rejections}: share of proposals rejected at $\ceil$.
   \item \textbf{Attack reachability after recovery}: share of attacks whose target is granted at delegation or reachable
-    within $k=3$ requests (sensitivity $k\in\{1,5\}$), under $A$-bounded and parent-bounded admission.
+    within $k=3$ requests (sensitivity $k\in\{0,1,5\}$, matching \BC{}'s runs), under $A$-bounded and parent-bounded admission.
   \item \textbf{Task completion} (a missing volume, a refusal or a ceiling rejection is a failure); recovery requests per
     task; refusal rate.
   \item \textbf{Benefit retained under attack} $(E_{\mathrm{G1}}-E_{\mathrm{attack}})/(E_{\mathrm{G1}}-E_{\mathrm{clean}})$.
-  \item \textbf{Latency}: helper time per call (median, p95), and delegation setup time end to end.
+  \item \textbf{Latency}: helper time per call (median, p95).
 \end{itemize}
 Helpers, metrics, comparisons and pass rules are fixed in our decision log before results are seen. Primary comparisons,
 each Holm-corrected within its metric: best helper vs.\ set-only (RQ1); $A$-bounded vs.\ parent-bounded recovery (RQ2);
 each fine-tuned helper vs.\ its untrained version and vs.\ prompted Qwen3-8B (RQ5); best helper vs.\ CAPMAS and vs.\ each
 coin flip. 95\% intervals by bootstrap over templates or task families; McNemar's exact test for paired binary outcomes.
 
-\section{Open decisions and the \BC{} asks}\label{sec:decisions}
+\section{Settled decisions and the \BC{} asks}\label{sec:decisions}
 \begin{enumerate}
-  \item \textbf{Services beyond S3.} Only S3 and httpapi have parsers. We propose keeping the issue-tracker, document and
-    chat workflows as httpapi atoms if httpapi's atom form fits them; otherwise their destinations are $\plain$ only and
-    capability results come from S3 alone.
-  \item Local or remote receiver for each handoff, and $\ceil$ for each receiver role.
-  \item The cap $k$ (we propose 3) and the helper timeout (prototype: 60\,s).
-  \item Which destinations are $\plain$ in each workflow.
-  \item Whether end-to-end runs may log helper candidates, tiers and $A$.
+  \item \textbf{Services beyond S3.} httpapi covers only \texttt{verify} and \texttt{priorauth}; the issue-tracker,
+    document and chat workflows are $\plain$ only. \BC{} will say if it adds a parser.
+  \item \textbf{Receiver kind, $\ceil$ and $\plain$ destinations.} \BC{} supplies them per handoff; until then the
+    benchmark uses our proposal, and we regenerate the candidate lists when theirs arrive.
+  \item \textbf{Cap and budget.} $k=3$, with 0, 1 and 5 as sensitivity; 45\,s per model call.
+  \item \textbf{End-to-end runs.} \BC{} runs and reports them, including the root-task rule, delegation time and the
+    logging of candidates, tiers and $A$. They are not part of this plan.
 \end{enumerate}
 
 \begin{table}[H]\centering\small
@@ -231,7 +231,7 @@ Ask & Where this plan meets it \\
 \midrule
 B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}) \\
 B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}) \\
-B3 & Root-task rule applied by \BC{}'s adapter in the end-to-end runs; standalone results are per call \\
+B3 & Root-task rule applied and reported by \BC{}'s adapter; our results are per call \\
 B4 & Only destinations without a parser are candidates (Table~\ref{tab:interface}, \S\ref{sec:data}) \\
 B5 & $C$ bounded by the parent; a ceiling miss rejects the delegation and is reported \\
 B6 & $k$ counts requests; fixed in \texttt{Recovery.Decide} \\
@@ -240,7 +240,7 @@ D1--D3 & Library README and spec updated \\
 D4 & Paper-alignment notes remapped to the current draft with the benchmark rebuild \\
 \bottomrule
 \end{tabularx}
-\caption{How the plan answers \BC{}'s requests (Oct 26).}
+\caption{How the plan answers \BC{}'s requests (review of Oct 27).}
 \end{table}
 
 \begin{thebibliography}{99}\small

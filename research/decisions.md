@@ -235,3 +235,11 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Method:** unchanged from the pilot: same helpers, prompts, thresholds and recovery admission. The helper takes one task text per call. BoundClaw's root-task wrapper is applied by its adapter in end-to-end runs; standalone results are per call. No root task in benchmark items.
 - **Benchmark changes only (per BoundClaw's review):** S3 limited to GET/PUT/DELETE/LIST; only unparsed hosts are candidates (into plain); whole volumes for local receivers only; no executables; recovery one atom or host per request, cap counts requests, volume denials final; ceiling miss rejects; no structured arguments (pilot: no effect on generative helpers).
 - **Training additions:** per-candidate scorers use graded targets (1, 0.5, 0); candidate order shuffled per training example.
+
+## D-27 · BoundClaw review of Oct 27: per-call results, no end-to-end runs, open decisions settled
+- **Decided:** 2026-10-28, from the BoundClaw team's review of the Oct 27 draft (MBLA 61ee2d5).
+- **Dropped:** end-to-end runs in BoundClaw and end-to-end delegation time. BoundClaw runs and reports them, including the root-task wrapper and logging of candidates, tiers and A.
+- **Reporting:** every result is per call, for the helper alone. RQ4 is latency per call; RQ2's cost to legitimate tasks comes from the offline simulator.
+- **Settled:** httpapi covers only verify and priorauth, so issue-tracker, document and chat workflows are plain and volumes only; C comes from S3. k = 3 with 0, 1, 5 as sensitivity. 45 s budget per model call (a slower call refuses).
+- **Benchmark:** add S3 templates until they are at least half of the test templates. Receiver kind, P_ceil and plain hosts per handoff come from BoundClaw; until they arrive the benchmark uses our proposal, and candidate lists are regenerated when theirs do.
+- **Helpers:** Laya dropped because Qwen3-Reranker-0.6B is as fast and grants half the extra permissions; CLM dropped because its frozen Qwen3-8B backbone is already tested and does better as a listwise LLM.

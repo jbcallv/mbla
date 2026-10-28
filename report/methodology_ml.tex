@@ -54,7 +54,7 @@ equals passing every permission, which is the no-model baseline. Hard rules outs
 model decides how much permission is passed, never whether the system's limits hold.
 
 \paragraph{Why ``plausible'' matters.} If the receiver later lacks a permission, it may ask for it, one at a time,
-at most $k=3$ requests. A request is granted only if the model had labelled it plausible. The plausible set is a
+at most $k=3$ requests (also 0, 1 and 5 as sensitivity). A request is granted only if the model had labelled it plausible. The plausible set is a
 backup: larger fixes more misses but lets an attacker who triggers a request get more.
 
 \paragraph{Scores and thresholds.} Each model gives a score $s_j\in[0,1]$ per candidate. Two thresholds
@@ -184,7 +184,7 @@ the benchmark use exactly the permissions \BC{} can enforce:
 \toprule
 & Pilot & Final \\
 \midrule
-Service permissions & Many operations per service, e.g.\ S3 tagging and ACLs & S3 only through its four verbs: get, put, delete, list, on a bucket and key prefix (\texttt{storage:object.put:acme/staging/*}). Other services as discussed with \BC{} \\
+Service permissions & Many operations per service, e.g.\ S3 tagging and ACLs & S3 only through its four verbs: get, put, delete, list, on a bucket and key prefix (\texttt{storage:object.put:acme/staging/*}). Issue tracker, documents and chat have no \BC{} parser, so they are hosts only \\
 Network hosts & Every host is a candidate & Only hosts \BC{} cannot inspect are candidates (\texttt{net:connect:docs.example:443}), granted without credentials. S3 hosts follow the service permissions; peer agents and the model's own endpoint are not candidates \\
 Files & Per path (\texttt{fs:w:/workspace/src}) & Whole folders, read-only or read-write (\texttt{fs:w:/workspace}); only for receivers on the same machine \\
 Programs & Per binary (\texttt{exec:run:/usr/bin/make}) & Removed; the operator fixes which programs exist \\
@@ -198,8 +198,9 @@ Structured arguments & Passed to the model & Not available in \BC{}; resources a
 
 \paragraph{On the root task.} In deployment, \BC{} may call our model twice, once with the user's original request and
 once with the delegator's task text, and keep the lower score per candidate. That wrapper is theirs; our model still
-takes one task text per call. It is applied automatically in the end-to-end runs inside \BC{}; the standalone
-benchmark scores one call, as in the pilot.
+takes one task text per call. \BC{} applies and reports that wrapper in its own system runs; every number we
+report is for one call of the model alone, as in the pilot. Each call has a 45\,s budget; a slower call counts as a
+refusal (in the pilot only gpt-oss-20b exceeded it, on 29 calls, up to 59\,s).
 
 \subsection{Models and how they work}
 \M{\S4}
@@ -218,7 +219,10 @@ gpt-oss-120b & listwise LLM & prompted & Upper reference \\
 Baselines & -- & -- & Select all; manifest only; keyword match; coin flips 25/50/75\% \\
 \bottomrule
 \end{tabularx}
-\caption{Final models. The other pilot configurations were dominated by these or cannot be trained the same way.}
+\caption{Final models. Laya is dropped because Qwen3-Reranker-0.6B is as fast (28 vs.\ 26\,ms) and grants half the
+extra permissions (40\% vs.\ 85\%); CLM is dropped because its frozen Qwen3-8B backbone is already in the study and does
+far better as a listwise LLM (9\% vs.\ 71\% extra, Finding 3). The remaining pilot configurations were dominated by
+these.}
 \end{table}
 
 \paragraph{Listwise LLMs.} One call per handoff. The system prompt states the task, the user message lists the input
@@ -278,7 +282,12 @@ run its scores through our thresholds.
 
 \paragraph{Evaluation set.} The pilot's 408 tasks and design (templates, splits, distractor levels, injections,
 two annotators), expressed in the final format of Table~\ref{tab:format}. Annotators re-label only what the format
-changes (folders). Test files are frozen before any model runs.
+changes (folders). Since service permissions exist only for S3, its 3 templates are not enough to measure them, so we
+add S3 templates (reads, listings, writes and deletes, with sibling buckets and wider prefixes as distractors) until they
+make up at least half of the test templates. The issue-tracker, document and chat templates keep their tasks with host
+and folder candidates. Per handoff, \BC{} supplies whether the receiver is on the same machine, its maximum, and the
+uninspected hosts; candidate lists are generated from these and regenerated if they change. Test files are frozen
+before any model runs.
 
 \paragraph{Synthetic training set.} No public dataset fits, so we generate one.
 \begin{itemize}
@@ -304,8 +313,8 @@ Judge only the calls and the task text. Assume each call succeeds.
     wrong, which bounds the label error below 5\% with 95\% confidence~\cite{montgomery,clopper}.
 \end{itemize}
 
-\paragraph{External and system tests.} FORTIS and the mostargate prompts (test only), and end-to-end runs inside the
-\BC{} prototype with an automatic judge that reads system logs.
+\paragraph{External tests.} FORTIS and the mostargate prompts (test only). Runs inside the full \BC{} system are
+done and reported by \BC{}, not in this plan.
 
 \paragraph{Attacks.} (a) The planted injections; (b) injection styles never used in training~\cite{injecagent,agentdojo};
 (c) a white-box adaptive attacker that searches for injected text under a fixed query budget~\cite{carlini,attackersecond,pair};
@@ -333,7 +342,7 @@ Training cannot add a hard guarantee; it can make small models precise and fast.
 Extra, missed and exactly right (per permission type); share of handoffs rejected by the receiver's maximum;
 attacks that get through with up to 3 requests (also 1 and 5), under both recovery rules; tasks finished (abstentions,
 rejections and missing folders count as failures); share of the no-attack gain kept under attack; latency per call
-(median, 95th percentile). Comparisons are fixed before results are seen. 95\% intervals by bootstrap over templates or
+(median, 95th percentile) for the model alone; recovery's cost to legitimate tasks comes from our offline simulator. Comparisons are fixed before results are seen. 95\% intervals by bootstrap over templates or
 families; McNemar's test for paired yes/no outcomes; Holm correction for multiple comparisons; mean and spread over
 seeds for trained models.
 
