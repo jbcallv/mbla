@@ -41,7 +41,7 @@ Task context & Task text written by the delegator; receiver identity and kind (l
 $(C_i,P_i)$, presented as the candidate list; upstream context; optional signed manifest, shown as a hint only. \\
 Candidates & One per grant in $C_i$, plus a narrower grant for each resource the context names under a granted
 prefix; one per destination in $N_i$ without a parser (selected into $\plain'$); for a local receiver only, one per
-volume mount $(v,\mu)$ in $D_i$. Not scored: destinations with a parser (S3, httpapi) follow $C$; peers are chosen
+volume mount $(v,\mu)$ in $D_i$. Not scored: destinations with a parser (S3, GitHub, Docs, chat, httpapi) follow $C$; peers are chosen
 by the agent; the model endpoint is always kept. \\
 Output & Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal), plausible
 (the admission set $A$), unneeded. \\
@@ -97,7 +97,7 @@ weights also allow white-box attacks \\
 \section{Research questions}\label{sec:rq}
 \begin{description}
   \item[RQ1 Least privilege.] How much of the authority G1 alone would pass downstream does inference remove, per
-    component ($C$, $N$, $\plain$, $D$), at what missing authority, and how often is a proposal rejected at $\ceil$?
+    component ($C$, $\plain$, $D$), at what missing authority, and how often is a proposal rejected at $\ceil$?
   \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside the
     task, compared with a parent-bounded rule, and what does it cost legitimate tasks in the offline simulation?
   \item[RQ3 Robustness.] How much of the RQ1 benefit survives planted injections, injection styles never seen in
@@ -132,26 +132,41 @@ $\ceil$), delegator holdings $(C_i, N_i, \plain_i, D_i)$, upstream context, opti
 instruction with the authority it targets. Labels give, per component, the minimal authority (required) and what an
 alternative valid plan adds (plausible). Following \BC{}'s review, permissions are restricted to what \BC{} enforces:
 \begin{itemize}
-  \item \emph{$C$:} S3 atoms (s3, $o$, bucket, key prefix), $o\in\{$GET, PUT, DELETE, LIST$\}$; operations outside these
-    verbs are removed. httpapi's vocabulary (\texttt{verify}, \texttt{priorauth}) does not cover the paper's issue-tracker,
-    document and chat workflows, so those are $\plain$ and $D$ only and capability results come from S3.
-  \item \emph{$N$ and $\plain$:} a destination is a candidate only if it has no parser, and choosing it places it in
-    $\plain'$. Destinations with a parser, peers and the model endpoint are not candidates.
-  \item \emph{$D$:} whole volumes $(v,\mu)$, $\mu\in\{\mathrm{ro},\mathrm{rw}\}$, for local receivers only; remote receivers
-    have $D'=\emptyset$. No executable permissions.
-  \item \emph{Recovery and ceilings:} a task needing a volume it lacks fails; recovery requests name one atom or
-    destination; a proposal exceeding $\ceil$ is a rejected delegation.
+  \item \emph{$C$:} atoms \texttt{service:operation:resource}, where a grant covers every resource under its prefix and
+    every prefix ends in \texttt{/}. S3 uses GET, PUT, DELETE, LIST on bucket and key prefix; GitHub, Docs and chat use the
+    operations and resource forms of \BC{}'s parsers (e.g.\ \texttt{github:issue.read:hooli/site/issues/723/*}; chat by
+    workspace and channel id). Other operations are removed.
+  \item \emph{$N$ and $\plain$:} the hosts of these four services follow $C$ and are not candidates; nor are peers or the
+    model endpoint. The remaining candidates are destinations without a parser, which go into $\plain'$. No task in the
+    paper's workflows needs one, so they appear only as over-provisioning: \texttt{attacker.example} and two public hosts.
+  \item \emph{$D$:} whole volumes $(v,\mu)$, $\mu\in\{\mathrm{ro},\mathrm{rw}\}$, for local receivers only. The deploy and
+    chat agents are remote ($D'=\emptyset$), so the deploy agent reads the build from S3, where the build agent writes it.
+    No executable permissions.
+  \item \emph{Ceilings:} for the two remote receivers, $\ceil$ holds the service host and the model endpoint with
+    $\plain=\emptyset$; for local receivers it is the delegator's $P$. A ceiling rejection therefore means a remote
+    receiver was proposed a $\plain$ destination.
+  \item \emph{Recovery:} a task needing a volume it lacks fails; recovery requests name one atom or destination.
 \end{itemize}
 
 \paragraph{Labeled evaluation set (RQ1--RQ4).} 408 tasks from 17 templates over the paper's workflows: 288 test and
 120 development, with no template in both. Each template varies over 4 name bindings, 3 levels of delegator
 over-provisioning (same resource with another verb, sibling resources, wider prefixes), and with or without one
-injected instruction aimed at authority the delegator holds but the task does not need. Because $C$ is S3 only, we add
-S3 templates (object reads, listings, writes and deletes, with sibling buckets and wider prefixes as decoys) until they make
-up at least half of the test templates. Receiver kind, $\ceil$ and $\plain$ destinations per handoff come from \BC{}; the
-candidate lists are generated from them and regenerated if they change. Two reviewers label every
-candidate independently and adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files are frozen by checksum
-before any helper runs; thresholds are tuned on development only.
+injected instruction aimed at authority the delegator holds but the task does not need. The 17 templates cover five
+handoffs, each present in both splits. Converting the pilot labels to the atom forms is a one-to-one rename checked by
+script; only what the conversion changes (volumes, the S3 hand-over of the build, the $\plain$ decoys) is relabeled. Two
+reviewers label every changed candidate independently and adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files
+are frozen by checksum before any helper runs; thresholds are re-tuned on the converted development split, not carried over.
+
+\paragraph{Validity checks on the benchmark.}
+\begin{itemize}
+  \item \emph{No needed $\plain$ destination.} On the labeled set every $\plain$ candidate is a decoy, so $\plain$ is reported
+    as the rate of decoys proposed, not as recall. So that a helper cannot score well by never choosing a host, a fifth of
+    the synthetic tasks need a public destination, and its held-out test reports $\plain$ recall.
+  \item \emph{Few ceiling cases.} Ceiling rejections can occur only on the two remote handoffs (3 test templates, 72 tasks);
+    we report counts with exact intervals~\cite{clopper}, not a pooled rate.
+  \item \emph{Per-handoff results.} Every metric is also broken down by handoff, so no single workflow drives a pooled
+    number.
+\end{itemize}
 
 \paragraph{Synthetic set (training and held-out generalization; RQ5).} No public dataset has this setting, so we
 generate one with methods from recent least-privilege datasets~\cite{taskcond,toolpriv,authbench}.
@@ -195,12 +210,13 @@ knowledge, not on the mechanism (Table~\ref{tab:prelim}).
 \end{itemize}
 
 \section{Metrics and statistics}\label{sec:stats}
-Per task and per component $X\in\{C,N,\plain,D\}$, against the minimal authority $X^\star$, on witness atoms so a prefix
-counts for everything it covers:
+Per task and per component $X\in\{C,\plain,D\}$ ($N$ outside $\plain$ follows $C$; $D$ on local receivers only), against
+the minimal authority $X^\star$, on witness atoms so a prefix counts for everything it covers:
 \begin{itemize}
   \item \textbf{Excess authority} $|\den{X'}\setminus\den{X^\star}| / |\den{X_i}\setminus\den{X^\star}|$ (set-only $=1$);
     \textbf{missing authority} $|\den{X^\star}\setminus\den{X'}| / |\den{X^\star}|$; exact match.
-  \item \textbf{Ceiling rejections}: share of proposals rejected at $\ceil$.
+  \item \textbf{Decoy rate} for $\plain$: share of tasks proposing any decoy destination.
+  \item \textbf{Ceiling rejections}: count on the two remote handoffs, with exact 95\% intervals.
   \item \textbf{Attack reachability after recovery}: share of attacks whose target is granted at delegation or reachable
     within $k=3$ requests (sensitivity $k\in\{0,1,5\}$, matching \BC{}'s runs), under $A$-bounded and parent-bounded admission.
   \item \textbf{Task completion} (a missing volume, a refusal or a ceiling rejection is a failure); recovery requests per
@@ -215,10 +231,12 @@ coin flip. 95\% intervals by bootstrap over templates or task families; McNemar'
 
 \section{Settled decisions and the \BC{} asks}\label{sec:decisions}
 \begin{enumerate}
-  \item \textbf{Services beyond S3.} httpapi covers only \texttt{verify} and \texttt{priorauth}; the issue-tracker,
-    document and chat workflows are $\plain$ only. \BC{} will say if it adds a parser.
-  \item \textbf{Receiver kind, $\ceil$ and $\plain$ destinations.} \BC{} supplies them per handoff; until then the
-    benchmark uses our proposal, and we regenerate the candidate lists when theirs arrive.
+  \item \textbf{Services.} \BC{} adds parsers for GitHub, Docs and chat; their labels stay in $C$ in \BC{}'s atom forms
+    and their hosts follow $C$.
+  \item \textbf{Receivers.} Remote: the deploy and chat agents, with the ceilings of \S\ref{sec:data}. All others are local,
+    with the delegator's $P$ as ceiling.
+  \item \textbf{$\plain$ destinations.} No task needs one; \texttt{attacker.example} and two public hosts are the
+    over-provisioning extras. Peers stay outside the candidates; the platform narrows them by its own rule.
   \item \textbf{Cap and budget.} $k=3$, with 0, 1 and 5 as sensitivity; 45\,s per model call.
   \item \textbf{End-to-end runs.} \BC{} runs and reports them, including the root-task rule, delegation time and the
     logging of candidates, tiers and $A$. They are not part of this plan.
@@ -232,7 +250,7 @@ Ask & Where this plan meets it \\
 B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}) \\
 B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}) \\
 B3 & Root-task rule applied and reported by \BC{}'s adapter; our results are per call \\
-B4 & Only destinations without a parser are candidates (Table~\ref{tab:interface}, \S\ref{sec:data}) \\
+B4 & Only destinations without a parser are candidates; S3, GitHub, Docs and chat hosts follow $C$ (\S\ref{sec:data}) \\
 B5 & $C$ bounded by the parent; a ceiling miss rejects the delegation and is reported \\
 B6 & $k$ counts requests; fixed in \texttt{Recovery.Decide} \\
 L1 & Out-of-range indices, unknown keys and trailing text refuse; fixed in the chat scorer \\
@@ -240,7 +258,7 @@ D1--D3 & Library README and spec updated \\
 D4 & Paper-alignment notes remapped to the current draft with the benchmark rebuild \\
 \bottomrule
 \end{tabularx}
-\caption{How the plan answers \BC{}'s requests (review of Oct 27).}
+\caption{How the plan answers \BC{}'s requests (reviews of Oct 26--28).}
 \end{table}
 
 \begin{thebibliography}{99}\small

@@ -176,20 +176,21 @@ Keep an external benchmark & Finding 9 \\
 \subsection{What changes: the benchmark's permission format}\label{sec:format}
 \M{\S5}
 
-The models, prompts, thresholds and recovery rule stay as in the pilot. The \BC{} team's review (Oct 26) asks that
-the benchmark use exactly the permissions \BC{} can enforce:
+The models, prompts, threshold rules and recovery rule stay as in the pilot. The \BC{} team's reviews (Oct 26--28) ask
+that the benchmark use exactly the permissions \BC{} can enforce. In ML terms this changes the candidate set each task
+offers and one filter applied after the model answers; the task texts and the model side are unchanged.
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.2\linewidth}L{0.33\linewidth}Y}
 \toprule
 & Pilot & Final \\
 \midrule
-Service permissions & Many operations per service, e.g.\ S3 tagging and ACLs & S3 only through its four verbs: get, put, delete, list, on a bucket and key prefix (\texttt{storage:object.put:acme/staging/*}). Issue tracker, documents and chat have no \BC{} parser, so they are hosts only \\
-Network hosts & Every host is a candidate & Only hosts \BC{} cannot inspect are candidates (\texttt{net:connect:docs.example:443}), granted without credentials. S3 hosts follow the service permissions; peer agents and the model's own endpoint are not candidates \\
-Files & Per path (\texttt{fs:w:/workspace/src}) & Whole folders, read-only or read-write (\texttt{fs:w:/workspace}); only for receivers on the same machine \\
+Service permissions & Many operations per service, e.g.\ S3 tagging and ACLs & S3 through four verbs (get, put, delete, list) on a bucket and key prefix; GitHub, Docs and Slack through the operations \BC{}'s parsers define. One form, \texttt{service:operation:resource/*}, where a grant covers everything under its prefix: \texttt{github:issue.read:hooli/site/issues/723/*}, \texttt{slack:message.post:T01/C042/*} (ids, not names) \\
+Network hosts & Every host is a candidate & Hosts of the four services follow their service permissions and are not candidates, nor are peer agents or the model's endpoint. The only host candidates are uninspected ones reached without credentials; no task needs one, so they are decoys (\texttt{attacker.example} and two public hosts) \\
+Files & Per path (\texttt{fs:w:/workspace/src}) & Whole folders, read-only or read-write (\texttt{fs:w:/workspace}); only for receivers on the same machine. Of the five handoffs, the deploy and Slack agents run elsewhere and get no folders; the build reaches the deploy agent through S3 \\
 Programs & Per binary (\texttt{exec:run:/usr/bin/make}) & Removed; the operator fixes which programs exist \\
 Later requests & Any missing permission & One service permission or host per request, at most 3 requests counting refused ones; a missing folder fails the task \\
-Receiver maximum & Extra permissions clipped & A proposal over the receiver's maximum is rejected; reported as a failure \\
+Receiver maximum & Extra permissions clipped & A proposal over the maximum is rejected (a failure). It binds only for the deploy and Slack agents, whose maximum has no uninspected hosts, so a rejection means the model picked a decoy host \\
 Structured arguments & Passed to the model & Not available in \BC{}; resources are named in the task text (Finding 6: no effect on LLMs) \\
 \bottomrule
 \end{tabularx}
@@ -282,12 +283,22 @@ run its scores through our thresholds.
 
 \paragraph{Evaluation set.} The pilot's 408 tasks and design (templates, splits, distractor levels, injections,
 two annotators), expressed in the final format of Table~\ref{tab:format}. Annotators re-label only what the format
-changes (folders). Since service permissions exist only for S3, its 3 templates are not enough to measure them, so we
-add S3 templates (reads, listings, writes and deletes, with sibling buckets and wider prefixes as distractors) until they
-make up at least half of the test templates. The issue-tracker, document and chat templates keep their tasks with host
-and folder candidates. Per handoff, \BC{} supplies whether the receiver is on the same machine, its maximum, and the
-uninspected hosts; candidate lists are generated from these and regenerated if they change. Test files are frozen
-before any model runs.
+changes. Converting the old strings to the new forms is a one-to-one rename checked by a script; only the changed
+items (whole folders, the S3 hand-over of the build, the decoy hosts) are re-labelled by both annotators, with $\kappa$
+reported. The 17 templates span five handoffs, each in both splits. Test files are frozen before any model runs.
+
+\paragraph{Keeping the benchmark sound.} The new format creates three measurement problems, which we fix in the design
+rather than in the analysis:
+\begin{itemize}
+  \item \textbf{A label with no positives.} On the evaluation set no task needs an uninspected host, so recall is undefined
+    for hosts and a model that never picks a host would look perfect. We report the \emph{decoy rate} (share of tasks where
+    a decoy host is picked) instead, and a fifth of the synthetic tasks do need a public host, so training cannot teach
+    ``never pick hosts'' as a shortcut and the held-out synthetic test measures host recall.
+  \item \textbf{A rare event.} Ceiling rejections can only happen on the two remote handoffs (3 test templates, 72 tasks).
+    We report counts with exact binomial intervals~\cite{clopper}, not a pooled rate.
+  \item \textbf{Shift from the pilot.} The candidate strings change, so thresholds are re-tuned on the converted development
+    split by the same rules; no pilot threshold is reused. All metrics are also reported per handoff.
+\end{itemize}
 
 \paragraph{Synthetic training set.} No public dataset fits, so we generate one.
 \begin{itemize}
@@ -339,7 +350,7 @@ Training cannot add a hard guarantee; it can make small models precise and fast.
 
 \subsection{Metrics and statistics}
 \M{\S7}
-Extra, missed and exactly right (per permission type); share of handoffs rejected by the receiver's maximum;
+Extra, missed and exactly right (service permissions; folders on local receivers); decoy rate for hosts; ceiling rejections on the two remote handoffs (counts, exact intervals);
 attacks that get through with up to 3 requests (also 1 and 5), under both recovery rules; tasks finished (abstentions,
 rejections and missing folders count as failures); share of the no-attack gain kept under attack; latency per call
 (median, 95th percentile) for the model alone; recovery's cost to legitimate tasks comes from our offline simulator. Comparisons are fixed before results are seen. 95\% intervals by bootstrap over templates or
