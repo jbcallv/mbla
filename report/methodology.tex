@@ -19,20 +19,21 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 \title{Policy Inference in \BC: Evaluation Methodology}
-\date{Draft for advisor and collaborator review, \today}
+\date{Final methodology for advisor and collaborator review, \today}
 
 \begin{document}
 \maketitle
 
-\noindent A companion document (\texttt{methodology\_ml.pdf}) gives the same plan in machine-learning terms,
-with the preliminary charts, how each helper computes its answer, and the exact prompts.
+\noindent This document is the complete evaluation plan for the policy-inference helper. It reports no results. A
+companion document (\texttt{methodology\_ml.pdf}) describes the same study in machine-learning terms, with the exact
+prompts and model settings, and separately reports the pilot study that informed the design.
 
-\section{What is evaluated}\label{sec:interface}
+\section{What is evaluated and what is claimed}\label{sec:interface}
 At each delegation, \BC{}'s policy engine asks an untrusted helper to select, from the delegator's
 $(C_i, P_i)$ with $P = (N, \plain, D)$, the authority the task needs. \BC{}'s checker decides what is allowed;
 the helper only decides how much of the least-privilege benefit a delegation gets. The checks in our library
 are advisory and let the benchmark simulate \BC{}'s checker offline. Table~\ref{tab:interface} fixes the
-interface every helper is evaluated under; it follows the current draft and \BC{}'s adapter (\texttt{cmd/bc-mbla}).
+interface every helper is evaluated under.
 
 \begin{table}[H]\centering\small
 \begin{tabularx}{\linewidth}{L{0.15\linewidth}Y}
@@ -41,67 +42,61 @@ Task context & Task text written by the delegator; receiver identity and kind (l
 $(C_i,P_i)$, presented as the candidate list; upstream context; optional signed manifest, shown as a hint only. \\
 Candidates & One per grant in $C_i$, plus a narrower grant for each resource the context names under a granted
 prefix; one per destination in $N_i$ without a parser (selected into $\plain'$); for a local receiver only, one per
-volume mount $(v,\mu)$ in $D_i$. Not scored: destinations with a parser (S3, GitHub, Docs, chat, httpapi) follow $C$; peers are chosen
-by the agent; the model endpoint is always kept. \\
+volume mount $(v,\mu)$ in $D_i$. Not scored: destinations with a parser (S3, GitHub, Docs, chat, httpapi) follow $C$;
+peers are chosen by the agent; the model endpoint is always kept. \\
 Output & Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal), plausible
 (the admission set $A$), unneeded. \\
-Failure & Timeout, error, unparsable output, an out-of-range index or an unknown key refuses the delegation. No
-fallback proposal. \\
+Failure & A timeout (45\,s per model call), an error, unparsable output, an out-of-range index or an unknown key
+refuses the delegation. No fallback proposal. \\
 Receiver & $C$ is bounded by the parent only. A proposal whose $P'$ is not within $\ceil$ is rejected whole;
 the delegator never sees $\ceil$. \\
 Recovery & Started by the tunnel. One atom or one destination per request, granted only if within the parent and
 in $A$ (a destination without a parser must also be in $\plain_i$); the receiver installs a destination only within
-$\ceil$. Volume denials are final. The cap $k$ counts requests, granted or not. \\
-Budget & 45\,s per model call; past it the call is a timeout and refuses. \\
-Deployment & \BC{}'s adapter may call the helper once with the root task and once with the task text, in parallel,
-and keep the lower score. \BC{} reports that effect. Every result here is per call, for the helper alone. \\
+$\ceil$. Volume denials are final. At most $k$ requests per delegation, granted or refused. \\
+Deployment & \BC{}'s adapter may call the helper once with the root task and once with the task text and keep the
+lower score. \BC{} evaluates that wrapper and the full system. Every result in this plan is per call, for the helper
+alone, in an offline simulation of \BC{}'s rules (\S\ref{sec:sim}). \\
 \bottomrule
 \end{tabularx}
-\caption{Helper interface. Every number in the paper is measured under these rules.}\label{tab:interface}
+\caption{Helper interface. Every number in the evaluation is measured under these rules.}\label{tab:interface}
 \end{table}
 
-The evaluation does not need to show that inference is safe: G1 bounds every output, and a fully compromised
-helper reproduces at most the parent's authority. It shows that (1) inference removes authority that G1 alone
-would pass downstream without breaking tasks; (2) bounding recovery by $A$ keeps an injected instruction from
-turning a denial into a grant; (3) the benefit survives an adversary who targets the helper. Cost is the fourth
-axis, because the helper is on the path of every delegation.
+\paragraph{Claim.} G1 bounds every helper output: a fully compromised helper reproduces at most the parent's
+authority. The evaluation therefore does not test whether inference is safe. It measures:
+(1) how much of the authority G1 alone would pass downstream inference removes, and at what loss of the authority
+tasks need; (2) how often an attack can still obtain the permissions it needs, at delegation or through recovery,
+when recovery is bounded by $A$ versus by the parent; (3) how much of (1) and (2) survives an adversary who targets
+the helper; (4) the helper's cost per call.
 
-\section{How the preliminary study shaped the design}\label{sec:prelim}
-We first ran an exploratory study of 23 helper configurations on our earlier policy model; charts and full tables
-are in the companion document. \textbf{Its numbers are not part of the final evaluation}; they justify the choices below.
+Two limits are part of the claim. First, an agent can cause harm with authority the task legitimately needs; no
+choice of proposal prevents that, so attack goals already covered by the task's own required authority are counted
+as \emph{unavoidable} and reported separately. Second, $A$ is produced by the helper from text an attacker may
+control, so an attacker may place its target in $A$. Whether bounding recovery by $A$ helps is therefore measured
+under attack (RQ2, RQ3), not assumed.
 
-\begin{table}[H]\centering\small
-\begin{tabularx}{\linewidth}{L{0.33\linewidth}Y}
-\toprule
-Design choice & Preliminary evidence \\
-\midrule
-Recovery bounded by $A$ is the main security question (RQ2) &
-With parent-bounded recovery every planted attack stayed reachable; with $A$-bounded recovery 13\% did, while 97\% of
-tasks finished \\
-The helper emits three tiers & Helpers with near-binary scores cannot separate the proposal from $A$; their $A$ gave no protection \\
-Main helpers: mid-size generative models that see the whole candidate list &
-Qwen3-4B/8B/30B-A3B granted 7--9\% of unneeded authority; the largest model (gpt-oss-120b) 14\% at three times the latency \\
-Train fast helpers rather than drop them & Qwen3-Reranker-0.6B decides in 28\,ms but grants 40\% of unneeded
-authority, against 51\% for a fair coin \\
-Show the manifest; attack it with inflation & The manifest cut unneeded authority from 23\% to 9\% for Qwen3-8B \\
-Compare with CAPMAS's method, not only its release & As published (top-10, no recovery) it granted 74\% of unneeded
-authority and finished 51\% of tasks \\
-No structured arguments in the task context & They did not change the generative helpers' results; \BC{} does not supply them \\
-Local, open-weight helpers & The helper reads possibly confidential context and reaches only the model endpoint; open
-weights also allow white-box attacks \\
-\bottomrule
-\end{tabularx}
-\caption{Each design choice and the preliminary result behind it.}\label{tab:prelim}
-\end{table}
+\section{Design choices}\label{sec:design}
+The design was fixed in a pilot study on an earlier policy model. Its tasks informed these choices, so they are used
+here as development data only, never as test data (\S\ref{sec:data}).
+\begin{itemize}
+  \item \emph{Three tiers.} Recovery needs an admission set smaller than the parent's authority, so a helper must
+    distinguish what a task needs now from what it may reasonably need later.
+  \item \emph{Listwise generative helpers as the reference.} They see all candidates at once and emit the tiers directly.
+  \item \emph{Fast per-candidate scorers, trained.} They score one candidate at a time; training is evaluated as the way to
+    make them precise (RQ5).
+  \item \emph{Manifest shown as a hint and attacked.} It is operator-supplied and may be inflated (attack (d)).
+  \item \emph{No structured arguments.} \BC{} does not supply them; resources are named in the task text.
+  \item \emph{Local, open-weight helpers.} The helper reads possibly confidential context and reaches only the model
+    endpoint; open weights also allow white-box attacks.
+\end{itemize}
 
 \section{Research questions}\label{sec:rq}
 \begin{description}
-  \item[RQ1 Least privilege.] How much of the authority G1 alone would pass downstream does inference remove, per
-    component ($C$, $\plain$, $D$), at what missing authority, and how often is a proposal rejected at $\ceil$?
-  \item[RQ2 Recovery.] Does bounding recovery by $A$ keep injected instructions from reaching authority outside the
-    task, compared with a parent-bounded rule, and what does it cost legitimate tasks in the offline simulation?
-  \item[RQ3 Robustness.] How much of the RQ1 benefit survives planted injections, injection styles never seen in
-    training, an adaptive attacker, and an inflated manifest?
+  \item[RQ1 Least privilege.] How much excess authority does inference remove per component ($C$, $\plain$, $D$), does it
+    preserve coverage (\S\ref{sec:stats}), and how often is a proposal rejected at $\ceil$?
+  \item[RQ2 Recovery.] How often can an attack still obtain the permissions it needs when recovery is bounded by $A$,
+    compared with recovery bounded by the parent, and what does each rule cost in coverage?
+  \item[RQ3 Robustness.] How much of the RQ1 and RQ2 results survives planted injections, injection styles never seen
+    during development or training, an adaptive attacker, and an inflated manifest?
   \item[RQ4 Cost.] What latency does one helper call add, and how often does the helper refuse?
   \item[RQ5 Training.] Does task-specific training let small, fast helpers match the best prompted helper on RQ1--RQ3,
     including on task families and attack styles never seen in training?
@@ -115,119 +110,243 @@ Helper & Variants & Role \\
 \midrule
 Qwen3-8B & prompted, fine-tuned & Reference helper \\
 Qwen3-4B, Qwen3-1.7B & prompted, fine-tuned & Smaller generative helpers \\
-Qwen3-30B-A3B & prompted, QLoRA & Fastest precise generative helper \\
-Qwen3-Reranker-0.6B, -8B & prompted, fine-tuned & Fastest helper and strongest per-candidate scorer \\
-CAPMAS~\cite{capmas} & as published; retrained on our data & Closest prior system \\
+Qwen3-30B-A3B & prompted, QLoRA & Fast mixture-of-experts generative helper \\
+Qwen3-Reranker-0.6B, -8B & prompted, fine-tuned & Per-candidate scorers \\
+CAPMAS~\cite{capmas} & as published; our rules; retrained & Closest prior system \\
 gpt-oss-120b & prompted & Upper reference point \\
 Set-only, manifest-only, lexical, coin flips (25/50/75\%) & -- & G1 alone, operator hint alone, keyword match, chance \\
 \bottomrule
 \end{tabularx}
-\caption{Helpers. Laya is dropped because Qwen3-Reranker-0.6B is as fast and grants half as much unneeded authority;
-CLM is dropped because its frozen Qwen3-8B backbone is already tested, and does better, as a generative helper.}
+\caption{Helpers. Configurations dropped after the pilot (other model sizes and two purpose-built scorers, Laya and
+CLM) are not evaluated.}\label{tab:helpers}
 \end{table}
+
+\paragraph{CAPMAS.} CAPMAS embeds the query and each capability with a bi-encoder, ranks them by cosine similarity, keeps
+at most the top 10, and cuts the list at the first drop in similarity larger than 0.2; it has no recovery. We run it
+(i) exactly as published, for reference, and (ii) under our rules: its similarity scores mapped to the three tiers by
+cutoffs tuned as below, with the same recovery as our helpers. The primary comparison uses (ii) and its retrained version,
+so that a difference is not due to recovery rules.
+
+\paragraph{Labels and cutoffs.}\label{sec:cutoffs} Generative helpers emit tiers directly and are evaluated on their own
+labels, with no tuning. Per-candidate scorers output a score $s\in[0,1]$ and need two cutoffs
+$\tau_{\mathrm{init}}\ge\tau_{\mathrm{admit}}$: required if $s\ge\tau_{\mathrm{init}}$, plausible if
+$\tau_{\mathrm{admit}}\le s<\tau_{\mathrm{init}}$. On development data only, over the grid $\{0.05, 0.10,\dots,1\}$ (zero
+excluded): $\tau_{\mathrm{init}}$ maximizes mean F1 of the proposal; $\tau_{\mathrm{admit}}$ is the highest value with
+coverage $\ge 98\%$ at $k=3$. If no value meets the target, the helper is reported as not meeting it, at the value with the
+highest development coverage, and is not eligible as best helper. Scorers are also reported untuned (required if
+$s\ge0.5$, no plausible tier). We show the full trade-off: coverage and excess authority as each cutoff moves.
 
 \section{Datasets}\label{sec:data}
 \paragraph{Policy model of every task.} Each task is one delegation: task text, receiver (identity, local or remote,
-$\ceil$), delegator holdings $(C_i, N_i, \plain_i, D_i)$, upstream context, optional manifest, and an optional injected
-instruction with the authority it targets. Labels give, per component, the minimal authority (required) and what an
-alternative valid plan adds (plausible). Following \BC{}'s review, permissions are restricted to what \BC{} enforces:
+$\ceil$), delegator holdings $(C_i, N_i, \plain_i, D_i)$, upstream context, optional manifest, an optional injected
+instruction, and the task's attack goals. Permissions are those \BC{} enforces:
 \begin{itemize}
-  \item \emph{$C$:} atoms \texttt{service:operation:resource}, where a grant covers every resource under its prefix and
-    every prefix ends in \texttt{/}. S3 uses GET, PUT, DELETE, LIST on bucket and key prefix; GitHub, Docs and chat use the
+  \item \emph{$C$:} atoms \texttt{service:operation:resource}; a grant covers every resource under its prefix, and every
+    prefix ends in \texttt{/}. S3 uses GET, PUT, DELETE, LIST on bucket and key prefix; GitHub, Docs and chat use the
     operations and resource forms of \BC{}'s parsers (e.g.\ \texttt{github:issue.read:hooli/site/issues/723/*}; chat by
-    workspace and channel id). Other operations are removed.
+    workspace and channel id).
   \item \emph{$N$ and $\plain$:} the hosts of these four services follow $C$ and are not candidates; nor are peers or the
     model endpoint. The remaining candidates are destinations without a parser, which go into $\plain'$. No task in the
-    paper's workflows needs one, so they appear only as over-provisioning: \texttt{attacker.example} and two public hosts.
+    paper's workflows needs one; they appear as over-provisioning: \texttt{attacker.example} and two public hosts.
   \item \emph{$D$:} whole volumes $(v,\mu)$, $\mu\in\{\mathrm{ro},\mathrm{rw}\}$, for local receivers only. The deploy and
-    chat agents are remote ($D'=\emptyset$), so the deploy agent reads the build from S3, where the build agent writes it.
+    chat agents are remote ($D'=\emptyset$); the deploy agent reads the build from S3, where the build agent writes it.
     No executable permissions.
   \item \emph{Ceilings:} for the two remote receivers, $\ceil$ holds the service host and the model endpoint with
-    $\plain=\emptyset$; for local receivers it is the delegator's $P$. A ceiling rejection therefore means a remote
-    receiver was proposed a $\plain$ destination.
-  \item \emph{Recovery:} a task needing a volume it lacks fails; recovery requests name one atom or destination.
+    $\plain=\emptyset$; for local receivers it is the delegator's $P$.
 \end{itemize}
 
-\paragraph{Labeled evaluation set (RQ1--RQ4).} 408 tasks from 17 templates over the paper's workflows: 288 test and
-120 development, with no template in both. Each template varies over 4 name bindings, 3 levels of delegator
-over-provisioning (same resource with another verb, sibling resources, wider prefixes), and with or without one
-injected instruction aimed at authority the delegator holds but the task does not need. The 17 templates cover five
-handoffs, each present in both splits. Converting the pilot labels to the atom forms is a one-to-one rename checked by
-script; only what the conversion changes (volumes, the S3 hand-over of the build, the $\plain$ decoys) is relabeled. Two
-reviewers label every changed candidate independently and adjudicate; we report Cohen's $\kappa$~\cite{cohen}. Test files
-are frozen by checksum before any helper runs; thresholds are re-tuned on the converted development split, not carried over.
+\paragraph{Answer key: required and plausible.} A \emph{plan} is one concrete way to do the task: the API calls and
+volumes it uses. Reviewers list every valid plan for a task. The required tier is the permission set of the plan with the
+least authority; the plausible tier is what the other valid plans add. Excess authority is measured against the
+least-authority plan. Coverage counts a task as covered if every permission of \emph{any} listed plan can be obtained
+(\S\ref{sec:sim}), so a helper that supports another valid plan is not penalized in coverage.
 
-\paragraph{Validity checks on the benchmark.}
+\paragraph{Attack goals.} Each task carries the attack goals of its handoff that the parent's authority can reach
+(e.g.\ read a private repository, write to production, send data to \texttt{attacker.example}). A goal is a set of
+permissions, all of which the attack needs. Goals are present whether or not the task carries an injected instruction;
+an injected task also names one goal in its text.
+
+\paragraph{Data and permitted uses.} Table~\ref{tab:data} lists every dataset and what it may be used for.
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.25\linewidth}L{0.17\linewidth}Y}
+\toprule
+Data & Size & May be used for \\
+\midrule
+Synthetic train & 1,500 tasks, 32 families & Training only \\
+Synthetic validation & 300 tasks, same families & Training settings and choosing a saved model version (checkpoint) \\
+Development set & 408 tasks, 17 templates & Tuning cutoffs, choosing the best helper, developing the adaptive attack,
+checking the pipeline. Built from the pilot's tasks, which informed the design \\
+Final test set & 192 tasks, 8 new templates & Final runs only, once. Frozen by checksum before any helper runs on it \\
+Synthetic held-out families & 200 tasks, 8 families & Final generalization test for trained helpers (RQ5) only \\
+Held-out injection styles & -- & Final test set only (RQ3) \\
+FORTIS, mostargate & -- & External test only \\
+\bottomrule
+\end{tabularx}
+\caption{Every dataset and what it may be used for. No result on a final test is used to change anything.}\label{tab:data}
+\end{table}
+
+\paragraph{Development set.} The pilot's 17 templates over the paper's three workflows and five handoffs, converted to
+the permission model above. Each template varies over 4 name bindings, 3 levels of delegator over-provisioning (same
+resource with another verb, sibling resources, wider prefixes), and with or without one injected instruction: 24 tasks
+per template. Conversion is not a renaming: whole volumes and destinations allow more than the paths and operations they
+replace, and the recovery rules changed. For every task we therefore re-derive the answer key and the attack goals, flag
+goals that become unavoidable, and drop goals that can no longer be expressed (e.g.\ executables), reporting each count.
+
+\paragraph{Final test set.} 8 new templates written after this plan is fixed, over the same five handoffs (at least one
+each, two for each remote handoff), with the same 24 variants: 192 tasks. Its injected instructions use styles from
+published corpora~\cite{injecagent,agentdojo} that are not used in development or training. It is labeled and frozen
+before any helper is run on it.
+
+\paragraph{Labeling.} A written guide, fixed before labeling, defines the tiers, plans, the receivers' built-in
+abilities, volumes, decoy destinations and attack goals, with worked examples. For each template, two reviewers
+independently label every distinct candidate across its variants (required, plausible, unneeded, or unclear with a note)
+and every attack goal. Variants of one template differ only in names and in added distractors, so labels are carried
+to the other name bindings; a reviewer checks a random 10\% of carried tasks. We report Cohen's $\kappa$~\cite{cohen} on
+pairs both reviewers decided, the number of unclear pairs, and every adjudicated pair with its reason. Disagreements are
+resolved by the guide; if the guide does not decide a case, it is amended and the amendment recorded.
+
+\paragraph{Validity checks.}
 \begin{itemize}
-  \item \emph{No needed $\plain$ destination.} On the labeled set every $\plain$ candidate is a decoy, so $\plain$ is reported
-    as the rate of decoys proposed, not as recall. So that a helper cannot score well by never choosing a host, a fifth of
-    the synthetic tasks need a public destination, and its held-out test reports $\plain$ recall.
-  \item \emph{Few ceiling cases.} Ceiling rejections can occur only on the two remote handoffs (3 test templates, 72 tasks);
-    we report counts with exact intervals~\cite{clopper}, not a pooled rate.
-  \item \emph{Per-handoff results.} Every metric is also broken down by handoff, so no single workflow drives a pooled
-    number.
+  \item \emph{No needed $\plain$ destination.} Every $\plain$ candidate in the development and final sets is a decoy, so
+    $\plain$ is reported as the decoy rate, not recall. A fifth of synthetic tasks need a public destination, so training
+    cannot learn to never choose one, and the synthetic held-out test reports $\plain$ recall.
+  \item \emph{Few ceiling cases.} Ceiling rejections can occur only on the remote handoffs; they are reported as counts with
+    exact intervals~\cite{clopper}.
+  \item \emph{Per-handoff results.} Every metric is also reported per handoff.
 \end{itemize}
 
-\paragraph{Synthetic set (training and held-out generalization; RQ5).} No public dataset has this setting, so we
-generate one with methods from recent least-privilege datasets~\cite{taskcond,toolpriv,authbench}.
+\paragraph{Synthetic set.} No public dataset has this setting, so we generate one with methods from recent
+least-privilege datasets~\cite{taskcond,toolpriv,authbench}.
 \begin{itemize}
-  \item \emph{Size and split.} 2,000 tasks in 40 families: 1,500 train and 300 validation from 32 families; 200 test tasks
-    from 8 families never trained on. Size follows the closest prior work~\cite{taskcond}. No name is shared with the
-    labeled set, and tasks sharing any 8-word sequence with it are dropped~\cite{contamination}.
-  \item \emph{Generation.} A local open model writes the task text as a delegator would, plus the API calls that complete
-    it and optionally an alternative valid plan~\cite{selfinstruct,apigen}. Receivers vary over local and remote.
-  \item \emph{Labels from execution.} Each call runs against a mock service that logs the atoms, destinations and volumes it
-    uses. The required tier is the minimal candidate set covering the log, as IAM Access Analyzer derives policies from
-    activity~\cite{accessanalyzer}; the plausible tier is what the alternative plan adds. Each call's permission comes from
-    the provider's published reference (for S3, AWS's machine-readable service reference). The labeler reproduces the
-    human labels on all 408 labeled tasks.
+  \item \emph{Size and split.} Table~\ref{tab:data}. Size follows the closest prior work~\cite{taskcond}. No name is shared
+    with the development or final sets, and tasks sharing any 8-word sequence with them are dropped~\cite{contamination}.
+  \item \emph{Generation.} A local open model writes the task text as a delegator would, the API calls of one plan, and
+    optionally an alternative valid plan~\cite{selfinstruct,apigen}. Receivers vary over local and remote.
+  \item \emph{Labels from execution.} Each plan runs against a mock service that logs the atoms, destinations and volumes it
+    uses. The required tier is the smallest candidate set covering the least-authority plan's log, as IAM Access Analyzer
+    derives policies from activity~\cite{accessanalyzer}; the plausible tier is what the alternative plan adds. Each call's
+    permission comes from the provider's published reference.
+  \item \emph{Labeler check.} Run on the plans written in the development-set templates, the labeler reproduces their answer
+    keys on all 408 tasks. This checks the labeler's code against plans we wrote; it does not validate generated labels,
+    which the human acceptance test does.
   \item \emph{Checks.} Format, mock execution, and two judge models other than the writer that must both accept the
     task~\cite{toolpriv,apigen}; near-duplicates removed; yield reported per stage.
-  \item \emph{Injections.} Half the tasks carry one; its label does not change.
+  \item \emph{Injections.} Half the tasks carry one, in development styles only; its label does not change.
   \item \emph{Human acceptance test.} Two reviewers label 93 random tasks blind and adjudicate. The set is accepted if at
     most one generated label is wrong, showing a label error rate below 5\% with 95\% confidence~\cite{montgomery,clopper}.
 \end{itemize}
 
-\paragraph{External benchmarks.} FORTIS tasks 1 and 2~\cite{fortis} and the mostargate prompts~\cite{noyan}. Evaluation only.
+\paragraph{External benchmarks.} FORTIS tasks 1 and 2~\cite{fortis} and the mostargate prompts~\cite{noyan}, scored with
+their own grading code. Evaluation only.
 
-\paragraph{Attack suite (RQ3).} On the labeled test set: (a) the planted injections; (b) injection
-styles from published corpora never used in training~\cite{injecagent,agentdojo}; (c) an adaptive attacker that knows the
-design, candidate format and output schema, has the open weights, and searches for text that places a target candidate
-in the proposal or in $A$ under a fixed query budget~\cite{carlini,attackersecond,pair}, reported as success versus
-budget; (d) a receiver operator who signs a manifest listing the attack's target as usually needed.
+\paragraph{Attacks (RQ3).} On the final test set: (a) the planted injections; (b) the held-out injection styles; (c) an
+adaptive attacker that knows the design, candidate format and output schema, has the open weights, and searches for text
+that places a target in the proposal or in $A$ under a fixed query budget~\cite{carlini,attackersecond,pair}, developed on
+the development set and reported as success versus budget; (d) a receiver operator who signs a manifest listing the
+attack's target as usually needed. No attack is executed against a live system; outcomes are computed by the simulator.
+
+\section{Simulation of \BC{}'s rules}\label{sec:sim}
+The simulator applies Table~\ref{tab:interface} to each helper output.
+\begin{itemize}
+  \item \emph{Delegation.} The proposal is installed. If the helper refused (timeout, error, invalid output) or the proposal
+    is not within $\ceil$, the delegation fails: the task is not covered and no attack goal is reached. Refusal and
+    ceiling-rejection rates are always reported beside these numbers, so a helper cannot look safe by refusing.
+  \item \emph{Requests.} The simulator knows exactly which permissions of a plan are missing, so it models a receiver that
+    asks only for what it needs; this is a best case for coverage. Each request names one concrete atom or destination
+    and is granted only if it is within $\ceil$, within the parent and, under $A$-bounded recovery, in $A$. A missing
+    volume cannot be requested. At most $k$ requests are allowed ($k=3$; also 0, 1 and 5); a refused request uses one.
+  \item \emph{Coverage.} A task is covered if, for some listed plan, every permission is granted at delegation or obtained
+    within $k$ requests. We call this \emph{coverage}, not task completion: no agent runs the task.
+  \item \emph{Attack goals.} A goal is reached if all its permissions are granted at delegation or obtainable under the same
+    rules. Coverage and each goal are evaluated separately, each with the full allowance of $k$ requests, which is the
+    worst case for attacks.
+\end{itemize}
 
 \section{Training}\label{sec:training}
-Training cannot add a guarantee; G1 supplies those. It changes precision and cost: the fast helpers failed on task
-knowledge, not on the mechanism (Table~\ref{tab:prelim}).
+Training cannot add a guarantee; G1 supplies those. It changes precision and cost.
 \begin{itemize}
   \item \emph{Targets.} Generative helpers learn the three-tier index output; per-candidate scorers learn graded targets
     (1, 0.5, 0) so their scores separate the tiers~\cite{beyondyesno}; CAPMAS uses its own contrastive training code.
   \item \emph{Method.} Full fine-tuning up to 8B~\cite{loralearnsless}; Qwen3-30B-A3B uses QLoRA~\cite{qlora}, compared
     only at matching precision.
   \item \emph{Settings.} Cosine schedule, 3\% warm-up, 2 epochs; learning rate from $\{5\!\times\!10^{-6}, 10^{-5},
-    2\!\times\!10^{-5}\}$ on synthetic validation; three seeds.
-  \item \emph{Isolation.} No labeled, external or attack data is used for training or selection.
+    2\!\times\!10^{-5}\}$ and checkpoint chosen on synthetic validation; three seeds.
+  \item \emph{Isolation.} Only synthetic train and validation data are used for training and model selection
+    (Table~\ref{tab:data}).
 \end{itemize}
 
-\section{Metrics and statistics}\label{sec:stats}
-Per task and per component $X\in\{C,\plain,D\}$ ($N$ outside $\plain$ follows $C$; $D$ on local receivers only), against
-the minimal authority $X^\star$, on witness atoms so a prefix counts for everything it covers:
+\section{Metrics}\label{sec:metrics}
+\paragraph{Witness atoms.} To count how much a permission allows, each permission is expanded into a few concrete
+actions, its witness atoms: the resource it names (for a prefix, a placeholder resource under the prefix), a placeholder
+child of that resource, and, for a wildcard operation, a placeholder operation. A task's universe is the union of the
+witness atoms of its candidates, its answer key, its attack goals and the parent's grants. The authority $\den{X}$ of a
+set of permissions $X$ is the set of universe atoms it grants, so a wider prefix counts for more than a narrower one.
+
+Per task and per component $X\in\{C,\plain,D\}$ ($D$ on local receivers only), with $X^\star$ the least-authority plan,
+$X'$ the proposal and $X_i$ the parent's holdings:
 \begin{itemize}
-  \item \textbf{Excess authority} $|\den{X'}\setminus\den{X^\star}| / |\den{X_i}\setminus\den{X^\star}|$ (set-only $=1$);
-    \textbf{missing authority} $|\den{X^\star}\setminus\den{X'}| / |\den{X^\star}|$; exact match.
-  \item \textbf{Decoy rate} for $\plain$: share of tasks proposing any decoy destination.
-  \item \textbf{Ceiling rejections}: count on the two remote handoffs, with exact 95\% intervals.
-  \item \textbf{Attack reachability after recovery}: share of attacks whose target is granted at delegation or reachable
-    within $k=3$ requests (sensitivity $k\in\{0,1,5\}$, matching \BC{}'s runs), under $A$-bounded and parent-bounded admission.
-  \item \textbf{Task completion} (a missing volume, a refusal or a ceiling rejection is a failure); recovery requests per
-    task; refusal rate.
-  \item \textbf{Benefit retained under attack} $(E_{\mathrm{G1}}-E_{\mathrm{attack}})/(E_{\mathrm{G1}}-E_{\mathrm{clean}})$.
-  \item \textbf{Latency}: helper time per call (median, p95).
+  \item \textbf{Excess authority} $|\den{X'}\setminus\den{X^\star}| / |\den{X_i}\setminus\den{X^\star}|$ (set-only $=1$,
+    perfect $=0$).
+  \item \textbf{Missing authority} $|\den{X^\star}\setminus\den{X'}| / |\den{X^\star}|$, and exact match
+    $\den{X'}=\den{X^\star}$.
+  \item \textbf{Coverage} (\S\ref{sec:sim}), always reported beside excess authority.
+  \item \textbf{Decoy rate} for $\plain$: share of tasks whose proposal includes a decoy destination.
+  \item \textbf{Ceiling rejections}: count on the remote handoffs, with exact 95\% intervals.
+  \item \textbf{Attack reachability}: for each task with at least one avoidable attack goal, the fraction of those goals
+    reached, averaged over tasks; at delegation and after recovery, under $A$-bounded and parent-bounded recovery.
+    Reported separately for tasks with and without an injected instruction. Unavoidable goals are counted separately.
+  \item \textbf{Benefit retained under attack} $(E_{\mathrm{G1}}-E_{\mathrm{attack}})/(E_{\mathrm{G1}}-E_{\mathrm{clean}})$,
+    where $E$ is mean excess authority and $E_{\mathrm{G1}}=1$.
+  \item \textbf{Refusal rate} and \textbf{latency} per call (median, p95), measured on the exact configuration reported,
+    each helper alone on one GPU.
 \end{itemize}
-Helpers, metrics, comparisons and pass rules are fixed in our decision log before results are seen. Primary comparisons,
-each Holm-corrected within its metric: best helper vs.\ set-only (RQ1); $A$-bounded vs.\ parent-bounded recovery (RQ2);
-each fine-tuned helper vs.\ its untrained version and vs.\ prompted Qwen3-8B (RQ5); best helper vs.\ CAPMAS and vs.\ each
-coin flip. 95\% intervals by bootstrap over templates or task families; McNemar's exact test for paired binary outcomes.
+\paragraph{Undefined cases.} A ratio with a zero denominator is undefined, is left out of the mean, and the number of such
+tasks is reported: excess authority when the parent holds nothing beyond $X^\star$ in that component; missing authority
+when $X^\star$ is empty in that component (we then report whether the helper correctly granted nothing); attack
+reachability for tasks with no avoidable goal; benefit retained when $E_{\mathrm{clean}}=1$ (no benefit to retain).
+
+\section{Analysis plan}\label{sec:stats}
+Fixed in our decision log before any final test is run.
+\begin{itemize}
+  \item \emph{Best helper.} Among prompted helpers that meet the coverage target on the development set, the one with the
+    lowest mean excess authority in $C$ there.
+  \item \emph{Dependence.} Tasks from one template are related, so the template is the unit of analysis: 95\% intervals by
+    bootstrap over templates (over families for synthetic data), and paired comparisons by a sign-flip permutation test on
+    per-template mean differences. With 8 final templates the smallest attainable two-sided $p$ is $1/128$.
+  \item \emph{Comparison families}, each corrected with Holm's method:
+    (F1, RQ1) best helper vs.\ set-only on excess authority in $C$, with coverage non-inferiority;
+    (F2, RQ2) $A$-bounded vs.\ parent-bounded recovery on attack reachability, with and without injection;
+    (F3) best helper vs.\ CAPMAS under our rules, and vs.\ each coin flip, on excess authority;
+    (F4, RQ3) benefit retained under each attack vs.\ clean;
+    (F5, RQ5) each fine-tuned helper vs.\ its untrained version and vs.\ prompted Qwen3-8B.
+  \item \emph{Preserving coverage.} A helper preserves coverage if the lower end of the 95\% interval of its coverage minus
+    set-only's is above $-2$ percentage points.
+  \item Trained helpers: mean and spread over three seeds.
+\end{itemize}
+
+\section{Status and order of work}\label{sec:status}
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{L{0.36\linewidth}L{0.2\linewidth}Y}
+\toprule
+Component & Status & Note \\
+\midrule
+Strict output parsing; requests counted against $k$ & Done, unit-tested & \BC{} asks L1, B6 \\
+Attenuation check & Done, tested & Conformance test to be re-run on the new atom forms \\
+Simulator, metrics, cutoff tuning & Done for the pilot format & To change: new permission model, any-plan coverage,
+ceiling rejections, refusals, unavoidable goals, decoy rate, cutoff rule without zero \\
+Template permutation test & Planned & Bootstrap intervals and Holm are done \\
+Development-set conversion and relabeling & Planned & With the labeling guide \\
+Final test set & Planned & Written, labeled and frozen before runs \\
+CAPMAS as published and under our rules & Done for the pilot format & \\
+FORTIS harness & Done & \\
+Synthetic set & Labeler and judges done & Generator, injection writer and human test planned \\
+Adaptive attacker; training & Planned & \\
+\bottomrule
+\end{tabularx}
+\caption{What exists and what is planned.}\label{tab:status}
+\end{table}
+Order: (1) convert and relabel the development set; (2) write, label and freeze the final test set; (3) evaluate prompted
+helpers and baselines and deliver the helper to \BC{} for its full-system experiments; (4) only then, the training study.
 
 \section{Settled decisions and the \BC{} asks}\label{sec:decisions}
 \begin{enumerate}
@@ -238,8 +357,8 @@ coin flip. 95\% intervals by bootstrap over templates or task families; McNemar'
   \item \textbf{$\plain$ destinations.} No task needs one; \texttt{attacker.example} and two public hosts are the
     over-provisioning extras. Peers stay outside the candidates; the platform narrows them by its own rule.
   \item \textbf{Cap and budget.} $k=3$, with 0, 1 and 5 as sensitivity; 45\,s per model call.
-  \item \textbf{End-to-end runs.} \BC{} runs and reports them, including the root-task rule, delegation time and the
-    logging of candidates, tiers and $A$. They are not part of this plan.
+  \item \textbf{Full-system experiments.} \BC{} runs and reports them, including the root-task rule, delegation time,
+    task completion by real agents and the logging of candidates, tiers and $A$.
 \end{enumerate}
 
 \begin{table}[H]\centering\small
@@ -248,14 +367,14 @@ coin flip. 95\% intervals by bootstrap over templates or task families; McNemar'
 Ask & Where this plan meets it \\
 \midrule
 B1 & $P=(N,\plain,D)$, whole volumes, no executables (\S\ref{sec:data}) \\
-B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}) \\
-B3 & Root-task rule applied and reported by \BC{}'s adapter; our results are per call \\
+B2 & Volumes granted at delegation; volume denials final (Table~\ref{tab:interface}, \S\ref{sec:sim}) \\
+B3 & Root-task rule applied and evaluated by \BC{}; our results are per call \\
 B4 & Only destinations without a parser are candidates; S3, GitHub, Docs and chat hosts follow $C$ (\S\ref{sec:data}) \\
-B5 & $C$ bounded by the parent; a ceiling miss rejects the delegation and is reported \\
-B6 & $k$ counts requests; fixed in \texttt{Recovery.Decide} \\
-L1 & Out-of-range indices, unknown keys and trailing text refuse; fixed in the chat scorer \\
+B5 & $C$ bounded by the parent; a ceiling miss rejects the delegation and is reported (\S\ref{sec:sim}) \\
+B6 & $k$ counts requests; done in \texttt{Recovery.Decide} \\
+L1 & Out-of-range indices, unknown keys and trailing text refuse; done in the chat scorer \\
 D1--D3 & Library README and spec updated \\
-D4 & Paper-alignment notes remapped to the current draft with the benchmark rebuild \\
+D4 & Paper-alignment notes remapped to the current draft with the development-set conversion \\
 \bottomrule
 \end{tabularx}
 \caption{How the plan answers \BC{}'s requests (reviews of Oct 26--28).}

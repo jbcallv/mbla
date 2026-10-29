@@ -190,7 +190,7 @@ def main():
         ["Model", "Kind", "Time (ms)", "Extra granted", "Needed but missed", "Exactly right"],
         plain_quality_rows(quality),
     )
-    latex_table(report / "recovery.tex", ["Model", "Paper's rule", "Our rule", "Normal tasks finished"], plain_recovery_rows())
+    latex_table(report / "recovery.tex", ["Model", "Paper's rule", "Our rule", "Coverage"], plain_recovery_rows())
     latex_table(report / "fortis.tex", ["Model", "Right skill", "Riskier skill", "Right tools", "Extra tools"], plain_fortis_rows())
     latex_table(report / "audit.tex", ["Human check of the answer key", ""], audit_rows())
 
