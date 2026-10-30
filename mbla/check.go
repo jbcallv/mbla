@@ -22,3 +22,14 @@ func ApplyCeiling(proposal, ceiling Policy) (installed, dropped Policy) {
 func Bound(parent, ceiling Policy) Policy {
 	return parent.Intersect(ceiling)
 }
+
+// WithinCeiling reports whether the sandbox part of a proposal (destinations and volumes) is within the receiver's
+// ceiling. C is bounded by the parent only; a proposal outside the ceiling is rejected whole.
+func WithinCeiling(proposal, ceiling Policy) bool {
+	for _, permission := range proposal {
+		if permission.Kind() != Capability && !ceiling.Covers(permission) {
+			return false
+		}
+	}
+	return true
+}

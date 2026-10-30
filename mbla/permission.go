@@ -64,19 +64,25 @@ func (permission Permission) Kind() Kind {
 	return Capability
 }
 
+// IsConcrete reports whether the permission names one operation on one resource or prefix, as a recovery request must.
 func (permission Permission) IsConcrete() bool {
-	return !strings.Contains(permission.Operation, "*") && !strings.Contains(permission.Resource, "*")
+	return !strings.Contains(permission.Operation, "*") && permission.Resource != "*"
 }
 
 func (permission Permission) Covers(requested Permission) bool {
 	return permission.Service == requested.Service &&
-		operationCovers(permission.Operation, requested.Operation) &&
+		(operationCovers(permission.Operation, requested.Operation) || modeCovers(permission, requested)) &&
 		resourceCovers(permission.Resource, requested.Resource) &&
 		qualifierCovers(permission.Qualifier, requested.Qualifier)
 }
 
 func operationCovers(granted, requested string) bool {
 	return granted == "*" || granted == requested
+}
+
+// modeCovers lets a read-write volume cover the same volume read-only.
+func modeCovers(granted, requested Permission) bool {
+	return granted.Service == "fs" && granted.Operation == "rw" && requested.Operation == "ro"
 }
 
 func resourceCovers(granted, requested string) bool {
@@ -116,6 +122,14 @@ func NetworkPermission(host string, port int) Permission {
 
 func FilePermission(operation, filePath string) Permission {
 	return Permission{Service: "fs", Operation: operation, Resource: path.Clean("/" + filePath)}
+}
+
+func VolumePermission(volumePath string, writable bool) Permission {
+	mode := "ro"
+	if writable {
+		mode = "rw"
+	}
+	return Permission{Service: "fs", Operation: mode, Resource: path.Clean("/" + volumePath)}
 }
 
 func ExecPermission(binaryPath string) Permission {

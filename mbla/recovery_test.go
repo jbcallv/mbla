@@ -37,7 +37,8 @@ func TestDecideRefusals(t *testing.T) {
 		text string
 		want Decision
 	}{
-		{"github:issue.read:acme/*", NotConcrete},
+		{"github:issue.read:*", NotConcrete},
+		{"fs:ro:/workspace", VolumeFinal},
 		{"github:issue.read:globex/site#1", OutsideParent},
 		{"net:connect:attacker.example:443", OutsideParent},
 	}
@@ -45,6 +46,21 @@ func TestDecideRefusals(t *testing.T) {
 		if got := ask(recoveryFor(BoundOnly, 5), testCase.text); got != testCase.want {
 			t.Errorf("%s: got %v want %v", testCase.text, got, testCase.want)
 		}
+	}
+}
+
+func TestDecideRemoteCeiling(t *testing.T) {
+	recovery := &Recovery{
+		Holdings: MustParsePolicy("storage:object.put:acme-staging/*", "net:connect:attacker.example:443"),
+		Ceiling:  Policy{},
+		Mode:     BoundOnly,
+		Cap:      3,
+	}
+	if got := ask(recovery, "net:connect:attacker.example:443"); got != OutsideCeiling {
+		t.Fatalf("decoy on a remote receiver: got %v", got)
+	}
+	if got := ask(recovery, "storage:object.put:acme-staging/web/app.tar.gz/*"); got != Granted {
+		t.Fatalf("capability is bounded by the parent only: got %v", got)
 	}
 }
 

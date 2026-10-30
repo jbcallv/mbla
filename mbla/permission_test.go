@@ -66,6 +66,11 @@ func TestCovers(t *testing.T) {
 		{"github:issue.label:acme/web#1?label=bug", "github:issue.label:acme/web#1?label=wontfix", false},
 		{"github:issue.label:acme/web#1?label=bug", "github:issue.label:acme/web#1", false},
 		{"storage:object.put:acme-staging/builds/app.tar", "storage:object.put:acme-staging/builds/*", false},
+		{"github:issue.read:acme/web/*", "github:issue.read:acme/web/issues/42/*", true},
+		{"github:issue.read:acme/web/*", "github:issue.read:acme/web2/issues/42/*", false},
+		{"fs:rw:/workspace", "fs:ro:/workspace", true},
+		{"fs:ro:/workspace", "fs:rw:/workspace", false},
+		{"fs:rw:/workspace", "fs:ro:/secrets", false},
 	}
 	for _, testCase := range cases {
 		got := MustParse(testCase.granted).Covers(MustParse(testCase.requested))
@@ -76,10 +81,12 @@ func TestCovers(t *testing.T) {
 }
 
 func TestIsConcrete(t *testing.T) {
-	if !MustParse("github:issue.read:acme/web#1").IsConcrete() {
-		t.Error("concrete permission reported as pattern")
+	for _, text := range []string{"github:issue.read:acme/web/issues/1/*", "fs:ro:/workspace"} {
+		if !MustParse(text).IsConcrete() {
+			t.Errorf("%q reported as a pattern", text)
+		}
 	}
-	for _, text := range []string{"github:issue.read:acme/*", "github:*:acme/web"} {
+	for _, text := range []string{"github:issue.read:*", "github:*:acme/web/*"} {
 		if MustParse(text).IsConcrete() {
 			t.Errorf("%q reported as concrete", text)
 		}
@@ -120,6 +127,9 @@ func TestPermissionHelpers(t *testing.T) {
 	}
 	if got := FilePermission("r", "/workspace/../secrets").String(); got != "fs:r:/secrets" {
 		t.Errorf("file: %s", got)
+	}
+	if got := VolumePermission("workspace/", true).String(); got != "fs:rw:/workspace" {
+		t.Errorf("volume: %s", got)
 	}
 	if got := ExecPermission("/usr/bin/curl").String(); got != "exec:run:/usr/bin/curl" {
 		t.Errorf("exec: %s", got)

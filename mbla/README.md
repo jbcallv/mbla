@@ -9,7 +9,12 @@ go get github.com/jbcallv/mbla/mbla
 ## Delegator side
 
 ```go
-request := mbla.Request{Operation: "github.triage", Arguments: map[string]string{"issue": "acme/web#42"}, Text: taskText}
+request := mbla.Request{
+	Operation: "github.triage",
+	Receiver:  mbla.Receiver{Name: "triage-agent"},
+	Text:      taskText,
+	Named:     []string{"github:acme/web/issues/42/"}, // resources the context names; never shown to the scorer
+}
 proposal, err := mbla.Propose(ctx, scorer, request, holdings, mbla.Thresholds{Initial: 0.8, Admit: 0.2})
 if err := mbla.CheckAttenuation(proposal.Initial, holdings); err != nil {
 	return err
@@ -20,7 +25,7 @@ if err := mbla.CheckAttenuation(installed, holdings); err != nil {
 	return err
 }
 releaseCredentials(installed.Capability())
-recovery := &mbla.Recovery{Holdings: holdings, Admit: proposal.Admit, Mode: mbla.Admitted, Cap: 3}
+recovery := &mbla.Recovery{Holdings: holdings, Admit: proposal.Admit, Ceiling: receiverCeiling, Mode: mbla.Admitted, Cap: 3}
 ```
 
 On a recovery request:
@@ -36,10 +41,10 @@ default:
 
 ## Receiver side
 
-The receiver rejects a proposal that is not within its ceiling.
+The receiver rejects a proposal whose destinations or volumes are not within its ceiling (C is bounded by the parent only).
 
 ```go
-if _, dropped := mbla.ApplyCeiling(proposal, ceiling); len(dropped) > 0 {
+if !mbla.WithinCeiling(proposal, ceiling) {
 	return reject(proposal)
 }
 
@@ -51,7 +56,7 @@ if granted && mbla.NeedsNewSandbox(requested) {
 }
 ```
 
-Turning a denied request into a `Permission` is the enforcement side's job. `NetworkPermission`, `FilePermission` and `ExecPermission` build correctly formatted permissions from those events.
+Turning a denied request into a `Permission` is the enforcement side's job. `NetworkPermission` and `VolumePermission` build correctly formatted permissions from those events. A volume request is always refused (`VolumeFinal`): volumes are granted at delegation only.
 
 ## Scorers
 
@@ -68,7 +73,15 @@ A scorer is untrusted. Inside BoundClaw, BoundClaw's checker decides what is all
 
 ## Permission format
 
-`service:operation:resource[?qualifier]`, e.g. `github:issue.read:acme/web#42`, `net:connect:api.github.com:443`, `fs:w:/workspace`, `exec:run:/usr/bin/make`. See `../research/spec.md` §4 for the matching rules.
+`service:operation:resource`, in BoundClaw's atom forms (`../research/boundclaw_atom_forms.md`):
+
+| Part | Example | Rule |
+|---|---|---|
+| C | `github:issue.read:acme/web/issues/42/*`, `storage:object.put:acme-staging/web/app.tar.gz/*` | a grant covers every resource under its prefix; resources end in `/` |
+| Destination without a parser | `net:connect:example.org:443` | exact host and port |
+| Volume | `fs:ro:/workspace/src`, `fs:rw:/artifacts` | whole volume; `rw` covers `ro`; local receivers only |
+
+Hosts with a parser (S3, GitHub, Docs, Slack) follow C and are never candidates. See `../research/final_methodology.md` §12.
 
 ## Commands
 

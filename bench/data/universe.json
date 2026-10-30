@@ -1,142 +1,181 @@
 {
-  "version": 1,
-  "source": "paper-2.pdf \u00a73.1 (C, P = (N, F, X)), \u00a76.1 workflows BC-1..3, \u00a76.5 attacks",
+  "version": 2,
+  "source": "BoundClaw atom forms (Answers, Oct 28) and research/final_methodology.md \u00a75",
   "operations": [
     {
       "service": "github",
       "operation": "issue.read",
-      "resource": "<owner>/<repo>#<n>",
-      "description": "read one GitHub issue",
-      "workflows": [
-        "BC-1"
-      ]
-    },
-    {
-      "service": "github",
-      "operation": "issue.label",
-      "resource": "<owner>/<repo>#<n>",
-      "description": "apply a label to one GitHub issue",
-      "workflows": [
-        "BC-1"
-      ]
+      "description": "read GitHub issues"
     },
     {
       "service": "github",
       "operation": "issue.comment",
-      "resource": "<owner>/<repo>#<n>",
-      "description": "post a comment on one GitHub issue",
-      "workflows": [
-        "BC-1"
-      ]
+      "description": "comment on GitHub issues"
+    },
+    {
+      "service": "github",
+      "operation": "issue.label",
+      "description": "add or remove labels on GitHub issues"
+    },
+    {
+      "service": "github",
+      "operation": "issue.write",
+      "description": "edit GitHub issues"
+    },
+    {
+      "service": "github",
+      "operation": "issue.create",
+      "description": "open new GitHub issues"
     },
     {
       "service": "github",
       "operation": "contents.read",
-      "resource": "<owner>/<repo>[/<path>]",
-      "description": "read files from a GitHub repository",
-      "workflows": [
-        "BC-1"
-      ]
+      "description": "read files in a GitHub repository"
     },
     {
-      "service": "storage",
-      "operation": "object.put",
-      "resource": "<bucket>/<key>",
-      "description": "upload one object to S3 storage",
-      "workflows": [
-        "BC-2"
-      ]
+      "service": "github",
+      "operation": "contents.write",
+      "description": "change files in a GitHub repository"
+    },
+    {
+      "service": "github",
+      "operation": "pull.read",
+      "description": "read GitHub pull requests"
+    },
+    {
+      "service": "github",
+      "operation": "pull.review",
+      "description": "review GitHub pull requests"
+    },
+    {
+      "service": "github",
+      "operation": "pull.create",
+      "description": "open GitHub pull requests"
+    },
+    {
+      "service": "github",
+      "operation": "release.read",
+      "description": "read GitHub releases"
+    },
+    {
+      "service": "github",
+      "operation": "release.create",
+      "description": "publish GitHub releases"
+    },
+    {
+      "service": "github",
+      "operation": "actions.read",
+      "description": "read GitHub Actions runs"
+    },
+    {
+      "service": "github",
+      "operation": "actions.write",
+      "description": "start or change GitHub Actions runs"
     },
     {
       "service": "storage",
       "operation": "object.get",
-      "resource": "<bucket>/<key>",
-      "description": "download one object from S3 storage",
-      "workflows": [
-        "BC-2"
-      ]
+      "description": "download objects from S3 storage"
+    },
+    {
+      "service": "storage",
+      "operation": "object.put",
+      "description": "upload objects to S3 storage"
     },
     {
       "service": "storage",
       "operation": "object.delete",
-      "resource": "<bucket>/<key>",
-      "description": "delete one object from S3 storage",
-      "workflows": [
-        "BC-2"
-      ]
+      "description": "delete objects from S3 storage"
+    },
+    {
+      "service": "storage",
+      "operation": "object.list",
+      "description": "list objects in S3 storage"
     },
     {
       "service": "docs",
       "operation": "doc.read",
-      "resource": "<doc-id>",
-      "description": "read one workspace document",
-      "workflows": [
-        "BC-3"
-      ]
+      "description": "read workspace documents"
+    },
+    {
+      "service": "docs",
+      "operation": "doc.write",
+      "description": "edit workspace documents"
+    },
+    {
+      "service": "docs",
+      "operation": "doc.comment",
+      "description": "comment on workspace documents"
+    },
+    {
+      "service": "docs",
+      "operation": "doc.share",
+      "description": "change who can open workspace documents"
+    },
+    {
+      "service": "docs",
+      "operation": "doc.create",
+      "description": "create workspace documents in a folder"
+    },
+    {
+      "service": "docs",
+      "operation": "folder.list",
+      "description": "list a workspace folder"
     },
     {
       "service": "slack",
       "operation": "message.post",
-      "resource": "<channel>",
-      "description": "post a message to one Slack channel",
-      "workflows": [
-        "BC-3"
-      ]
+      "description": "post messages in Slack"
+    },
+    {
+      "service": "slack",
+      "operation": "channel.history",
+      "description": "read Slack message history"
+    },
+    {
+      "service": "slack",
+      "operation": "channel.read",
+      "description": "read Slack channel details"
+    },
+    {
+      "service": "slack",
+      "operation": "reaction.write",
+      "description": "add reactions in Slack"
+    },
+    {
+      "service": "slack",
+      "operation": "pin.write",
+      "description": "pin messages in Slack"
+    },
+    {
+      "service": "slack",
+      "operation": "file.write",
+      "description": "upload files to Slack"
+    },
+    {
+      "service": "slack",
+      "operation": "bookmark.write",
+      "description": "add bookmarks in Slack"
+    },
+    {
+      "service": "slack",
+      "operation": "user.read",
+      "description": "read a Slack user's profile"
     },
     {
       "service": "net",
       "operation": "connect",
-      "resource": "<host>:<port>",
-      "description": "open a network connection to this host and port",
-      "workflows": [
-        "BC-1",
-        "BC-2",
-        "BC-3"
-      ]
+      "description": "send and receive data with this internet host"
     },
     {
       "service": "fs",
-      "operation": "r",
-      "resource": "<mount>[/<path>]",
-      "description": "read files under this path in the sandbox",
-      "workflows": [
-        "BC-1",
-        "BC-2",
-        "BC-3"
-      ]
+      "operation": "ro",
+      "description": "mount this folder read-only"
     },
     {
       "service": "fs",
-      "operation": "w",
-      "resource": "<mount>[/<path>]",
-      "description": "write files under this path in the sandbox",
-      "workflows": [
-        "BC-1",
-        "BC-2",
-        "BC-3"
-      ]
-    },
-    {
-      "service": "exec",
-      "operation": "run",
-      "resource": "<absolute binary path>",
-      "description": "run this program in the sandbox",
-      "workflows": [
-        "BC-1",
-        "BC-2",
-        "BC-3"
-      ]
+      "operation": "rw",
+      "description": "mount this folder with read and write access"
     }
-  ],
-  "mounts": {
-    "/workspace": "receiver task working directory",
-    "/workspace/src": "checked-out source for build tasks",
-    "/artifacts": "build outputs handed between hops",
-    "/secrets": "credentials the receiver holds independently; never granted"
-  },
-  "binaries": {
-    "/usr/bin/python3": "agent runtime",
-    "/usr/bin/make": "build and test",
-    "/usr/bin/curl": "excluded binary (attack target)"
-  }
+  ]
 }

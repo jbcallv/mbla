@@ -17,27 +17,58 @@ func (scorer fixedScorer) Score(context.Context, Request, Policy) ([]float64, er
 
 var triageRequest = Request{
 	Operation: "github.triage",
-	Arguments: map[string]string{"issue": "acme/web#42"},
+	Receiver:  Receiver{Name: "triage-agent"},
 	Text:      "Triage issue 42 in acme/web.",
-	Manifest:  MustParsePolicy("github:issue.read:acme/web#42"),
+	Manifest:  MustParsePolicy("github:issue.read:acme/web/issues/42/*"),
+	Named:     []string{"github:acme/web/issues/42/"},
 }
 
-func TestCandidatesConcretizeFromArguments(t *testing.T) {
-	holdings := MustParsePolicy("github:issue.read:acme/*", "github:issue.comment:acme/*", "net:connect:api.github.com:443", "net:connect:*")
+func TestCandidatesNarrowToNamedResources(t *testing.T) {
+	holdings := MustParsePolicy("github:issue.read:acme/*", "github:contents.read:acme/*", "net:connect:attacker.example:443", "fs:rw:/workspace")
 	candidates := Candidates(triageRequest, holdings)
 	want := []string{
 		"github:issue.read:acme/*",
-		"github:issue.comment:acme/*",
-		"net:connect:api.github.com:443",
-		"net:connect:*",
-		"github:issue.read:acme/web#42",
-		"github:issue.comment:acme/web#42",
+		"github:contents.read:acme/*",
+		"net:connect:attacker.example:443",
+		"fs:rw:/workspace",
+		"github:issue.read:acme/web/issues/42/*",
 	}
 	if strings.Join(candidates.Strings(), ",") != strings.Join(want, ",") {
 		t.Fatalf("candidates: %v", candidates.Strings())
 	}
 	if !candidates.Within(holdings) {
 		t.Fatal("candidates escaped holdings")
+	}
+}
+
+func TestCandidatesOmitVolumesForRemoteReceiver(t *testing.T) {
+	request := Request{Receiver: Receiver{Name: "deploy-agent", Remote: true}, Named: []string{"storage:acme-staging/web/app.tar.gz/"}}
+	holdings := MustParsePolicy("storage:object.put:acme-staging/*", "fs:rw:/workspace")
+	want := "storage:object.put:acme-staging/*,storage:object.put:acme-staging/web/app.tar.gz/*"
+	if got := strings.Join(Candidates(request, holdings).Strings(), ","); got != want {
+		t.Fatalf("candidates: %s", got)
+	}
+}
+
+func TestResourceFits(t *testing.T) {
+	cases := []struct {
+		operation, service, resource string
+		want                         bool
+	}{
+		{"issue.read", "github", "acme/web/issues/42/", true},
+		{"contents.read", "github", "acme/web/issues/42/", false},
+		{"contents.read", "github", "acme/web/contents/~default/README.md/", true},
+		{"doc.read", "docs", "doc/roadmap/", true},
+		{"folder.list", "docs", "doc/roadmap/", false},
+		{"message.post", "slack", "T01/C042/", true},
+		{"message.post", "slack", "T01/U042/", false},
+		{"user.read", "slack", "T01/U042/", true},
+		{"object.get", "storage", "acme-builds/web/app.tar.gz/", true},
+	}
+	for _, testCase := range cases {
+		if got := ResourceFits(testCase.operation, testCase.service, testCase.resource); got != testCase.want {
+			t.Errorf("%s on %s: got %v", testCase.operation, testCase.resource, got)
+		}
 	}
 }
 
@@ -60,7 +91,7 @@ func TestProposeRejectsWrongScoreCount(t *testing.T) {
 }
 
 func TestBaselineScorers(t *testing.T) {
-	candidates := MustParsePolicy("github:issue.read:acme/web#42", "github:issue.comment:acme/web#1", "fs:w:/workspace")
+	candidates := MustParsePolicy("github:issue.read:acme/web/issues/42/*", "github:issue.comment:acme/web/issues/1/*", "fs:rw:/workspace")
 	ctx := context.Background()
 	setOnly, _ := SetOnly{}.Score(ctx, triageRequest, candidates)
 	manifestOnly, _ := ManifestOnly{}.Score(ctx, triageRequest, candidates)
@@ -82,10 +113,13 @@ func expectScores(t *testing.T, name string, got, want []float64) {
 
 func TestDescribe(t *testing.T) {
 	text := Describe(triageRequest)
-	for _, part := range []string{"operation: github.triage", "argument issue: acme/web#42", "task: Triage", "manifest: github:issue.read:acme/web#42"} {
+	for _, part := range []string{"operation: github.triage", "receiver: triage-agent (local)", "task: Triage", "manifest: github:issue.read:acme/web/issues/42/*"} {
 		if !strings.Contains(text, part) {
 			t.Errorf("describe missing %q in:\n%s", part, text)
 		}
+	}
+	if strings.Contains(text, "acme/web/issues/42/\n") {
+		t.Error("named resources leaked into the description")
 	}
 	glossary := Glossary{"github:issue.read": "read one issue"}
 	if got := DescribePermission(MustParse("github:issue.read:a/b#1"), glossary); got != "github:issue.read:a/b#1 (read one issue)" {

@@ -16,11 +16,11 @@ class Atom:
 
     @property
     def kind(self):
-        return {"net": "N", "fs": "F", "exec": "X"}.get(self.service, "C")
+        return {"net": "plain", "fs": "D", "exec": "X"}.get(self.service, "C")
 
     @property
     def is_concrete(self):
-        return "*" not in self.operation and "*" not in self.resource
+        return "*" not in self.operation and self.resource != "*"
 
 
 def parse(text):
@@ -40,10 +40,14 @@ def parse_all(texts):
 def grants(pattern, concrete):
     return (
         pattern.service == concrete.service
-        and pattern.operation in ("*", concrete.operation)
+        and (pattern.operation in ("*", concrete.operation) or mode_grants(pattern, concrete))
         and resource_grants(pattern.resource, concrete.resource)
         and pattern.qualifier in ("", concrete.qualifier)
     )
+
+
+def mode_grants(pattern, concrete):
+    return pattern.service == "fs" and pattern.operation == "rw" and concrete.operation == "ro"
 
 
 def resource_grants(pattern, resource):
@@ -56,6 +60,8 @@ def witnesses(atom):
     resource = atom.resource[:-1] + WITNESS if atom.resource.endswith("*") else atom.resource
     resources = {resource, resource + "/" + WITNESS, resource + "#" + WITNESS}
     operations = {atom.operation.replace("*", WITNESS)}
+    if atom.service == "fs" and atom.operation == "rw":
+        operations.add("ro")
     qualifiers = {atom.qualifier} if atom.qualifier else {"", WITNESS}
     return {
         Atom(atom.service, operation, witness_resource, qualifier)

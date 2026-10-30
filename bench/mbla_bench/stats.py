@@ -89,3 +89,23 @@ def cluster_bootstrap_interval(groups, statistic, resamples=10000, seed=0, level
         estimates.append(statistic([row for index in picked for row in groups[index]]))
     tail = (1 - level) / 2
     return float(np.quantile(estimates, tail)), float(np.quantile(estimates, 1 - tail))
+
+
+def sign_flip_test(differences, resamples=100000, seed=0):
+    """two-sided paired permutation test on per-template mean differences (final methodology §9).
+    exact over all 2^n sign patterns up to 20 templates, Monte Carlo above."""
+    differences = np.asarray(differences, dtype=float)
+    observed = abs(differences.mean())
+    count = len(differences)
+    if count <= 20:
+        signs = 1 - 2 * ((np.arange(2**count)[:, None] >> np.arange(count)) & 1)
+    else:
+        signs = np.random.default_rng(seed).choice([-1, 1], size=(resamples, count))
+    means = np.abs((signs * differences).mean(axis=1))
+    return float((means >= observed - 1e-12).mean())
+
+
+def template_differences(frame_a, frame_b, value, cluster="template"):
+    paired = frame_a[["item", cluster, value]].merge(frame_b[["item", value]], on="item", suffixes=("_a", "_b")).dropna()
+    paired["difference"] = paired[f"{value}_a"] - paired[f"{value}_b"]
+    return paired.groupby(cluster)["difference"].mean().to_numpy()

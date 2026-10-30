@@ -58,7 +58,7 @@ func runBench(arguments []string) error {
 	flags.StringVar(&config.itemsPath, "items", "", "benchmark items jsonl")
 	flags.StringVar(&config.outputPath, "out", "", "predictions jsonl to write")
 	flags.StringVar(&config.method, "method", "", "method label (defaults to scorer name)")
-	flags.StringVar(&config.input, "input", "full", "text | args | history | full")
+	flags.StringVar(&config.input, "input", "full", "text | history | full")
 	flags.IntVar(&config.warmup, "warmup", 5, "untimed calls before measuring")
 	flags.StringVar(&config.hardware, "hardware", "", "hardware label recorded with each row")
 	flags.Parse(arguments)
@@ -145,8 +145,6 @@ func forInput(request mbla.Request, input string) mbla.Request {
 	scored := request
 	switch input {
 	case "text":
-		scored.Arguments, scored.History, scored.Manifest = nil, nil, nil
-	case "args":
 		scored.History, scored.Manifest = nil, nil
 	case "history":
 		scored.Manifest = nil

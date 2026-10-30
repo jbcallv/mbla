@@ -34,16 +34,17 @@ func LoadManifest(manifestPath string, publicKey ed25519.PublicKey) (Manifest, e
 	return manifest, err
 }
 
-func (manifest Manifest) For(request Request) (Policy, error) {
-	templates, found := manifest.Operations[request.Operation]
+// For fills the operation's permission templates with values the caller resolved, e.g. {"issue": "acme/web/issues/42/"}.
+func (manifest Manifest) For(operation string, values map[string]string) (Policy, error) {
+	templates, found := manifest.Operations[operation]
 	if !found {
 		return Policy{}, nil
 	}
 	filled := []string{}
 	for _, template := range templates {
-		text := fillPlaceholders(template, request.Arguments)
+		text := fillPlaceholders(template, values)
 		if strings.Contains(text, "{") {
-			return nil, fmt.Errorf("manifest %q: missing argument for %q", manifest.Receiver, template)
+			return nil, fmt.Errorf("manifest %q: missing value for %q", manifest.Receiver, template)
 		}
 		filled = append(filled, text)
 	}

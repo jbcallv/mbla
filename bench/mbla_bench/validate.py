@@ -4,9 +4,12 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from mbla_bench import reference
+import yaml
 
-REQUIRED_FIELDS = ["id", "template", "split", "request", "parent", "ceiling", "reference", "attacks"]
+from mbla_bench import answer, reference
+
+REQUIRED_FIELDS = ["id", "template", "handoff", "split", "request", "parent", "ceiling", "plans", "attacks"]
+STRUCTURAL = {"", "issues", "contents", "pulls", "releases", "actions", "doc", "folder", "~default"}
 
 
 def load_items(task_dir):
@@ -16,21 +19,35 @@ def load_items(task_dir):
     return items
 
 
-def item_problems(item):
+def named_in_text(named, text):
+    service, _, resource = named.partition(":")
+    segments = resource.split("/")[1:] if service == "slack" else resource.split("/")
+    return all(segment in text for segment in segments if segment not in STRUCTURAL)
+
+
+def item_problems(item, decoys):
     problems = [f"missing field {field}" for field in REQUIRED_FIELDS if field not in item]
     if problems:
         return problems
     parent = reference.parse_all(item["parent"])
-    reference_policy = reference.parse_all(item["reference"])
-    reference.parse_all(item["ceiling"] + item["request"]["manifest"])
-    if not reference.within(reference_policy, parent):
-        problems.append("reference exceeds parent")
-    for attack in item["attacks"]:
-        needs = reference.parse_all(attack["needs"])
-        if not reference.within(needs, parent):
-            problems.append(f"attack {attack['id']} not reachable under parent")
-        if reference.within(needs, reference_policy):
-            problems.append(f"attack {attack['id']} allowed by reference")
+    remote = item["request"]["receiver"]["remote"]
+    every = item["parent"] + item["ceiling"] + item["request"]["manifest"] + [need for plan in item["plans"] for need in plan]
+    if any(atom.kind == "X" for atom in reference.parse_all(every)):
+        problems.append("executable permission")
+    if remote and item["ceiling"]:
+        problems.append("remote receiver with a non-empty ceiling")
+    pool = answer.candidates(item)
+    if remote and any(atom.kind == "D" for atom in pool):
+        problems.append("volume candidate for a remote receiver")
+    problems += [f"plain candidate {atom} is not a decoy" for atom in pool if atom.kind == "plain" and str(atom) not in decoys]
+    actions = answer.universe(item)
+    for index, plan in enumerate(item["plans"]):
+        if not reference.within(reference.parse_all(plan), parent):
+            problems.append(f"plan {index} exceeds parent")
+        if answer.plan_candidates(plan, pool, actions) is None:
+            problems.append(f"plan {index} not expressible in candidates")
+    problems += [f"attack {attack['id']} not reachable under parent" for attack in item["attacks"] if not reference.within(reference.parse_all(attack["needs"]), parent)]
+    problems += [f"named {named} not in task text" for named in item["request"]["named"] if not named_in_text(named, item["request"]["text"])]
     return problems
 
 
@@ -55,29 +72,31 @@ def write_checksums(task_dir):
 
 def frozen_mismatches(task_dir):
     if not (task_dir / "SHA256SUMS").exists():
-        raise SystemExit("tasks are not frozen yet: audit the references, then run make freeze")
+        raise SystemExit("tasks are not frozen yet: review the answer keys, then run make freeze")
     recorded = dict(reversed(line.split("  ")) for line in (task_dir / "SHA256SUMS").read_text().splitlines())
     return [name for name, digest in checksums(task_dir).items() if recorded.get(name) != digest]
 
 
 def main():
-    parser = argparse.ArgumentParser(description="validate benchmark items and freeze or verify checksums")
+    parser = argparse.ArgumentParser(description="validate benchmark tasks and freeze or verify checksums")
     parser.add_argument("--tasks", default="data/tasks")
+    parser.add_argument("--templates", default="data/templates")
     parser.add_argument("--freeze", action="store_true", help="write SHA256SUMS")
     parser.add_argument("--verify", action="store_true", help="fail if files differ from SHA256SUMS")
     arguments = parser.parse_args()
     task_dir = Path(arguments.tasks)
+    decoys = set(yaml.safe_load((Path(arguments.templates) / "delegations.yaml").read_text())["decoys"])
     items = load_items(task_dir)
-    problems = split_problems(items) + [f"{item.get('id')}: {problem}" for item in items for problem in item_problems(item)]
+    problems = split_problems(items) + [f"{item.get('id')}: {problem}" for item in items for problem in item_problems(item, decoys)]
     for problem in problems:
         print(problem)
     if problems:
-        raise SystemExit(f"{len(problems)} problems in {len(items)} items")
+        raise SystemExit(f"{len(problems)} problems in {len(items)} tasks")
     if arguments.verify and frozen_mismatches(task_dir):
         raise SystemExit(f"changed since freeze: {frozen_mismatches(task_dir)}")
     if arguments.freeze:
         write_checksums(task_dir)
-    print(f"{len(items)} items valid")
+    print(f"{len(items)} tasks valid")
 
 
 if __name__ == "__main__":

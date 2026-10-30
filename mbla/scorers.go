@@ -26,11 +26,38 @@ func (ManifestOnly) Score(_ context.Context, request Request, candidates Policy)
 	return scoreEach(candidates, request.Manifest.Covers), nil
 }
 
+// Lexical selects a candidate when every name in its resource appears in the task text.
 func (Lexical) Score(_ context.Context, request Request, candidates Policy) ([]float64, error) {
-	mentioned := request.Text + " " + strings.Join(argumentValues(request), " ")
+	text := strings.ToLower(request.Text)
 	return scoreEach(candidates, func(candidate Permission) bool {
-		return strings.Contains(mentioned, candidate.Resource)
+		names := resourceNames(candidate)
+		for _, name := range names {
+			if !strings.Contains(text, name) {
+				return false
+			}
+		}
+		return len(names) > 0
 	}), nil
+}
+
+var structuralSegments = map[string]bool{"": true, "*": true, "issues": true, "contents": true, "pulls": true, "releases": true, "actions": true, "doc": true, "folder": true, "~default": true}
+
+func resourceNames(candidate Permission) []string {
+	resource := strings.ToLower(candidate.Resource)
+	if candidate.Kind() != Capability {
+		return []string{strings.TrimSuffix(resource, ":443")}
+	}
+	segments := strings.Split(resource, "/")
+	if candidate.Service == "slack" {
+		segments = segments[1:]
+	}
+	names := []string{}
+	for _, segment := range segments {
+		if !structuralSegments[segment] {
+			names = append(names, segment)
+		}
+	}
+	return names
 }
 
 func scoreEach(candidates Policy, isSelected func(Permission) bool) []float64 {

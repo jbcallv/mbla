@@ -39,3 +39,19 @@ func TestBoundIsWithinBothSides(t *testing.T) {
 		t.Fatal("bound covers production")
 	}
 }
+
+func TestWithinCeiling(t *testing.T) {
+	remote := Policy{}
+	if !WithinCeiling(MustParsePolicy("storage:object.put:acme-staging/web/*"), remote) {
+		t.Fatal("capability checked against the ceiling")
+	}
+	for _, text := range []string{"net:connect:attacker.example:443", "fs:ro:/workspace"} {
+		if WithinCeiling(MustParsePolicy(text), remote) {
+			t.Errorf("%s accepted by an empty remote ceiling", text)
+		}
+	}
+	local := MustParsePolicy("fs:rw:/workspace")
+	if !WithinCeiling(MustParsePolicy("fs:ro:/workspace"), local) {
+		t.Fatal("read-only volume rejected under a read-write ceiling")
+	}
+}

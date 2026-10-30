@@ -3,17 +3,34 @@ package mbla
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 )
 
+// Request is what the delegator knows about one delegation. Named lists the resources the context names, as
+// "service:resource"; it only builds narrower candidates and is never shown to a scorer.
 type Request struct {
-	Protocol  string            `json:"protocol"`
-	Operation string            `json:"operation"`
-	Arguments map[string]string `json:"arguments"`
-	Text      string            `json:"text"`
-	History   []string          `json:"history"`
-	Manifest  Policy            `json:"manifest,omitempty"`
+	Protocol  string   `json:"protocol"`
+	Operation string   `json:"operation"`
+	Receiver  Receiver `json:"receiver"`
+	Text      string   `json:"text"`
+	History   []string `json:"history"`
+	Manifest  Policy   `json:"manifest,omitempty"`
+	Named     []string `json:"named,omitempty"`
+}
+
+type Receiver struct {
+	Name   string `json:"name"`
+	Remote bool   `json:"remote"`
+}
+
+func (receiver Receiver) String() string {
+	if receiver.Name == "" {
+		return ""
+	}
+	if receiver.Remote {
+		return receiver.Name + " (remote)"
+	}
+	return receiver.Name + " (local)"
 }
 
 type Scorer interface {
@@ -65,43 +82,62 @@ func selectAtLeast(candidates Policy, scores []float64, threshold float64) Polic
 	return selected
 }
 
+// Candidates lists what a scorer chooses from: every holding, a narrower grant for each named resource under a
+// granted prefix, and volumes only for a local receiver. Hosts with a parser are not holdings and never appear.
 func Candidates(request Request, holdings Policy) Policy {
-	candidates := holdings
+	candidates := Policy{}
+	for _, holding := range holdings {
+		if holding.Kind() == Filesystem && request.Receiver.Remote {
+			continue
+		}
+		candidates = candidates.Add(holding)
+	}
 	for _, holding := range holdings.Capability() {
-		for _, value := range argumentValues(request) {
-			concrete := holding
-			concrete.Resource = value
-			if holding.Covers(concrete) {
-				candidates = candidates.Add(concrete)
+		for _, named := range request.Named {
+			if narrower, fits := narrowTo(holding, named); fits {
+				candidates = candidates.Add(narrower)
 			}
 		}
 	}
 	return candidates
 }
 
-func argumentValues(request Request) []string {
-	values := []string{}
-	for _, key := range sortedKeys(request.Arguments) {
-		values = append(values, request.Arguments[key])
+func narrowTo(holding Permission, named string) (Permission, bool) {
+	service, resource, found := strings.Cut(named, ":")
+	if !found || service != holding.Service || !ResourceFits(holding.Operation, service, resource) {
+		return Permission{}, false
 	}
-	return values
+	narrower := holding
+	narrower.Resource = resource + "*"
+	return narrower, narrower != holding && holding.Covers(narrower)
 }
 
-func sortedKeys(arguments map[string]string) []string {
-	keys := make([]string, 0, len(arguments))
-	for key := range arguments {
-		keys = append(keys, key)
+// ResourceFits keeps an operation on the resource type it acts on in BoundClaw's atom forms, so that
+// github:contents.read never narrows to an issue and slack:user.read never narrows to a channel.
+func ResourceFits(operation, service, resource string) bool {
+	family, _, _ := strings.Cut(operation, ".")
+	segments := strings.Split(resource, "/")
+	switch service {
+	case "github":
+		return len(segments) > 2 && segments[2] == githubSegments[family]
+	case "docs":
+		return segments[0] == docsSegments[operation]
+	case "slack":
+		return len(segments) > 1 && strings.HasPrefix(segments[1], "U") == (operation == "user.read")
 	}
-	sort.Strings(keys)
-	return keys
+	return true
+}
+
+var githubSegments = map[string]string{"issue": "issues", "contents": "contents", "pull": "pulls", "release": "releases", "actions": "actions"}
+
+var docsSegments = map[string]string{
+	"doc.read": "doc", "doc.write": "doc", "doc.comment": "doc", "doc.share": "doc", "doc.create": "folder", "folder.list": "folder",
 }
 
 func Describe(request Request) string {
 	var text strings.Builder
 	writeLine(&text, "operation", request.Operation)
-	for _, key := range sortedKeys(request.Arguments) {
-		writeLine(&text, "argument "+key, request.Arguments[key])
-	}
+	writeLine(&text, "receiver", request.Receiver.String())
 	writeLine(&text, "task", request.Text)
 	for _, step := range request.History {
 		writeLine(&text, "history", step)

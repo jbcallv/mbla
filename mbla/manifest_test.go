@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const triageManifest = `{"receiver":"triage-agent","version":1,"operations":{"github.triage":["github:issue.read:{issue}","net:connect:api.github.com:443"]}}`
+const triageManifest = `{"receiver":"triage-agent","version":1,"operations":{"github.triage":["github:issue.read:{issue}*","github:issue.label:{issue}*"]}}`
 
 func writeSignedManifest(t *testing.T, signingKey ed25519.PrivateKey) string {
 	t.Helper()
@@ -24,8 +24,8 @@ func TestLoadManifestAndFill(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	policy, err := manifest.For(triageRequest)
-	if err != nil || len(policy) != 2 || policy[0].String() != "github:issue.read:acme/web#42" {
+	policy, err := manifest.For("github.triage", map[string]string{"issue": "acme/web/issues/42/"})
+	if err != nil || len(policy) != 2 || policy[0].String() != "github:issue.read:acme/web/issues/42/*" {
 		t.Fatalf("for: %v %v", policy.Strings(), err)
 	}
 }
@@ -40,10 +40,10 @@ func TestLoadManifestRejectsWrongKey(t *testing.T) {
 
 func TestManifestMissingArgument(t *testing.T) {
 	manifest := Manifest{Operations: map[string][]string{"op": {"github:issue.read:{issue}"}}}
-	if _, err := manifest.For(Request{Operation: "op"}); err == nil {
+	if _, err := manifest.For("op", nil); err == nil {
 		t.Fatal("want error for missing argument")
 	}
-	if policy, err := manifest.For(Request{Operation: "other"}); err != nil || len(policy) != 0 {
+	if policy, err := manifest.For("other", nil); err != nil || len(policy) != 0 {
 		t.Fatalf("unknown operation: %v %v", policy, err)
 	}
 }
