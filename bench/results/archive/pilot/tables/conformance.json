@@ -1,0 +1,10 @@
+{
+  "pairs": 14426,
+  "valid": 9670,
+  "invalid": 4756,
+  "false_accepts": 0,
+  "false_rejects": 0,
+  "false_accept_rate": 0.0,
+  "false_reject_rate": 0.0,
+  "max_depth": 8
+}

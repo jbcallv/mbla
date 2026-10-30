@@ -1,64 +1,61 @@
+# experiments of the final methodology (research/final_methodology.md). helper list: §4; data uses: §5 table.
+# the pilot's experiments (other sizes, Laya, CLM, input ablations) are in git history before D-30.
 mbla: ../mbla/bin/mbla
 glossary: data/universe.json
-hardware: "1x NVIDIA L40S 46GB per model, exclusive (gpt-oss-120b: 2x)"
+hardware: "1x NVIDIA L40S 46GB per model, exclusive (gpt-oss-120b, qwen3-30b: 2x)"
 warmup: 5
 
 items:
   dev: data/tasks/dev.jsonl
   test: data/tasks/test.jsonl
 
+prompted: &prompted [set-only, manifest-only, lexical, random-25, random-50, random-75, capmas, capmas-scores,
+                     qwen3-reranker-0.6b, qwen3-reranker-8b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, gpt-oss-120b]
+
 experiments:
   dev:
-    purpose: "threshold tuning only (make tune); one seed"
+    purpose: "development set: scorer cutoffs (make tune), choosing the best helper, checking the pipeline"
     split: dev
     inputs: [full]
-    seeds: [0]
-    methods: [set-only, manifest-only, lexical, random-25, random-50, random-75, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
-              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+    methods: *prompted
 
-  e1:
-    purpose: "M1/M2/M3/M6 method comparison; E2 curves, E5 latency, E6 recovery and E9 variants come from these rows"
+  final:
+    purpose: "final test set, run once after freezing (RQ1-RQ4; attacks (a) planted and (b) held-out styles)"
     split: test
     inputs: [full]
-    methods: [set-only, manifest-only, lexical, random-25, random-50, random-75, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
-              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+    methods: *prompted
 
-  e3:
-    purpose: "M4 input ablation; qwen3-8b = best generative model on dev (results/thresholds.json)"
-    split: test
-    inputs: [text, args, history, full]
-    seeds: [0]
-    methods: [lexical, laya, qwen3-reranker-8b, clm-zs, qwen3-8b]
-
-  e4:
-    purpose: "M5 one Qwen3-8B backbone used three ways: generation, reranker head, contrastive heads"
-    split: test
+  dev-manifest:
+    purpose: "attack (d) on the development set: the operator's signed manifest lists the attack's target (make attack-data)"
+    items: data/attacks/dev_manifest.jsonl
     inputs: [full]
-    seeds: [0]
-    methods: [qwen3-8b, qwen3-reranker-8b, clm-zs]
+    methods: *prompted
+
+  final-manifest:
+    purpose: "attack (d) on the final test set, run once after freezing; derived deterministically from the frozen tasks"
+    items: data/attacks/test_manifest.jsonl
+    inputs: [full]
+    methods: *prompted
 
   fortis1:
-    purpose: "external validation on FORTIS task 1 (skill selection), official FORTIS metrics; thresholds from our dev"
+    purpose: "external test: FORTIS task 1 (skill selection), its own grading code; cutoffs from our development set"
     items: data/external/fortis/task1.jsonl
     glossary: data/external/fortis/universe.json
     inputs: [full]
     seeds: [0]
-    methods: [set-only, lexical, random-25, random-50, random-75, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
-              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+    methods: *prompted
 
   fortis2:
-    purpose: "external validation on FORTIS task 2 (tool selection), official FORTIS metrics; thresholds from our dev"
+    purpose: "external test: FORTIS task 2 (tool selection), its own grading code; cutoffs from our development set"
     items: data/external/fortis/task2.jsonl
     glossary: data/external/fortis/universe.json
     inputs: [full]
     seeds: [0]
-    methods: [set-only, lexical, random-25, random-50, random-75, capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
-              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+    methods: *prompted
 
-  e5:
-    purpose: "M2 latency, measured alone on exclusive GPUs (never shared); 5 test items per template, latency only"
-    items: data/latency/latency.jsonl
+  latency:
+    purpose: "RQ4 latency per call, each helper alone on exclusive GPUs, on the exact configuration reported"
+    split: test
     inputs: [full]
     seeds: [0]
-    methods: [capmas, capmas-scores, bge-large-zs, laya, qwen3-reranker-0.6b, qwen3-reranker-4b, qwen3-reranker-8b, clm-zs,
-              qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, qwen3-32b-awq, phi-4-mini, gpt-oss-20b, gpt-oss-120b]
+    methods: [capmas, capmas-scores, qwen3-reranker-0.6b, qwen3-reranker-8b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-30b, gpt-oss-120b]

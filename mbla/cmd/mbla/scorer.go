@@ -29,7 +29,7 @@ func addScorerFlags(flags *flag.FlagSet) *scorerConfig {
 	flags.IntVar(&config.seed, "seed", 0, "sampling seed for chat and random scorers")
 	flags.StringVar(&config.glossaryPath, "glossary", "", "universe.json with permission descriptions")
 	flags.StringVar(&config.extraBody, "extra", "", "json object merged into chat request bodies")
-	flags.DurationVar(&config.timeout, "timeout", 120*time.Second, "per-request timeout")
+	flags.DurationVar(&config.timeout, "timeout", 45*time.Second, "per-call budget; a slower call refuses the delegation")
 	return config
 }
 

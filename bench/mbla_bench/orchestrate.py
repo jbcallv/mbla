@@ -19,7 +19,7 @@ STARTUP_ATTEMPTS = 3
 SHARED_FRACTION = 0.55
 SHARED_MARGIN_MIB = 1024
 SHARED_MODE = False
-SHARED_HARDWARE = "shared GPU (other users' jobs present): latency not used, see e5"
+SHARED_HARDWARE = "shared GPU (other users' jobs present): latency not used, see the latency experiment"
 
 
 def serving_environment(gpu_ids):
@@ -192,7 +192,7 @@ def scheduling_order(method_names, models):
 
 def main():
     parser = argparse.ArgumentParser(description="serve each model alone on its own gpu(s), run its experiments, stop it")
-    parser.add_argument("--experiments", required=True, help="comma-separated, e.g. dev or e1,e3,e4")
+    parser.add_argument("--experiments", required=True, help="comma-separated, e.g. dev or final,latency")
     parser.add_argument("--methods", default="", help="comma-separated subset; default: every method in those experiments")
     parser.add_argument("--gpus", default="0,1,2,3")
     parser.add_argument(

@@ -1,11 +1,11 @@
 PYTHON := .venv/bin/python
 GO ?= go
-# set SHARED=--shared to run accuracy experiments next to other users' GPU jobs (latency then comes from e5 only)
+# set SHARED=--shared to run accuracy experiments next to other users' GPU jobs (latency then comes from the latency experiment only)
 SHARED ?=
 
-.PHONY: all mbla data conversion label-sheets label-check label-compare review-sheets review-compare review-final freeze verify download conform dev tune e1 e3 e4 e5 fortis-data fortis judge judge-adjust report significance export figures test
+.PHONY: all mbla data conversion label-sheets label-check label-compare attack-data freeze verify download conform dev tune final latency fortis-data fortis report test
 
-all: mbla data conform dev tune e1 e3 e4 fortis e5 report significance export figures
+all: mbla data conform dev tune final fortis latency report
 
 mbla:
 	cd ../mbla && $(GO) test ./... && $(GO) build -o bin/mbla ./cmd/mbla
@@ -31,17 +31,6 @@ label-check:
 label-compare:
 	$(PYTHON) -m mbla_bench.labels compare --out-dir data/review/$(SPLIT) --reviewers $(REVIEWERS)
 
-# pilot audit tools (pilot format, data/pilot)
-
-review-sheets: mbla
-	$(PYTHON) -m mbla_bench.review sheets --reviewers $(REVIEWERS)
-
-review-compare:
-	$(PYTHON) -m mbla_bench.review compare $(foreach name,$(REVIEWERS),data/review/audit_$(name).csv)
-
-review-final:
-	$(PYTHON) -m mbla_bench.review final
-
 freeze:
 	$(PYTHON) -m mbla_bench.validate --freeze
 
@@ -61,11 +50,16 @@ dev: mbla
 tune:
 	$(PYTHON) -m mbla_bench.tune
 
-e1 e3 e4: mbla verify
-	$(PYTHON) -m mbla_bench.orchestrate $(SHARED) --experiments $@
+attack-data:
+	$(PYTHON) -m mbla_bench.attacks --items data/tasks/dev.jsonl --out data/attacks/dev_manifest.jsonl
+	$(PYTHON) -m mbla_bench.attacks --items data/tasks/test.jsonl --out data/attacks/test_manifest.jsonl
 
-e5: mbla verify
-	$(PYTHON) -m mbla_bench.orchestrate --experiments e5
+# final runs: refused unless the final test set is frozen (make freeze after labeling)
+final: mbla verify
+	$(PYTHON) -m mbla_bench.orchestrate $(SHARED) --experiments final,final-manifest
+
+latency: mbla verify
+	$(PYTHON) -m mbla_bench.orchestrate --experiments latency
 
 fortis-data:
 	$(PYTHON) -m mbla_bench.fortis build
@@ -76,27 +70,11 @@ fortis: mbla fortis-data
 	$(PYTHON) -m mbla_bench.fortis report fortis1 data/external/fortis/task1.jsonl
 	$(PYTHON) -m mbla_bench.fortis report fortis2 data/external/fortis/task2.jsonl
 
-judge:
-	$(PYTHON) -m mbla_bench.judge judge $(SHARED)
-
-judge-adjust:
-	$(PYTHON) -m mbla_bench.judge adjust
+EXPERIMENT ?= dev
 
 report:
-	$(PYTHON) -m mbla_bench.report dev --items data/tasks/dev.jsonl
-	$(PYTHON) -m mbla_bench.report e1
-	$(PYTHON) -m mbla_bench.report e3
-	$(PYTHON) -m mbla_bench.report e4
-
-significance:
-	$(PYTHON) -m mbla_bench.significance
-
-export:
-	$(PYTHON) -m mbla_bench.export
-
-figures: export
-	$(MAKE) -C ../plots
-	$(MAKE) -C ../report
+	$(PYTHON) -m mbla_bench.report $(EXPERIMENT)
+	$(PYTHON) -m mbla_bench.analysis --final $(EXPERIMENT)
 
 test:
 	$(PYTHON) -m pytest -q tests

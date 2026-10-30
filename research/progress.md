@@ -11,6 +11,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | H2 | Development-set review: plans, new candidate rows, attack goals (`bench/data/review/dev/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 | tuning cutoffs, choosing the best helper on final labels |
 | H3 | Confirm the build output bucket `{owner}-builds` (A-11) with BoundClaw | Joseph → BoundClaw | 2026-10-30 | nothing (easy to change) |
 | H4 | Label the final test set blind: candidates and goals first, then correct the draft plans (`bench/data/review/test/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 (after H1) | freeze, final runs |
+| H6 | GPUs on `ams1` are down (driver reports no devices; SLURM node `down`). Every model helper waits on this | Joseph → cluster admin | 2026-10-30 | development runs of model helpers, step 3 |
 | H5 | After H2 and H4 are adjudicated: confirm 10% of carried tasks (`make label-check SPLIT=dev`, `SPLIT=test`) | one reviewer | – | freeze |
 
 ## Order of work (§10)
@@ -19,7 +20,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 |---|---|---|
 | 1. Convert and relabel the development set | **waiting** (H1, H2) | Converted, validated, report written; human review sheets ready |
 | 2. Write, label and freeze the final test set | **waiting** (H1, H4, H5) | 8 templates, 192 tasks, held-out styles written and validated (D-31) |
-| 3. Prompted helpers and baselines; deliver helper to BoundClaw | planned | Development runs can start before H2 (labels only change scoring) |
+| 3. Prompted helpers and baselines; deliver helper to BoundClaw | **in progress**, model helpers waiting (H6) | CPU baselines run on the development set; report and analysis built. Development runs need no labels to start (labels only change scoring) |
 | 4. Training study | planned | After step 3 |
 
 ## Components
@@ -40,10 +41,14 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | Labeling sheets and agreement (κ, unclear, disagreements) | done | `bench/mbla_bench/labels.py` | |
 | Final test set: 8 templates, held-out injection styles | done, labels pending (H4) | `bench/data/templates/test.yaml`, `injection_styles.yaml`, `bench/data/tasks/test.jsonl` | Not frozen; no helper may run on it |
 | 10% carried-label check | done | `bench/mbla_bench/labels.py` (`carried-check`) | |
-| Reporting (tables, figures, Holm families, per handoff) | planned | | `report.py`, `export.py`, `significance.py`, `judge.py` still use the pilot format |
-| Helper configuration for the final helper list (drop Laya, CLM, other sizes) | planned | `bench/config/` | |
+| Reporting (summary with intervals, per handoff/breadth/style, k sensitivity, undefined counts, untuned scorers) | done | `bench/mbla_bench/report.py` | Run on the CPU baselines |
+| Analysis plan (best helper, F1–F4 with Holm, non-inferiority) | done | `bench/mbla_bench/analysis.py` | F5 with training |
+| Helper configuration for the final helper list; 45 s budget | done | `bench/config/experiments.yaml`, `mbla/cmd/mbla/scorer.go` | |
+| Attack (d) inflated manifest | done | `bench/mbla_bench/attacks.py`, `data/attacks/` | Clean tasks only |
+| Conformance of the Go checker on the new forms | done | `bench/mbla_bench/conform.py` | 14,440 pairs, 0 disagreements |
+| FORTIS harness on the new library | done | `bench/mbla_bench/fortis.py` | Smoke-tested with CPU baselines |
 | CAPMAS under our rules in the new format | planned | | |
-| Adaptive attacker; inflated-manifest attack | planned | | |
+| Adaptive attacker (attack (c)) | planned | | Needs GPUs (H6) |
 | Synthetic generator, mock execution, injection writer | planned | `bench/mbla_bench/synth/` | Labeler and judges exist (pilot format) |
 | Training | planned | | |
 
@@ -51,3 +56,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 
 - **2026-10-30** · D-30. Final methodology in markdown; library, benchmark, simulator, metrics and tuning moved to the final rules; development set converted (408 tasks, 120 task-goals dropped by reason, 0 unavoidable); pilot human labels checked against the new keys (183 mapped, 6 explained differences); labeling guide and review sheets ready.
 - **2026-10-30** · D-31. Final test set written: 8 templates, 192 tasks, 48 held-out-style injections (four AgentDojo/InjecAgent styles, 12 each); blind review sheets ready.
+- **2026-10-30** · D-32. Helper list and experiments set; report and analysis built; attack (d) derived; conformance re-run (0 disagreements); FORTIS moved to the new schema; CPU baselines run on the development set. GPUs on ams1 are down (H6).

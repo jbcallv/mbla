@@ -30,3 +30,5 @@ paper-2.pdf
 
 # credentials for the shared model server
 .secrets/
+bench/results/archive/*/logs/
+bench/results/logs/

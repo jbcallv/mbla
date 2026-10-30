@@ -40,7 +40,7 @@ def bench_command(settings, method_name, method, items_path, glossary, input_nam
         "-initial": thresholds["initial"],
         "-admit": thresholds["admit"],
         "-glossary": glossary,
-        "-hardware": method.get("hardware", settings["hardware"]),
+        "-hardware": method.get("hardware", settings["hardware"] if "serve" in method else "cpu"),
         "-warmup": settings["warmup"],
         "-endpoint": method.get("endpoint"),
         "-model": method.get("model"),

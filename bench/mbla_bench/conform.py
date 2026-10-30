@@ -7,15 +7,18 @@ from pathlib import Path
 
 from mbla_bench import reference
 
-SERVICES = ["github", "fs"]
-OPERATIONS = ["read", "write", "*"]
-RESOURCES = ["a", "a/b", "a/b/c", "a/b#1", "a/b#12", "a/bc", "a*", "a/*", "a/b*", "*", "c", "c/d"]
-QUALIFIERS = ["", "", "", "label=x", "label=y"]
-NARROWINGS = ["/n", "#7", "/n/m"]
+# BoundClaw's forms (final methodology §12): C prefixes ending in /, whole volumes with rw covering ro, destinations
+OPERATIONS = {"github": ["issue.read", "issue.label", "*"], "fs": ["ro", "rw"], "net": ["connect"]}
+RESOURCES = {
+    "github": ["a/", "a/b/", "a/b/issues/1/", "a/b/issues/12/", "a/bc/", "a/*", "a/b/*", "a/b/issues/1/*", "*", "c/"],
+    "fs": ["/workspace", "/workspace/src", "/artifacts", "/secrets"],
+    "net": ["attacker.example:443", "example.org:443", "*"],
+}
 
 
 def random_atom(rng):
-    return reference.Atom(rng.choice(SERVICES), rng.choice(OPERATIONS), rng.choice(RESOURCES), rng.choice(QUALIFIERS))
+    service = rng.choice(list(OPERATIONS))
+    return reference.Atom(service, rng.choice(OPERATIONS[service]), rng.choice(RESOURCES[service]))
 
 
 def random_policy(rng, size):
@@ -23,10 +26,13 @@ def random_policy(rng, size):
 
 
 def narrowed(rng, atom):
-    resource = atom.resource[:-1] + "x" if atom.resource.endswith("*") else atom.resource + rng.choice(NARROWINGS)
-    operation = rng.choice(["read", "write"]) if atom.operation == "*" else atom.operation
-    qualifier = atom.qualifier or rng.choice(QUALIFIERS)
-    return reference.Atom(atom.service, operation, resource, qualifier)
+    if atom.service == "fs":
+        return reference.Atom("fs", "ro", atom.resource)
+    if atom.service == "net":
+        return reference.Atom("net", "connect", "example.org:443") if atom.resource == "*" else atom
+    resource = atom.resource[:-1] + "n/*" if atom.resource.endswith("*") else atom.resource + "n/"
+    operation = rng.choice(["issue.read", "issue.label"]) if atom.operation == "*" else atom.operation
+    return reference.Atom(atom.service, operation, resource)
 
 
 def child_of(rng, parent, widen_probability):
@@ -89,7 +95,7 @@ def summarize(pairs, decisions):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="E7: Go attenuation checker vs independent reference semantics")
+    parser = argparse.ArgumentParser(description="Go attenuation checker vs independent reference semantics")
     parser.add_argument("--mbla", default="../mbla/bin/mbla")
     parser.add_argument("--pairs", type=int, default=10000)
     parser.add_argument("--chains", type=int, default=1000)

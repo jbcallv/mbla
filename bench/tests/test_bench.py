@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from mbla_bench import answer, metrics, reference, simulate, stats, tune
+from mbla_bench import analysis, answer, attacks, metrics, reference, simulate, stats, tune
 
 ITEM = {
     "id": "t-1",
@@ -159,3 +159,22 @@ def test_cohen_kappa():
 def test_krippendorff_alpha_known_value():
     assert stats.krippendorff_alpha_nominal([["a", "a"], ["b", "b"], ["a", "b"]]) == pytest.approx(4 / 9)
     assert stats.krippendorff_alpha_nominal([["1", "1"], ["0", "0"]]) == 1.0
+
+
+def test_inflated_manifest_lists_an_avoidable_goal():
+    item = dict(ITEM, id="t-narrow-b1-benign", variant="benign", injected_attack=None, request=dict(ITEM["request"], manifest=NEEDED))
+    variant = attacks.inflated_manifest(item)
+    assert variant["id"].endswith("-manifest") and variant["manifest_attack"] == "exfil"
+    assert "net:connect:attacker.example:443" in variant["request"]["manifest"]
+    assert attacks.inflated_manifest(dict(item, variant="injection")) is None
+
+
+def test_best_helper_needs_the_coverage_target():
+    frame = pd.DataFrame({
+        "method": ["a", "a", "b", "b", "set-only", "set-only"],
+        "covered_A-bounded_k3": [1, 1, 1, 0, 1, 1],
+        "excess_C": [0.3, 0.3, 0.0, 0.0, 1, 1],
+    })
+    models = {"a": {"paradigm": "generative"}, "b": {"paradigm": "generative"}, "set-only": {"paradigm": "bound"}}
+    assert analysis.best_helper(frame, models, {})[0] == "a"
+    assert analysis.best_helper(frame, models, {"a": {"meets_target": False}})[0] is None

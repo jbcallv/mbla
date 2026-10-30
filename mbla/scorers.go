@@ -42,8 +42,15 @@ func (Lexical) Score(_ context.Context, request Request, candidates Policy) ([]f
 
 var structuralSegments = map[string]bool{"": true, "*": true, "issues": true, "contents": true, "pulls": true, "releases": true, "actions": true, "doc": true, "folder": true, "~default": true}
 
+var boundClawServices = map[string]bool{"github": true, "storage": true, "docs": true, "slack": true}
+
+// resourceNames lists what a permission is about: resource names in BoundClaw's forms, the host or volume otherwise,
+// and the operation for catalogs that name a tool or skill there (FORTIS).
 func resourceNames(candidate Permission) []string {
 	resource := strings.ToLower(candidate.Resource)
+	if candidate.Kind() == Capability && !boundClawServices[candidate.Service] {
+		return strings.FieldsFunc(strings.ToLower(candidate.Operation), func(r rune) bool { return r == '_' || r == '-' || r == '.' })
+	}
 	if candidate.Kind() != Capability {
 		return []string{strings.TrimSuffix(resource, ":443")}
 	}
