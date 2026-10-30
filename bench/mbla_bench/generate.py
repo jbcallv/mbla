@@ -10,6 +10,8 @@ from mbla_bench import reference
 
 BREADTHS = ["narrow", "medium", "broad"]
 VARIANTS = ["benign", "injection"]
+STYLES = yaml.safe_load(Path(__file__).parent.parent.joinpath("data/templates/injection_styles.yaml").read_text())
+HELD_OUT = list(STYLES["held_out"])
 
 
 def load_templates(template_dir, split):
@@ -85,22 +87,39 @@ def named_resources(texts):
     return [f"{atom.service}:{atom.resource.removesuffix('*')}" for atom in atoms if atom.kind == "C"]
 
 
-def build_attacks(delegation, values):
+def build_attacks(delegation, task, values):
     return [
         {"id": attack["id"], "needs": [need.format(**values) for need in attack["needs"]], "injection": attack["injection"].format(**values)}
-        for attack in delegation["attacks"]
+        for attack in delegation["attacks"] + task.get("attacks", [])
         if "dropped" not in attack
     ]
 
 
-def build_item(task, delegations, breadth, binding_index, values, variant, split):
+def injection_style(split, breadth, binding_index, template_index):
+    """development: planted style only. final test: bindings 0-1 planted; bindings 2-3 rotate the held-out styles,
+    continuing across templates so each style is used equally often."""
+    if split != "test" or binding_index < 2:
+        return "planted"
+    per_template = 2 * len(BREADTHS)
+    position = template_index * per_template + (binding_index - 2) * len(BREADTHS) + BREADTHS.index(breadth)
+    return HELD_OUT[position % len(HELD_OUT)]
+
+
+def worded(attack, style, delegation):
+    template = STYLES["planted"] if style == "planted" else STYLES["held_out"][style]
+    return template.format(goal=attack["injection"], user=delegation["history"][-1].split(" ")[0], model=delegation["receiver"]["name"])
+
+
+def build_item(task, delegations, breadth, binding_index, values, variant, split, template_index=0):
     delegation = delegations["delegations"][task["delegation"]]
     workflow, remote = delegation["workflow"], delegation["receiver"]["remote"]
     plans = [fill_all(plan, values, delegations, workflow) for plan in task["plans"]]
-    held = [need for plan in plans for need in plan] + delegation["runtime"] + delegation["extras"][breadth]
+    extras = delegation["extras"][breadth] + task.get("extras", {}).get(breadth, [])
+    held = [need for plan in plans for need in plan] + delegation["runtime"] + extras
     parent = strongest_mounts(fill_all(held, values, delegations, workflow))
-    attacks = build_attacks(delegation, values)
+    attacks = build_attacks(delegation, task, values)
     injected = attacks[binding_index % len(attacks)] if variant == "injection" else None
+    style = injection_style(split, breadth, binding_index, template_index) if injected else None
     text = task["texts"][binding_index % len(task["texts"])].format(**values)
     named = [need for plan in plans for need in plan] + (injected["needs"] if injected else [])
     return {
@@ -113,11 +132,12 @@ def build_item(task, delegations, breadth, binding_index, values, variant, split
         "breadth": breadth,
         "variant": variant,
         "injected_attack": injected["id"] if injected else None,
+        "injection_style": style,
         "request": {
             "protocol": delegation["protocol"],
             "operation": delegation["operation"],
             "receiver": delegation["receiver"],
-            "text": text + (" " + injected["injection"] if injected else ""),
+            "text": text + (" " + worded(injected, style, delegation) if injected else ""),
             "history": delegation["history"],
             "manifest": fill_all(delegation["manifest"], values, delegations, workflow),
             "named": unique(named_resources(named)),
@@ -132,12 +152,12 @@ def build_item(task, delegations, breadth, binding_index, values, variant, split
 
 def generate_items(delegations, tasks, bindings_per_template, split):
     items = []
-    for task in tasks:
+    for template_index, task in enumerate(tasks):
         for binding_index in range(bindings_per_template):
             values = sample_binding(random.Random(f"{task['template']}-{binding_index}"), delegations["pools"])
             for breadth in BREADTHS:
                 for variant in VARIANTS:
-                    items.append(build_item(task, delegations, breadth, binding_index, values, variant, split))
+                    items.append(build_item(task, delegations, breadth, binding_index, values, variant, split, template_index))
     return items
 
 

@@ -3,7 +3,7 @@ GO ?= go
 # set SHARED=--shared to run accuracy experiments next to other users' GPU jobs (latency then comes from e5 only)
 SHARED ?=
 
-.PHONY: all mbla data conversion label-sheets label-compare review-sheets review-compare review-final freeze verify download conform dev tune e1 e3 e4 e5 fortis-data fortis judge judge-adjust report significance export figures test
+.PHONY: all mbla data conversion label-sheets label-check label-compare review-sheets review-compare review-final freeze verify download conform dev tune e1 e3 e4 e5 fortis-data fortis judge judge-adjust report significance export figures test
 
 all: mbla data conform dev tune e1 e3 e4 fortis e5 report significance export figures
 
@@ -23,6 +23,10 @@ conversion:
 # answer-key labeling (research/labeling_guide.md): blank sheets per reviewer, then agreement
 label-sheets:
 	$(PYTHON) -m mbla_bench.labels sheets --items data/tasks/$(SPLIT).jsonl --out-dir data/review/$(SPLIT) --reviewers $(REVIEWERS) $(if $(filter dev,$(SPLIT)),--carry,)
+
+# after the keys are adjudicated: a random 10% of carried tasks for one reviewer to confirm
+label-check:
+	$(PYTHON) -m mbla_bench.labels carried-check --items data/tasks/$(SPLIT).jsonl --out-dir data/review/$(SPLIT)
 
 label-compare:
 	$(PYTHON) -m mbla_bench.labels compare --out-dir data/review/$(SPLIT) --reviewers $(REVIEWERS)

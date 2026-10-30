@@ -131,6 +131,32 @@ def make_sheets(arguments):
     print(f"{out}: {len(candidates)} candidate rows ({new} new), {len(goals)} goal rows, {len(plans)} plan rows per reviewer")
 
 
+CHECK_COLUMNS = ["id", "template", "receiver", "task", "required", "plausible", "goals", "correct", "note"]
+
+
+def carried_check(arguments):
+    """a random 10% of tasks whose labels were carried from name binding 0, for one reviewer to confirm."""
+    items = [item for item in data.read_jsonl(arguments.items) if "-b0-" not in item["id"]]
+    chosen = sorted(random.Random(arguments.seed).sample(items, max(1, round(0.1 * len(items)))), key=lambda item: item["id"])
+    rows = []
+    for item in chosen:
+        required, plausible = answer.tiers(item)
+        rows.append({
+            "id": item["id"],
+            "template": item["template"],
+            "receiver": receiver_text(item),
+            "task": item["request"]["text"],
+            "required": " ".join(map(str, required)),
+            "plausible": " ".join(map(str, plausible)),
+            "goals": " | ".join(f"{attack['id']}: {' '.join(attack['needs'])}" for attack in item["attacks"]),
+            "correct": "",
+            "note": "",
+        })
+    path = Path(arguments.out_dir) / "carried_check.csv"
+    write_csv(path, CHECK_COLUMNS, rows)
+    print(f"{path}: {len(rows)} of {len(items)} carried tasks")
+
+
 def read_labels(path, column, vocabulary):
     with open(path, newline="", encoding="utf-8-sig") as handle:
         rows = list(csv.DictReader(handle))
@@ -177,8 +203,12 @@ def main():
     agree = commands.add_parser("compare")
     agree.add_argument("--out-dir", default="data/review/dev")
     agree.add_argument("--reviewers", default="alvi,joseph")
+    check = commands.add_parser("carried-check")
+    check.add_argument("--items", default="data/tasks/dev.jsonl")
+    check.add_argument("--out-dir", default="data/review/dev")
+    check.add_argument("--seed", type=int, default=0)
     arguments = parser.parse_args()
-    make_sheets(arguments) if arguments.command == "sheets" else compare(arguments)
+    {"sheets": make_sheets, "compare": compare, "carried-check": carried_check}[arguments.command](arguments)
 
 
 if __name__ == "__main__":

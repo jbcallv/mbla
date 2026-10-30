@@ -39,6 +39,12 @@ permission or are always allowed.
 - It does not need a scratch folder unless the task cannot be done without writing somewhere. A build writes its output
   where the task says (e.g. `/artifacts`); a test run or a lint only reports.
 
+## Order of work
+
+On the final test set, fill the candidates sheet and the goals sheet first, then open the plans sheet: the plans
+are the template author's draft and would otherwise steer your labels. On the development set the plans are the
+pilot's, already known to both reviewers, so the order does not matter there.
+
 ## Plans
 
 A **plan** is one concrete way of doing the task, written as the permissions it uses. "Upload the build" might be one
