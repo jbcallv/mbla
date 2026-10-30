@@ -32,3 +32,4 @@ paper-2.pdf
 .secrets/
 bench/results/archive/*/logs/
 bench/results/logs/
+bench/results/tables/*/tasks.csv
