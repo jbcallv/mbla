@@ -34,7 +34,13 @@ def narrowed(holding, named):
 def candidates(item):
     request = item["request"]
     holdings = policy(item["parent"])
-    chosen = [atom for atom in holdings if not (atom.kind == "D" and request["receiver"]["remote"])]
+    chosen = []
+    for atom in holdings:
+        if atom.kind == "D" and request["receiver"]["remote"]:
+            continue
+        if atom.kind == "D" and atom.operation == "rw":
+            chosen.append(reference.Atom("fs", "ro", atom.resource))
+        chosen.append(atom)
     for holding in [atom for atom in holdings if atom.kind == "C"]:
         for named in request.get("named", []):
             narrower = narrowed(holding, named)

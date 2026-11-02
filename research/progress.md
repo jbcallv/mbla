@@ -13,6 +13,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | H4 | Label the final test set blind: candidates and goals first, then correct the draft plans (`bench/data/review/test/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 (after H1) | freeze, final runs |
 | H6 | GPUs on `ams1` are down (driver reports no devices; SLURM node `down`). Every model helper waits on this | Joseph → cluster admin | 2026-10-30 | development runs of model helpers, step 3 |
 | H7 | Decide how per-candidate scorers relate to BoundClaw's adapter (D-33: restrict best helper to chat helpers, or ship a chat-compatible wrapper); confirm gpt-oss-120b as offline reference only | Joseph | 2026-11-02 | best-helper rule (no runs blocked) |
+| H8 | Ask BoundClaw: their adapter's candidate list has no narrower grants for named resources (`mbla.Candidates` adds them); will the adapter supply named resources, or do we drop narrowing? Also tell them: update to the current `mbla`, `clone()` must copy `DecisionModel`, CAPMAS stays offline | Joseph → BoundClaw | 2026-11-02 | candidate list on broad tasks; the review sheets' narrower rows |
 | H5 | After H2 and H4 are adjudicated: confirm 10% of carried tasks (`make label-check SPLIT=dev`, `SPLIT=test`) | one reviewer | – | freeze |
 
 ## Order of work (§10)
@@ -30,7 +31,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 |---|---|---|---|
 | Permission model (C atom forms, destinations, whole volumes, rw covers ro) | done | `mbla/permission.go`, `bench/mbla_bench/reference.py` | Go and Python tests |
 | No structured arguments; receiver name and kind in the prompt | done | `mbla/propose.go` | |
-| Candidates (narrower grants for named resources, no volumes for remote receivers) | done | `mbla/propose.go`, `bench/mbla_bench/answer.py` | Go and Python lists identical on all 408 development tasks |
+| Candidates (narrower grants for named resources, no volumes for remote receivers, read-write folders also offered read-only) | done | `mbla/propose.go`, `bench/mbla_bench/answer.py` | Go and Python lists identical on all 408 development tasks |
 | Ceiling check; recovery rules (volume denials final, destinations within ceiling, k counts requests) | done | `mbla/check.go`, `mbla/recovery.go` | |
 | Answer keys from plans; unavoidable goals | done | `bench/mbla_bench/answer.py` | |
 | Simulator: any-plan coverage, refusals, ceiling rejections, A- vs parent-bounded recovery | done | `bench/mbla_bench/simulate.py` | Oracle: coverage 100%, excess 0 |
@@ -60,3 +61,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-10-30** · D-31. Final test set written: 8 templates, 192 tasks, 48 held-out-style injections (four AgentDojo/InjecAgent styles, 12 each); blind review sheets ready.
 - **2026-10-30** · D-32. Helper list and experiments set; report and analysis built; attack (d) derived; conformance re-run (0 disagreements); FORTIS moved to the new schema; CPU baselines run on the development set. GPUs on ams1 are down (H6).
 - **2026-11-02** · D-33. BoundClaw's Nov 2 review: the helper now sees only the task text, the manifest and bare numbered permissions; methodology Table 1, §5, §7 and §12 updated. Sample tasks for BoundClaw written (`boundclaw_samples.md`). Open: scorers and gpt-oss under the adapter (H7).
+- **2026-11-02** · D-34. Read-write folders also offered read-only, as BoundClaw's adapter does; answer keys, review sheets and CPU baselines regenerated; pilot label carrying fixed. Open with BoundClaw: narrower candidates for named resources (H8).

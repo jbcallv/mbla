@@ -113,8 +113,9 @@ def write_markdown(rows, counts, by_reason, checked, problems, path):
         lines += [f"| {template} | `{old}` | `{new}` | {why} |" for template, old, new, why in problems]
         lines += [
             "",
-            "Each difference is the pilot's `fs:w:*` (write anywhere, not needed) mapped to a whole read-write volume that the",
-            "task does need: a delegator holds each volume once, so the needed volume and \"write anywhere\" are now the same mount.",
+            "Each difference is a pilot wildcard folder permission (`fs:r:*` read anywhere, `fs:w:*` write anywhere; not needed)",
+            "mapped to every whole volume of the workflow, including the one the task needs. With whole-volume mounts there is",
+            "no separate \"anywhere\" permission, so the needed volume and the wildcard become the same mount.",
         ]
     lines += ["", "## Answer keys by template", "", "One row per template (name binding 0, narrow): pilot reference, then the converted required tier.", ""]
     lines += ["| Template | Pilot reference | Required now | Plausible now |", "|---|---|---|---|"]

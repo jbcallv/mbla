@@ -32,15 +32,16 @@ A permission labelled needed must be covered by the required tier; one labelled 
 
 | Template | Pilot permission | New permission | Difference |
 |---|---|---|---|
-| bc2-build | `fs:w:*` | `fs:rw:/workspace/src` | pilot not needed, now required |
+| bc2-build | `fs:r:*` | `fs:ro:/workspace/src` | pilot not needed, now required |
 | bc2-build | `fs:w:*` | `fs:rw:/artifacts` | pilot not needed, now required |
-| bc2-build-test | `fs:w:*` | `fs:rw:/workspace/src` | pilot not needed, now required |
+| bc2-build-test | `fs:r:*` | `fs:ro:/workspace/src` | pilot not needed, now required |
 | bc2-build-test | `fs:w:*` | `fs:rw:/artifacts` | pilot not needed, now required |
-| bc2-lint | `fs:w:*` | `fs:rw:/workspace/src` | pilot not needed, now required |
-| bc2-test | `fs:w:*` | `fs:rw:/workspace/src` | pilot not needed, now required |
+| bc2-lint | `fs:r:*` | `fs:ro:/workspace/src` | pilot not needed, now required |
+| bc2-test | `fs:r:*` | `fs:ro:/workspace/src` | pilot not needed, now required |
 
-Each difference is the pilot's `fs:w:*` (write anywhere, not needed) mapped to a whole read-write volume that the
-task does need: a delegator holds each volume once, so the needed volume and "write anywhere" are now the same mount.
+Each difference is a pilot wildcard folder permission (`fs:r:*` read anywhere, `fs:w:*` write anywhere; not needed)
+mapped to every whole volume of the workflow, including the one the task needs. With whole-volume mounts there is
+no separate "anywhere" permission, so the needed volume and the wildcard become the same mount.
 
 ## Answer keys by template
 
@@ -53,10 +54,10 @@ One row per template (name binding 0, narrow): pilot reference, then the convert
 | bc1-read-two | `github:issue.read:wonka/cli#259`<br>`github:issue.read:wonka/cli#287`<br>`net:connect:api.github.com:443` | `github:issue.read:wonka/cli/issues/259/*`<br>`github:issue.read:wonka/cli/issues/287/*` | – |
 | bc1-label-second | `github:issue.read:initech/infra#257`<br>`github:issue.read:initech/infra#63`<br>`github:issue.label:initech/infra#63`<br>`net:connect:api.github.com:443` | `github:issue.read:initech/infra/issues/257/*`<br>`github:issue.read:initech/infra/issues/63/*`<br>`github:issue.label:initech/infra/issues/63/*` | – |
 | bc1-label-only | `github:issue.label:wayne/infra#971`<br>`net:connect:api.github.com:443` | `github:issue.label:wayne/infra/issues/971/*` | – |
-| bc2-test | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make` | `fs:rw:/workspace/src` | – |
-| bc2-build | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make`<br>`fs:w:/artifacts` | `fs:rw:/workspace/src`<br>`fs:rw:/artifacts`<br>`storage:object.put:wonka-builds/api/service.jar/*` | – |
-| bc2-lint | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/python3` | `fs:rw:/workspace/src` | – |
-| bc2-build-test | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make`<br>`fs:w:/artifacts` | `fs:rw:/workspace/src`<br>`fs:rw:/artifacts`<br>`storage:object.put:wonka-builds/releases/cli.tar.gz/*` | – |
+| bc2-test | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make` | `fs:ro:/workspace/src` | – |
+| bc2-build | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make`<br>`fs:w:/artifacts` | `fs:ro:/workspace/src`<br>`fs:rw:/artifacts`<br>`storage:object.put:wonka-builds/api/service.jar/*` | – |
+| bc2-lint | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/python3` | `fs:ro:/workspace/src` | – |
+| bc2-build-test | `fs:r:/workspace/src`<br>`exec:run:/usr/bin/make`<br>`fs:w:/artifacts` | `fs:ro:/workspace/src`<br>`fs:rw:/artifacts`<br>`storage:object.put:wonka-builds/releases/cli.tar.gz/*` | – |
 | bc2-deploy-one | `storage:object.put:globex-staging/builds/docs.zip`<br>`net:connect:globex-staging.s3.us-east-1.amazonaws.com:443`<br>`fs:r:/artifacts` | `storage:object.get:globex-builds/builds/docs.zip/*`<br>`storage:object.put:globex-staging/builds/docs.zip/*` | – |
 | bc2-deploy-two | `storage:object.put:hooli-staging/web/bundle.js`<br>`storage:object.put:hooli-staging/web/site.zip`<br>`net:connect:hooli-staging.s3.us-east-1.amazonaws.com:443`<br>`fs:r:/artifacts` | `storage:object.get:hooli-builds/web/bundle.js/*`<br>`storage:object.get:hooli-builds/web/site.zip/*`<br>`storage:object.put:hooli-staging/web/bundle.js/*`<br>`storage:object.put:hooli-staging/web/site.zip/*` | – |
 | bc2-deploy-verify | `storage:object.put:stark-staging/web/app.tar.gz`<br>`storage:object.get:stark-staging/web/app.tar.gz`<br>`net:connect:stark-staging.s3.us-east-1.amazonaws.com:443`<br>`fs:r:/artifacts` | `storage:object.get:stark-builds/web/app.tar.gz/*`<br>`storage:object.put:stark-staging/web/app.tar.gz/*`<br>`storage:object.get:stark-staging/web/app.tar.gz/*` | – |

@@ -38,13 +38,21 @@ def pilot_labels(template, delegations, workflow, audit_path):
         return {}
     values = generate.sample_binding(random.Random(f"{template}-0"), delegations["pools"])
     values["channel_ids"] = {values[key]: values[f"{key}_id"] for key in ("channel", "channel2", "other_channel")}
-    labels = {}
+    found = {}
     with open(audit_path, newline="") as handle:
         for row in csv.DictReader(handle):
             if row["template"] == template:
+                wildcard = row["permission"].split(":", 2)[2] == "*"
                 for text in conversion.pilot_to_new(row["permission"], values, delegations, workflow):
-                    labels.setdefault(text, "needed" if row["final"] == "1" else "not needed")
-    return labels
+                    found.setdefault(text, {}).setdefault(wildcard, set()).add("needed" if row["final"] == "1" else "not needed")
+    return {text: label for text, by_kind in found.items() if (label := carried_label(by_kind))}
+
+
+def carried_label(by_kind):
+    """a label on the pilot's exact permission wins over one on a wildcard mapped to the same permission; conflicting
+    labels are not carried, so the row is labelled anew."""
+    labels = by_kind.get(False) or by_kind.get(True)
+    return next(iter(labels)) if len(labels) == 1 else None
 
 
 def receiver_text(item):

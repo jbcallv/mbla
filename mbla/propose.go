@@ -73,12 +73,16 @@ func selectAtLeast(candidates Policy, scores []float64, threshold float64) Polic
 }
 
 // Candidates lists what a scorer chooses from: every holding, a narrower grant for each named resource under a
-// granted prefix, and volumes only for a local receiver. Hosts with a parser are not holdings and never appear.
+// granted prefix, and volumes only for a local receiver, a read-write volume also read-only (as BoundClaw's adapter
+// offers it). Hosts with a parser are not holdings and never appear.
 func Candidates(request Request, holdings Policy) Policy {
 	candidates := Policy{}
 	for _, holding := range holdings {
 		if holding.Kind() == Filesystem && request.Receiver.Remote {
 			continue
+		}
+		if holding.Kind() == Filesystem && holding.Operation == "rw" {
+			candidates = candidates.Add(VolumePermission(holding.Resource, false))
 		}
 		candidates = candidates.Add(holding)
 	}

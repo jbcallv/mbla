@@ -303,3 +303,11 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Open (Joseph):**
   - gpt-oss-120b cannot turn reasoning off and needs 4096 output tokens (1024 cut off 31/120 pilot development answers). Proposed: keep it as the offline upper reference, reported as not deployable under the adapter's settings.
   - Per-candidate scorers (Qwen3-Reranker, CAPMAS) have no client in BoundClaw's adapter. Options: (a) restrict the best-helper choice for F1–F4 to helpers the adapter can call; (b) ship a small chat-compatible wrapper that runs the scorer and cutoffs and returns BoundClaw's schema, keeping the best-helper rule unchanged. Until decided, `analysis.py` is unchanged.
+
+## D-34 · Read-write folders are also offered read-only
+- **Decided:** 2026-11-02, after reading BoundClaw's adapter code (`candidates()`), which offers a read-write volume as two candidates, read-only and read-write. BoundClaw's design wins; it is also the least-privilege choice.
+- **Change:** `mbla.Candidates` and `answer.candidates` add `fs:ro:/v` before each held `fs:rw:/v` for a local receiver. Go and Python lists are identical on all 408 development tasks. An oracle proposing the answer key covers every task of both sets with zero excess.
+- **Answer keys:** the build handoff's source folder is now required read-only (`fs:ro:/workspace/src`) on bc2-test, bc2-build, bc2-lint and bc2-build-test, matching the pilot's `fs:r:/workspace/src`. Task files are unchanged (candidates are derived).
+- **Labels:** review sheets regenerated before anyone labeled: development 254 candidate rows (166 carried, 88 new), final test 139. Carrying pilot labels now prefers a label on the pilot's exact permission over one on a wildcard mapped to the same permission, and does not carry conflicting labels (before, `fs:w:*` "not needed" was carried onto the needed source folder). Labeling guide rule 2 and worked example 3 amended.
+- **Baselines:** CPU baselines re-run on the development set; tables in `bench/results/tables/dev/`.
+- **Still open with BoundClaw (H8):** their `candidates()` lists holdings only, without the narrower grants for named resources that `mbla.Candidates` adds. Either the adapter supplies named resources or the benchmark drops narrowing; until they answer, the benchmark keeps the methodology's Table 1.

@@ -30,6 +30,7 @@ func TestCandidatesNarrowToNamedResources(t *testing.T) {
 		"github:issue.read:acme/*",
 		"github:contents.read:acme/*",
 		"net:connect:attacker.example:443",
+		"fs:ro:/workspace",
 		"fs:rw:/workspace",
 		"github:issue.read:acme/web/issues/42/*",
 	}
@@ -38,6 +39,14 @@ func TestCandidatesNarrowToNamedResources(t *testing.T) {
 	}
 	if !candidates.Within(holdings) {
 		t.Fatal("candidates escaped holdings")
+	}
+}
+
+func TestCandidatesOfferReadOnlyVolumes(t *testing.T) {
+	holdings := MustParsePolicy("fs:rw:/workspace/src", "fs:ro:/data")
+	want := "fs:ro:/workspace/src,fs:rw:/workspace/src,fs:ro:/data"
+	if got := strings.Join(Candidates(Request{}, holdings).Strings(), ","); got != want {
+		t.Fatalf("candidates: %s", got)
 	}
 }
 
