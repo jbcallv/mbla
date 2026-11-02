@@ -33,3 +33,6 @@ paper-2.pdf
 bench/results/archive/*/logs/
 bench/results/logs/
 bench/results/tables/*/tasks.csv
+
+# zipped bundles to send to reviewers
+share/
