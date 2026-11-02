@@ -53,7 +53,7 @@ The E8 judge review is separate and comes after the model runs: `make judge` wri
 | `e1_by_variant` | E9 | EAC/MAC on injection vs benign items |
 | `e1_latency` | E5 | M2: p50/p95/p99 latency, $ per 1k delegations, failure rate |
 | `e1_operating_curves.pdf` | E2 | capability EAC vs MAC as the initial threshold sweeps |
-| `e3_quality` | E3 | M4: input ablation (text, +args, +history, +manifest) |
+| `e3_quality` | E3 | M4: pilot input ablation (text, +args, +history, +manifest); pilot only |
 | `e4_quality` | E4 | M5: CLM vs Qwen3-8B on the same backbone |
 | `conformance.json` | E7 | Go checker vs independent set-semantics reference |
 | `fortis1_fortis_metrics.json`, `fortis2_...` | external | FORTIS exact match, over-privilege, no-action, safe rate per method |

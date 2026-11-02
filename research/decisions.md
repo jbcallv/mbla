@@ -292,3 +292,14 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Removed:** the pilot's `export.py`, `significance.py`, `judge.py`, `review.py` (pilot format; at tag `pilot-final`). Pilot results moved to `bench/results/archive/pilot/`.
 - **Conformance:** the Go checker against the independent Python semantics on the new forms (C prefixes, rw/ro volumes, destinations): 14,440 pairs including 8-hop chains, 0 disagreements.
 - **FORTIS:** items moved to the new schema; lexical matches the words of the operation for catalog services, where FORTIS names the skill or tool.
+
+## D-33 · Helper inputs match BoundClaw's adapter (Nov 2 review)
+- **Decided:** 2026-11-02, from BoundClaw's Nov 2 review (`research/boundclaw_review_nov2.md`) and Joseph's follow-up. BoundClaw's design wins on what its adapter sends.
+- **Prompt:** the model sees the fixed instructions, the task text, the manifest lines and the numbered candidates as bare permission strings. Removed: the operation name, the receiver's name and kind, the delegation history and the permission descriptions (`mbla.Describe`; no glossary for our sets in `bench/config/experiments.yaml`). The receiver's kind and the named resources still build the candidate list and the ceiling check. FORTIS keeps its catalog's descriptions, which are part of that benchmark.
+- **Evidence this costs nothing known:** in the pilot's input test (E3, Qwen3-8B, 288 tasks), history left excess in C unchanged (0.233 → 0.240) and only the manifest helped (→ 0.089; F-22). The operation name was in every pilot input level and the receiver line never existed in the pilot, so neither was measured. No model helper had run under D-30's prompt (GPUs down), so nothing is re-run; the CPU baselines do not read the prompt.
+- **Input levels:** `-input text` (task text only) and `full` (plus manifest); the pilot's `args` and `history` levels no longer exist.
+- **Methodology text:** Table 1 "Task context" and "Deployment" (root task at depth 1 only; adapter call settings), §5 policy model, §7 training targets on BoundClaw's exact schema, §12 encoding rows.
+- **Call settings already matched:** strict JSON schema `{required, plausible}` with bounded indices, 1024 output tokens, 45 s, thinking off for Qwen3 (`enable_thinking: false`).
+- **Open (Joseph):**
+  - gpt-oss-120b cannot turn reasoning off and needs 4096 output tokens (1024 cut off 31/120 pilot development answers). Proposed: keep it as the offline upper reference, reported as not deployable under the adapter's settings.
+  - Per-candidate scorers (Qwen3-Reranker, CAPMAS) have no client in BoundClaw's adapter. Options: (a) restrict the best-helper choice for F1–F4 to helpers the adapter can call; (b) ship a small chat-compatible wrapper that runs the scorer and cutoffs and returns BoundClaw's schema, keeping the best-helper rule unchanged. Until decided, `analysis.py` is unchanged.

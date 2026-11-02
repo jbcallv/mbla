@@ -39,7 +39,7 @@ def bench_command(settings, method_name, method, items_path, glossary, input_nam
         "-seed": seed,
         "-initial": thresholds["initial"],
         "-admit": thresholds["admit"],
-        "-glossary": glossary,
+        "-glossary": glossary or None,
         "-hardware": method.get("hardware", settings["hardware"] if "serve" in method else "cpu"),
         "-warmup": settings["warmup"],
         "-endpoint": method.get("endpoint"),
@@ -62,7 +62,7 @@ def planned_runs(settings, models, experiment_name, only_methods):
             for seed in experiment.get("seeds", method.get("seeds", [0])):
                 output_path = Path("results/raw") / experiment_name / f"{method_name}__{input_name}__s{seed}.jsonl"
                 items_path = experiment.get("items") or settings["items"][experiment["split"]]
-                glossary = experiment.get("glossary", settings["glossary"])
+                glossary = experiment.get("glossary", "")
                 yield output_path, bench_command(settings, method_name, method, items_path, glossary, input_name, seed, output_path)
 
 

@@ -113,9 +113,14 @@ func expectScores(t *testing.T, name string, got, want []float64) {
 
 func TestDescribe(t *testing.T) {
 	text := Describe(triageRequest)
-	for _, part := range []string{"operation: github.triage", "receiver: triage-agent (local)", "task: Triage", "manifest: github:issue.read:acme/web/issues/42/*"} {
+	for _, part := range []string{"task: Triage", "manifest: github:issue.read:acme/web/issues/42/*"} {
 		if !strings.Contains(text, part) {
 			t.Errorf("describe missing %q in:\n%s", part, text)
+		}
+	}
+	for _, part := range []string{"operation:", "receiver:", "history:", "triage-agent"} {
+		if strings.Contains(text, part) {
+			t.Errorf("describe shows %q, which the adapter does not send:\n%s", part, text)
 		}
 	}
 	if strings.Contains(text, "acme/web/issues/42/\n") {

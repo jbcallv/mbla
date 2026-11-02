@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// Request is what the delegator knows about one delegation. Named lists the resources the context names, as
-// "service:resource"; it only builds narrower candidates and is never shown to a scorer.
+// Request is what the delegator knows about one delegation. A scorer sees only the text and the manifest, as
+// BoundClaw's adapter sends; the receiver and named resources only build candidates.
 type Request struct {
 	Protocol  string   `json:"protocol"`
 	Operation string   `json:"operation"`
@@ -21,16 +21,6 @@ type Request struct {
 type Receiver struct {
 	Name   string `json:"name"`
 	Remote bool   `json:"remote"`
-}
-
-func (receiver Receiver) String() string {
-	if receiver.Name == "" {
-		return ""
-	}
-	if receiver.Remote {
-		return receiver.Name + " (remote)"
-	}
-	return receiver.Name + " (local)"
 }
 
 type Scorer interface {
@@ -136,12 +126,7 @@ var docsSegments = map[string]string{
 
 func Describe(request Request) string {
 	var text strings.Builder
-	writeLine(&text, "operation", request.Operation)
-	writeLine(&text, "receiver", request.Receiver.String())
 	writeLine(&text, "task", request.Text)
-	for _, step := range request.History {
-		writeLine(&text, "history", step)
-	}
 	for _, permission := range request.Manifest {
 		writeLine(&text, "manifest", permission.String())
 	}

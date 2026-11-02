@@ -12,6 +12,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | H3 | Confirm the build output bucket `{owner}-builds` (A-11) with BoundClaw | Joseph → BoundClaw | 2026-10-30 | nothing (easy to change) |
 | H4 | Label the final test set blind: candidates and goals first, then correct the draft plans (`bench/data/review/test/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 (after H1) | freeze, final runs |
 | H6 | GPUs on `ams1` are down (driver reports no devices; SLURM node `down`). Every model helper waits on this | Joseph → cluster admin | 2026-10-30 | development runs of model helpers, step 3 |
+| H7 | Decide how per-candidate scorers relate to BoundClaw's adapter (D-33: restrict best helper to chat helpers, or ship a chat-compatible wrapper); confirm gpt-oss-120b as offline reference only | Joseph | 2026-11-02 | best-helper rule (no runs blocked) |
 | H5 | After H2 and H4 are adjudicated: confirm 10% of carried tasks (`make label-check SPLIT=dev`, `SPLIT=test`) | one reviewer | – | freeze |
 
 ## Order of work (§10)
@@ -43,6 +44,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | 10% carried-label check | done | `bench/mbla_bench/labels.py` (`carried-check`) | |
 | Reporting (summary with intervals, per handoff/breadth/style, k sensitivity, undefined counts, untuned scorers) | done | `bench/mbla_bench/report.py` | Run on the CPU baselines |
 | Analysis plan (best helper, F1–F4 with Holm, non-inferiority) | done | `bench/mbla_bench/analysis.py` | F5 with training |
+| Helper inputs match BoundClaw's adapter: task text, manifest, bare candidates (D-33) | done | `mbla/propose.go`, `bench/config/experiments.yaml` | |
 | Helper configuration for the final helper list; 45 s budget | done | `bench/config/experiments.yaml`, `mbla/cmd/mbla/scorer.go` | |
 | Attack (d) inflated manifest | done | `bench/mbla_bench/attacks.py`, `data/attacks/` | Clean tasks only |
 | Conformance of the Go checker on the new forms | done | `bench/mbla_bench/conform.py` | 14,440 pairs, 0 disagreements |
@@ -57,3 +59,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-10-30** · D-30. Final methodology in markdown; library, benchmark, simulator, metrics and tuning moved to the final rules; development set converted (408 tasks, 120 task-goals dropped by reason, 0 unavoidable); pilot human labels checked against the new keys (183 mapped, 6 explained differences); labeling guide and review sheets ready.
 - **2026-10-30** · D-31. Final test set written: 8 templates, 192 tasks, 48 held-out-style injections (four AgentDojo/InjecAgent styles, 12 each); blind review sheets ready.
 - **2026-10-30** · D-32. Helper list and experiments set; report and analysis built; attack (d) derived; conformance re-run (0 disagreements); FORTIS moved to the new schema; CPU baselines run on the development set. GPUs on ams1 are down (H6).
+- **2026-11-02** · D-33. BoundClaw's Nov 2 review: the helper now sees only the task text, the manifest and bare numbered permissions; methodology Table 1, §5, §7 and §12 updated. Sample tasks for BoundClaw written (`boundclaw_samples.md`). Open: scorers and gpt-oss under the adapter (H7).

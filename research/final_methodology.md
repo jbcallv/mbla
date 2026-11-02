@@ -14,13 +14,13 @@ simulate BoundClaw's checker offline.
 
 | Part | Rule |
 |---|---|
-| Task context | Task text written by the delegator; receiver identity and kind (local or remote); current bounds (C_i, P_i), presented as the candidate list; upstream context; optional signed manifest, shown as a hint only |
+| Task context | Task text written by the delegator; current bounds (C_i, P_i), presented as a numbered list of bare permission strings; optional signed manifest lines, shown as a hint only. Nothing else reaches the model: no receiver identity or kind, no upstream context, no operation name, no permission descriptions (BoundClaw, Nov 2; D-33). The receiver's kind still shapes the candidate list |
 | Candidates | One per grant in C_i, plus a narrower grant for each resource the context names under a granted prefix; one per destination in N_i without a parser (selected into plain'); for a local receiver only, one per volume mount (v, μ) in D_i. Not scored: destinations with a parser (S3, GitHub, Docs, chat, httpapi) follow C; peers are chosen by the agent; the model endpoint is always kept |
 | Output | Candidate indices only, under a fixed JSON schema, in three tiers: required (the proposal), plausible (the admission set A), unneeded |
 | Failure | A timeout (45 s per model call), an error, unparsable output, an out-of-range index or an unknown key refuses the delegation. No fallback proposal |
 | Receiver | C is bounded by the parent only. A proposal whose P' is not within P_ceil is rejected whole; the delegator never sees P_ceil |
 | Recovery | Started by the tunnel. One atom or one destination per request, granted only if within the parent and in A (a destination without a parser must also be in plain_i); the receiver installs a destination only within P_ceil. Volume denials are final. At most k requests per delegation, granted or refused |
-| Deployment | BoundClaw's adapter may call the helper once with the root task and once with the task text and keep the lower score. BoundClaw evaluates that wrapper and the full system. Every result in this plan is per call, for the helper alone, in an offline simulation of BoundClaw's rules (§6) |
+| Deployment | At depth 1, BoundClaw's adapter may call the helper once with the root task and once with the task text and keep the lower score; at depth ≥ 2 (bc2-deploy) the hop's own layer calls the helper once, with no root task. The adapter calls an OpenAI-compatible chat endpoint with a strict JSON schema, 1024 output tokens, 45 s, thinking off. BoundClaw evaluates that wrapper and the full system. Every result in this plan is per call, for the helper alone, in an offline simulation of BoundClaw's rules (§6) |
 
 **Claim.** G1 bounds every helper output: a fully compromised helper reproduces at most the parent's authority. The
 evaluation therefore does not test whether inference is safe. It measures:
@@ -84,7 +84,7 @@ reported untuned (required if s ≥ 0.5, no plausible tier), with the full trade
 ## 5. Datasets
 
 **Policy model of every task.** Each task is one delegation: task text, receiver (identity, local or remote, P_ceil),
-delegator holdings (C_i, N_i, plain_i, D_i), upstream context, optional manifest, an optional injected instruction, and
+delegator holdings (C_i, N_i, plain_i, D_i), upstream context (stored, not shown to helpers), optional manifest, an optional injected instruction, and
 the task's attack goals.
 
 - **C:** atoms `service:operation:resource`; a grant covers every resource under its prefix, and every prefix ends in `/`. S3 uses get, put, delete, list on bucket and key prefix; GitHub, Docs and chat use the operations and resource forms of BoundClaw's parsers (e.g. `github:issue.read:hooli/site/issues/723/*`; chat by workspace and channel id).
@@ -162,7 +162,7 @@ attack is executed against a live system; outcomes are computed by the simulator
 ## 7. Training
 
 Training cannot add a guarantee; it changes precision and cost.
-- Targets: generative helpers learn the three-tier index output; per-candidate scorers learn graded targets (1, 0.5, 0); CAPMAS uses its own contrastive training code. Candidate order shuffled per training example.
+- Targets: generative helpers learn BoundClaw's exact output schema, `{required: [i], plausible: [i]}`, with the deployed prompt and call settings (Table 1); per-candidate scorers learn graded targets (1, 0.5, 0); CAPMAS uses its own contrastive training code. Candidate order shuffled per training example.
 - Method: full fine-tuning up to 8B; Qwen3-30B-A3B uses QLoRA, compared only at matching precision.
 - Settings: cosine schedule, 3% warm-up, 2 epochs; learning rate from {5e-6, 1e-5, 2e-5} and checkpoint chosen on synthetic validation; three seeds.
 - Isolation: only synthetic train and validation data are used for training and model selection.
@@ -228,5 +228,6 @@ Each is recorded in `decisions.md` (D-30) and is a choice of encoding, not of me
 | S3 atoms | `storage:object.{get,put,delete,list}:{bucket}/{key}/`, the same trailing-slash prefix rule as BoundClaw's other parsers (their Oct 28 note says "as for S3") |
 | Resources the context names | No structured arguments reach the helper. The candidate builder's extraction of named resources is simulated by the generator, which lists every resource the task text (including an injected instruction) names, in atom form. Helpers never see this list |
 | Hosts | Service hosts and the model endpoint are implicit (never candidates). Ceilings are stored only for the parts the helper can select: plain destinations and volumes |
-| Receiver in the prompt | The request carries the receiver's name and kind, printed as `receiver: deploy-agent (remote)` |
+| Receiver in the prompt | Not shown (D-33). The request carries the receiver's name and kind only to build candidates and apply the ceiling |
+| Permission descriptions | Not shown (D-33); candidates are bare strings. FORTIS keeps its catalog's descriptions, which belong to that benchmark |
 | Plans in data | Each task stores its listed plans; required and plausible tiers are derived from them, never stored separately |
