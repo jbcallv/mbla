@@ -293,3 +293,12 @@ Paper references are to `paper-2.pdf` (Sep 28 2026 draft).
 - **MBLA vs each coin flip:** better on every metric (attacks through, tasks finished, extra, missed, exact); all p_holm < 0.001 (template-cluster bootstrap).
 - **FORTIS:** task 1 coin flip 0.041 exact (random skill); task 2 0.000 exact, 100% over-privilege at every cutoff.
 - **Reading:** untrained Reranker-0.6B is only modestly better than chance on extra (0.40 vs 0.51 at 50%), and as bad on exact match. This motivates E1b (D-21).
+
+## F-30 · First development run: no helper meets 98% coverage; missing folders are the main cause
+- **Status:** provisional (2026-11-03). Answer keys are unreviewed (H2); tasks and candidates may still change (H8); gpt-oss-120b and Qwen3-30B not run (one GPU).
+- **Result, A-bounded, k = 3:** coverage / excess in C: Qwen3-8B 0.929 / 0.123, Qwen3-4B 0.894 / 0.102, Qwen3-1.7B 0.876 / 0.150, reranker-8B tuned 0.944 / 0.463, reranker-0.6B tuned 0.865 / 0.525, CAPMAS under our rules tuned 0.904 / 0.647, CAPMAS as published 0.971 / 0.807. All three tuned scorers are flagged as missing the target; `analysis.py` finds no eligible best helper.
+- **Cause:** a folder missing from the first proposal cannot be requested later. On one run it explains all 23 uncovered tasks of reranker-8B and all 39 of CAPMAS under our rules, and 16 of 29 for Qwen3-8B and 28 of 44 for Qwen3-4B; the rest for the chat models are service permissions outside the plausible tier, concentrated in bc2-deploy-verify. Uncovered tasks are mainly in bc2-build and bc2-build-test. Raising k does not help (k = 5 unchanged for Qwen3-8B and reranker-8B).
+- **Tuning effect:** τ_init maximizes F1 first, so scorers start with a small proposal that lacks the folder, and lowering τ_admit cannot recover it. Reranker-8B untuned (s ≥ 0.5, no plausible tier) has coverage 0.995 at excess 0.571, tuned 0.944 at 0.463.
+- **Not known:** whether removing permission descriptions (D-33) contributed; no run compares the prompts on this benchmark.
+- **Not changed:** the methodology. Any change to the tuning rule or the target is Joseph's decision and must be made before the final test set is run.
+

@@ -55,7 +55,7 @@ def main():
     rows_by_method = defaultdict(list)
     for row in data.load_predictions(arguments.predictions):
         method = models.get(row["method"], {})
-        if row["input"] == "full" and method.get("paradigm") in ("decision", "embedding"):
+        if row["input"] == "full" and method.get("paradigm") in ("decision", "embedding", "capmas") and "fixed_thresholds" not in method:
             rows_by_method[row["method"]].append(row)
     chosen = {method: tune_method(rows, items, keys) for method, rows in sorted(rows_by_method.items())}
     Path(arguments.out).write_text(json.dumps(chosen, indent=2) + "\n")

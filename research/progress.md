@@ -64,3 +64,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-11-02** · D-34. Read-write folders also offered read-only, as BoundClaw's adapter does; answer keys, review sheets and CPU baselines regenerated; pilot label carrying fixed. Open with BoundClaw: narrower candidates for named resources (H8).
 - **2026-11-03** · H6 re-diagnosed: the GPUs work but are reserved by access list for two other users; we need an allocation, not a repair.
 - **2026-11-03** · Access granted to GPU device 1 (ACL); CUDA sees one L40S.
+- **2026-11-03** · First development runs on one GPU: Qwen3 1.7B, 4B, 8B, both rerankers, CAPMAS (0 errors). CAPMAS under our rules added to tuning. No helper meets 98% coverage, mainly because missing folders cannot be requested (F-30). Provisional: labels unreviewed.
