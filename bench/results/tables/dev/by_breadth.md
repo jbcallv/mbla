@@ -6,6 +6,9 @@
 | manifest-only | broad     |      0.706 |      0.026 |     0     |      0     |
 | manifest-only | medium    |      0.706 |      0.093 |     0     |      0     |
 | manifest-only | narrow    |      0.706 |      0     |     0     |      0     |
+| qwen3-1.7b    | broad     |      0.841 |      0.2   |     0.367 |      0.059 |
+| qwen3-1.7b    | medium    |      0.944 |      0.209 |     0.506 |      0     |
+| qwen3-1.7b    | narrow    |      0.843 |      0.042 |     0.176 |      0     |
 | random-25     | broad     |      0.288 |      0.286 |     0.262 |      0.171 |
 | random-25     | medium    |      0.321 |      0.29  |     0.35  |      0     |
 | random-25     | narrow    |      0.21  |      0.237 |     0.239 |      0     |

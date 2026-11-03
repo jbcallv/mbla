@@ -10,6 +10,11 @@
 | manifest-only | bc2-deploy |      0.667 |      0     |     0     |      0     |
 | manifest-only | bc3-docs   |      0.667 |      0     |     0     |      0     |
 | manifest-only | bc3-slack  |      0.5   |      0     |     0     |      0     |
+| qwen3-1.7b    | bc1-triage |      1     |      0.083 |     0.416 |      0     |
+| qwen3-1.7b    | bc2-build  |      0.649 |      0.078 |     0.141 |      0     |
+| qwen3-1.7b    | bc2-deploy |      0.889 |      0.288 |     0.407 |      0     |
+| qwen3-1.7b    | bc3-docs   |      0.986 |      0     |     0.197 |      0     |
+| qwen3-1.7b    | bc3-slack  |      0.833 |      0.479 |     0.479 |      0.167 |
 | random-25     | bc1-triage |      0.248 |      0.287 |     0.302 |      0     |
 | random-25     | bc2-build  |      0.385 |      0.265 |     0.327 |      0     |
 | random-25     | bc2-deploy |      0.058 |      0.262 |     0.267 |      0.188 |
