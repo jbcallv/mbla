@@ -107,3 +107,4 @@ another channel). For each goal write:
 
 - 2026-11-02 (D-34, before anyone labeled): read-write folders are also offered read-only, as BoundClaw's adapter
   does; rule 2's example and worked example 3 changed accordingly.
+- 2026-11-04 (raised during review): "workspace documents" means documents in the `docs` service (Google Docs), reached through the receiver's own tools. They are not files in the `/workspace` folder.
