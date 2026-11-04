@@ -14,7 +14,7 @@ INSTRUCTIONS = """You are a careful reviewer labeling an answer key. Follow this
 
 {guide}
 
-You get one task and a numbered list of permissions the delegator holds. Label every permission in order. Do not use `unclear`: pick the closest tier."""
+You get one task, every permission offered for it, and the one permission to label. Do not use `unclear`: pick the closest tier."""
 
 
 def rows_by_template(meaning):
@@ -28,27 +28,35 @@ def rows_by_template(meaning):
     return groups
 
 
-def schema(count):
-    items = {"type": "string", "enum": TIERS}
-    labels = {"type": "array", "items": items, "minItems": count, "maxItems": count}
-    return {"type": "json_schema", "json_schema": {"name": "labels", "strict": True, "schema": {"type": "object", "properties": {"labels": labels}, "required": ["labels"], "additionalProperties": False}}}
+SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "label", "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {"reason": {"type": "string", "maxLength": 300}, "label": {"type": "string", "enum": TIERS}},
+            "required": ["reason", "label"], "additionalProperties": False,
+        },
+    },
+}
 
 
-def prompt(rows):
+def prompt(rows, index):
     first = rows[0]
-    lines = [f"Task: {first['task']}", f"Receiver: {first['receiver']}", "Permissions:"]
-    lines += [f"{index}. {row['permission']} ({row['meaning']})" for index, row in enumerate(rows)]
+    lines = [f"Task: {first['task']}", f"Receiver: {first['receiver']}", "All permissions offered:"]
+    lines += [f"- {row['permission']} ({row['meaning']})" for row in rows]
+    lines += ["", f"Label only this one: {rows[index]['permission']}", "First say in one sentence what it allows and whether a narrower offered permission already covers the need. Then give the label."]
     return "\n".join(lines)
 
 
-def ask(endpoint, model, guide, rows):
+def ask(endpoint, model, guide, rows, index):
     body = {
-        "model": model, "temperature": 0, "seed": 0, "max_tokens": 1500, "response_format": schema(len(rows)),
-        "messages": [{"role": "system", "content": INSTRUCTIONS.format(guide=guide)}, {"role": "user", "content": prompt(rows)}],
+        "model": model, "temperature": 0, "seed": 0, "max_tokens": 300, "response_format": SCHEMA,
+        "messages": [{"role": "system", "content": INSTRUCTIONS.format(guide=guide)}, {"role": "user", "content": prompt(rows, index)}],
     }
     response = requests.post(f"{endpoint}/chat/completions", json=body, timeout=300)
     response.raise_for_status()
-    return json.loads(response.json()["choices"][0]["message"]["content"])["labels"]
+    return json.loads(response.json()["choices"][0]["message"]["content"])
 
 
 def main():
@@ -56,15 +64,19 @@ def main():
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--pilot-only", action="store_true")
     arguments = parser.parse_args()
     guide = Path(GUIDE).read_text()
-    columns = ["split", "template", "permission", "label"]
+    columns = ["split", "template", "permission", "label", "reason"]
     with open(arguments.out, "w", newline="") as sheet:
         writer = csv.DictWriter(sheet, columns)
         writer.writeheader()
         for (split, template), rows in rows_by_template(review_sample.meanings()).items():
-            for row, label in zip(rows, ask(arguments.endpoint, arguments.model, guide, rows)):
-                writer.writerow({"split": split, "template": template, "permission": row["permission"], "label": label})
+            for index, row in enumerate(rows):
+                if arguments.pilot_only and row.get("status") != "carried":
+                    continue
+                answer = ask(arguments.endpoint, arguments.model, guide, rows, index)
+                writer.writerow({"split": split, "template": template, "permission": row["permission"], "label": answer["label"], "reason": answer["reason"]})
             print(split, template, len(rows), flush=True)
 
 
