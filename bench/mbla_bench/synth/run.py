@@ -14,7 +14,7 @@ FAMILIES = "data/synth/families.yaml"
 WORK = Path("data/synth/work")
 RAW = WORK / "raw.jsonl"
 SIZES = {"train": 1500, "validation": 300, "heldout": 200}
-OVERSAMPLE = 1.6
+OVERSAMPLE = 2.6
 CONCURRENCY = 8
 
 
@@ -30,8 +30,8 @@ def write_request(arguments, families, family, names, vocab, seed):
     chosen = write.sample_names(rng, names)
     prompt = write.writer_prompt(family, write.handoff_of(family, families)[1], chosen, vocab)
     try:
-        response = chat(arguments.endpoint, arguments.model, write.WRITER_INSTRUCTIONS, prompt, write.writer_schema(family), 4096)
-    except (requests.RequestException, json.JSONDecodeError, KeyError) as error:
+        response = chat(arguments.endpoint, arguments.model, write.WRITER_INSTRUCTIONS, prompt, write.writer_schema(family, vocab), 4096)
+    except (requests.RequestException, ValueError, KeyError, TypeError) as error:
         print(family["id"], seed, "failed:", error, flush=True)
         return []
     return [{**task, "writer": arguments.model} for task in write.tasks_from(response, family, names, chosen, seed)]
@@ -77,7 +77,7 @@ def judge_all(arguments, tasks, vocab, out):
     def verdict(task):
         try:
             return judge.accepted(chat(arguments.endpoint, arguments.model, judge.JUDGE_INSTRUCTIONS, judge.judge_prompt(task, vocab), judge.judge_schema(len(task["plan"])), 512))
-        except (requests.RequestException, json.JSONDecodeError, KeyError):
+        except (requests.RequestException, ValueError, KeyError, TypeError):
             return False
 
     with ThreadPoolExecutor(CONCURRENCY) as pool:

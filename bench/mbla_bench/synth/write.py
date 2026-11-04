@@ -2,7 +2,7 @@ import json
 import random
 
 from mbla_bench import data, generate
-from mbla_bench.synth import vocabulary
+from mbla_bench.synth import execute, vocabulary
 
 NAMES = "data/synth/names.yaml"
 TASKS_PER_REQUEST = 5
@@ -15,6 +15,7 @@ Rules:
 - A later step may depend on what an earlier call finds ("label it if it is a duplicate"). Then "check_calls" is the number of leading calls that decide the condition. Otherwise it is 0.
 - Every resource a call touches (repository, issue or pull request number, file path, bucket, object key, document, folder, channel id, user, website) must appear in the task text, spelled exactly.
 - A channel appears in the text as <#ID|name>. The call argument channel_id is the ID.
+- Write repositories as owner/repo and objects as bucket/key in full, for example "issue 42 in alpine/frontend" and "alpine-staging/nightly/server.tar.gz". A call's key is the whole path after the bucket.
 - Use the names given; you may invent issue numbers, file paths and object keys.
 - Folders are /workspace, /workspace/src and /artifacts. A program that reads the source needs the folder /workspace/src; a program that writes output needs /artifacts.
 - S3 uploads overwrite an existing object, so do not delete first unless the task says to delete.
@@ -56,13 +57,21 @@ def writer_prompt(family, handoff, names, vocab):
     )
 
 
-def writer_schema(family):
-    call = {
+def call_schema(name, vocab):
+    arguments = [argument for argument in execute.needed_arguments(vocab, name) if argument != "workspace"]
+    return {
         "type": "object",
-        "properties": {"name": {"type": "string", "enum": family["calls"]}, "with": {"type": "object", "additionalProperties": {"type": "string"}}},
+        "properties": {
+            "name": {"const": name},
+            "with": {"type": "object", "properties": {argument: {"type": "string", "pattern": f"^({execute.FORMATS[argument]})$"} for argument in arguments}, "required": arguments, "additionalProperties": False},
+        },
         "required": ["name", "with"],
         "additionalProperties": False,
     }
+
+
+def writer_schema(family, vocab):
+    call = {"anyOf": [call_schema(name, vocab) for name in family["calls"]]}
     task = {
         "type": "object",
         "properties": {
@@ -100,6 +109,8 @@ def other_names(rng, names, used):
 def tasks_from(response, family, names, chosen, seed):
     tasks = []
     for index, task in enumerate(response["tasks"]):
+        if task["alternative"] == task["plan"]:
+            task["alternative"] = []
         tasks.append({**task, "id": f"{family['id']}-{seed}-{index}", "family": family["id"], "workspace": generate.slack_id("T", chosen["owner"]), "other_names": other_names(random.Random(f"{seed}-{index}"), names, chosen)})
     return tasks
 
