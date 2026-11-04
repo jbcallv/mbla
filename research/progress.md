@@ -12,7 +12,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | H3 | Confirm the build output bucket `{owner}-builds` (A-11) with BoundClaw | Joseph → BoundClaw | 2026-10-30 | nothing (easy to change) |
 | H4 | Label the final test set blind: candidates and goals first, then correct the draft plans (`bench/data/review/test/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 (after H1) | freeze, final runs |
 | H6 | GPU access on `ams1`: since 2026-11-03 jbcall has device 1 (one L40S, 46 GB). Devices 0, 2 and 3 are reserved for other users. Enough for every helper that fits one GPU; gpt-oss-120b and Qwen3-30B are configured for 2 GPUs and need more, or a smaller setup checked first. Do not touch the reservations | Joseph → admins | 2026-10-30 | gpt-oss-120b and Qwen3-30B runs; latency on the reported configuration |
-| H7 | Decide how per-candidate scorers relate to BoundClaw's adapter (D-33: restrict best helper to chat helpers, or ship a chat-compatible wrapper); confirm gpt-oss-120b as offline reference only | Joseph | 2026-11-02 | best-helper rule (no runs blocked) |
+| H7 | (Text outdated: no wrapper is needed, the helper's own interface carries per-candidate scorers; to confirm in the BoundClaw package.) Decide how per-candidate scorers relate to BoundClaw's adapter (D-33: restrict best helper to chat helpers, or ship a chat-compatible wrapper); confirm gpt-oss-120b as offline reference only | Joseph | 2026-11-02 | best-helper rule (no runs blocked) |
 | H8 | Ask BoundClaw: their adapter's candidate list has no narrower grants for named resources (`mbla.Candidates` adds them); will the adapter supply named resources, or do we drop narrowing? Also tell them: update to the current `mbla`, `clone()` must copy `DecisionModel`, CAPMAS stays offline | Joseph → BoundClaw | 2026-11-02 | candidate list on broad tasks; the review sheets' narrower rows |
 | H5 | After H2 and H4 are adjudicated: confirm 10% of carried tasks (`make label-check SPLIT=dev`, `SPLIT=test`) | one reviewer | – | freeze |
 
@@ -52,7 +52,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | FORTIS harness on the new library | done | `bench/mbla_bench/fortis.py` | Smoke-tested with CPU baselines |
 | CAPMAS under our rules in the new format | planned | | |
 | Adaptive attacker (attack (c)) | planned | | Needs GPUs (H6) |
-| Synthetic generator, mock execution, injection writer | planned | `bench/mbla_bench/synth/` | Labeler and judges exist (pilot format) |
+| Synthetic generator, mock execution, injection writer | in progress | `bench/mbla_bench/synth/` | Moved to the final format; 4,915 tasks written, 2,779 passed mock execution, two judges next; 93-task sheet code ported (`synth/audit.py`) |
 | Training | planned | | |
 
 ## Log
@@ -66,3 +66,8 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-11-03** · Access granted to GPU device 1 (ACL); CUDA sees one L40S.
 - **2026-11-03** · First development runs on one GPU: Qwen3 1.7B, 4B, 8B, both rerankers, CAPMAS (0 errors). CAPMAS under our rules added to tuning. No helper meets 98% coverage, mainly because missing folders cannot be requested (F-30). Provisional: labels unreviewed.
 - **2026-11-04** · D-35. Deadline 2026-11-18; fine-tuning stays; gpt-oss-120b and Qwen3-30B skipped without a second GPU. Exploratory input comparison on the development set under way (`bench/explore/`, `bench/results/explore/`).
+- **2026-11-04** · D-36. One blind review sheet (127 rows) and a judge model, checked against the human sheet.
+- **2026-11-04** · D-37. Answer-key rules settled from Joseph's review; 600 tasks regenerated, oracle coverage 408/408 and 192/192.
+- **2026-11-04** · D-38. Llama-3.3-70B judge: κ lower bound 0.547, under the 0.6 rule; threshold not moved, so a human labels the remaining 107 rows (`share/review_sheet_2.csv`). Waiting on Joseph.
+- **2026-11-04** · Cutoffs tuned on 2026-11-03 used unreviewed keys and are invalid (F-30); they will be re-set on reviewed keys.
+- **2026-11-04** · Synthetic generation by gpt-oss-20b (one GPU, per D-35): 1,072 requests, 4,915 tasks, 89 failed requests, 2,779 passed mock execution, 0 removed by the 8-word and near-duplicate filters (checked: closest pair 0.78 against the 0.8 cutoff). The judge stage now runs at temperature 0 and counts failed requests apart from rejections.

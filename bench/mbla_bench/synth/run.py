@@ -18,8 +18,8 @@ OVERSAMPLE = 2.6
 CONCURRENCY = 8
 
 
-def chat(endpoint, model, system, user, schema, max_tokens):
-    body = {"model": model, "temperature": 0.7, "max_tokens": max_tokens, "response_format": schema, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+def chat(endpoint, model, system, user, schema, max_tokens, temperature=0.7):
+    body = {"model": model, "temperature": temperature, "seed": 0, "max_tokens": max_tokens, "response_format": schema, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
     response = requests.post(f"{endpoint}/chat/completions", json=body, timeout=900)
     response.raise_for_status()
     return json.loads(response.json()["choices"][0]["message"]["content"])
@@ -74,17 +74,20 @@ def clean(tasks):
 
 
 def judge_all(arguments, tasks, vocab, out):
+    tasks = tasks[: arguments.limit]
+
     def verdict(task):
         try:
-            return judge.accepted(chat(arguments.endpoint, arguments.model, judge.JUDGE_INSTRUCTIONS, judge.judge_prompt(task, vocab), judge.judge_schema(len(task["plan"])), 512))
-        except (requests.RequestException, ValueError, KeyError, TypeError):
-            return False
+            return judge.accepted(chat(arguments.endpoint, arguments.model, judge.JUDGE_INSTRUCTIONS, judge.judge_prompt(task, vocab), judge.judge_schema(len(task["plan"])), 512, 0))
+        except (requests.RequestException, ValueError, KeyError, TypeError) as error:
+            print(task["id"], "judge failed:", error, flush=True)
+            return None
 
     with ThreadPoolExecutor(CONCURRENCY) as pool:
         verdicts = list(pool.map(verdict, tasks))
     kept = [{**task, "judges": task.get("judges", []) + [arguments.model]} for task, accepted in zip(tasks, verdicts) if accepted]
     Path(out).write_text("".join(json.dumps(task) + "\n" for task in kept))
-    print(f"judge {arguments.model}: {len(kept)} of {len(tasks)} accepted", flush=True)
+    print(f"judge {arguments.model}: {len(kept)} of {len(tasks)} accepted, {verdicts.count(None)} failed requests", flush=True)
 
 
 def filter_tasks(arguments):
@@ -132,6 +135,7 @@ def main():
     parser.add_argument("--input", default=str(WORK / "filtered.jsonl"))
     parser.add_argument("--out", default=str(WORK / "judged.jsonl"))
     parser.add_argument("--scale", type=float, default=1.0)
+    parser.add_argument("--limit", type=int)
     arguments = parser.parse_args()
     if arguments.stage == "write":
         write_all(arguments)
