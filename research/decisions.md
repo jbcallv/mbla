@@ -318,3 +318,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Skipped unless a second GPU arrives:** gpt-oss-120b as a helper, and Qwen3-30B-A3B both prompted and with QLoRA. Reported as not run for lack of hardware.
 - **Synthetic writer:** the methodology asks for a local open model, which stays. gpt-oss-120b, named in the earlier proposal (`finetune_dataset.md`), does not fit one GPU, so a model that fits one GPU writes the tasks; the two judges remain different models from the writer.
 - **Known limitation, reported, not fixed:** development templates each list one plan; 3 of 8 final-test templates list more.
+
+## D-36 · One review sheet; a judge model labels the rest, checked against a human sample
+- **Decided:** 2026-11-04 by Joseph. Replaces the two-reviewer, six-sheet labeling of every row in §5 of the final methodology.
+- **Sheet:** one blind CSV, `share/review_sheet.csv`, built by `mbla_bench/review_sample.py` with a fixed seed: 127 rows, of 227 unlabeled candidates plus attack permissions. All 29 rows drafted as needed, 91 rows drafted as unneeded spread across templates, and the 7 attack permissions not offered as candidates. It shows no draft answers. The mapping to drafts is `data/review/sample/key.csv`, not for reviewers.
+- **Judge:** labels every row blind, from the labeling guide, the task and the permission. It is chosen and its prompt fixed on the 183 pilot human labels, before it sees the sample. Not Claude, which drafted the keys, and not a model under evaluation.
+- **Acceptance:** Cohen's κ between judge and human, lower 95% bound ≥ 0.6 (the rule of D-19). Rows where judge and draft disagree go to a human. If the check fails, a human labels every row.
+- **Status:** the judge and the disagreement rule are not yet implemented. The sample is not fully random, so κ is reported with agreement on needed and unneeded rows separately.
