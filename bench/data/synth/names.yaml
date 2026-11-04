@@ -9,5 +9,4 @@ doc: [hiring-plan, postmortem-311, okr-draft, vendor-review, style-guide, sprint
 folder: [team-shared, planning, reviews, archive-2025, onboarding, legal]
 channel: [platform-team, deploys, support-escalations, random-chatter, leadership, data-eng, qa-reports, customer-success, launches, infra-alerts]
 user: [U04QX7Z2LMN, U07ABCD1234, U02ZZZ9YY88, U09KLMN4567, U05PQRS8901, U03TUVW2345]
-program: [/usr/bin/make, /usr/bin/python3, /usr/bin/npm, /usr/bin/go, /usr/bin/cargo, /usr/bin/pytest]
-region: [us-east-1, us-west-2, eu-west-1]
+host: [pypi.org, registry.npmjs.org, crates.io, nvd.nist.gov, docs.python.org, developer.mozilla.org, rfc-editor.org, kernel.org]

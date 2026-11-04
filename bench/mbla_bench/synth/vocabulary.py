@@ -24,14 +24,7 @@ def fill(template, values):
 
 
 def call_permissions(vocabulary, call, arguments):
-    spec = vocabulary["calls"][call["name"]]
-    needed = [fill(permission, arguments) for permission in spec["needs"]]
-    for feature, extra in spec.get("when", {}).items():
-        if arguments.get(feature):
-            needed += [fill(permission, arguments) for permission in extra]
-    if "host" in spec:
-        needed.append("net:connect:" + fill(vocabulary["hosts"][spec["host"]], arguments))
-    return needed
+    return [fill(permission, arguments) for permission in vocabulary["calls"][call["name"]]["needs"]]
 
 
 def aws_actions_by_operation():
@@ -45,15 +38,10 @@ def aws_problems(vocabulary):
     for name, spec in vocabulary["calls"].items():
         if not name.startswith("s3."):
             continue
-        sources = [spec["source"]] + list(spec.get("when_source", {}).values())
         operations = [operation.strip() for operation in spec["source"].split("->")[0].split(",")]
         allowed = set().union(*(authorized.get(operation, set()) for operation in operations))
-        for operation in operations:
-            if operation not in authorized:
-                problems.append(f"{name}: {operation} is not an S3 operation in the AWS reference")
-        for action in {match for source in sources for match in AWS_ACTION.findall(source)}:
-            if action not in allowed:
-                problems.append(f"{name}: s3:{action} does not authorize {', '.join(operations)}")
+        problems += [f"{name}: {operation} is not an S3 operation in the AWS reference" for operation in operations if operation not in authorized]
+        problems += [f"{name}: s3:{action} does not authorize {', '.join(operations)}" for action in set(AWS_ACTION.findall(spec["source"])) if action not in allowed]
     return problems
 
 

@@ -11,10 +11,9 @@ Judge only the calls and the task text. Assume each call succeeds."""
 
 
 def judge_prompt(task, vocab):
-    lines = [f"Task: {task['text']}", f"Arguments: {json.dumps(task['arguments'])}", "Planned calls:"]
+    lines = [f"Task: {task['text']}", "Planned calls:"]
     for index, call in enumerate(task["plan"]):
-        description = vocab["calls"][call["name"]]["description"]
-        lines.append(f"{index}. {call['name']}({json.dumps(call.get('with', {}))}): {description}")
+        lines.append(f"{index}. {call['name']}({json.dumps(call.get('with', {}))}): {vocab['calls'][call['name']]['description']}")
     return "\n".join(lines)
 
 
@@ -35,17 +34,3 @@ def judge_schema(call_count):
 
 def accepted(verdict):
     return verdict["completes"] and not verdict["unneeded"] and not verdict["ambiguous"]
-
-
-def preview():
-    vocab = vocabulary.load()
-    task = {
-        "text": "Upload server.tar.gz from /artifacts to trey-cache under nightly/ and confirm it arrived.",
-        "arguments": {"artifact_key": "trey-cache/nightly/server.tar.gz"},
-        "plan": [
-            {"name": "fs.read", "with": {"path": "/artifacts/server.tar.gz"}},
-            {"name": "s3.put_object", "with": {"bucket": "trey-cache", "key": "nightly/server.tar.gz"}},
-            {"name": "s3.head_object", "with": {"bucket": "trey-cache", "key": "nightly/server.tar.gz"}},
-        ],
-    }
-    return judge_prompt(task, vocab)

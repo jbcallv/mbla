@@ -10,24 +10,22 @@ FORMATS = {
     "path": r"[A-Za-z0-9._/-]+",
     "bucket": r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]",
     "source_bucket": r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]",
-    "key": r"[A-Za-z0-9!_.*'()/-]+",
-    "source_key": r"[A-Za-z0-9!_.*'()/-]+",
-    "prefix": r"[A-Za-z0-9!_.*'()/-]+",
-    "region": r"[a-z]{2}-[a-z]+-[1-9]",
+    "key": r"[A-Za-z0-9!_.()/-]+",
+    "source_key": r"[A-Za-z0-9!_.()/-]+",
+    "prefix": r"[A-Za-z0-9!_.()/-]+",
     "doc": NAME,
     "folder": NAME,
-    "channel": r"[a-z0-9][a-z0-9_-]{0,79}",
+    "workspace": r"T[A-F0-9]{8}",
+    "channel_id": r"C[A-F0-9]{8}",
     "user": r"U[A-Z0-9]{6,12}",
-    "program": r"/[A-Za-z0-9._/-]+",
+    "volume": r"/workspace|/workspace/src|/artifacts",
+    "host": r"[a-z0-9.-]+\.[a-z]+",
 }
-SANDBOX_PATH = r"/(workspace|artifacts|tmp)(/[A-Za-z0-9._-]+)*"
-GROUNDED = ["owner", "repo", "number", "bucket", "source_bucket", "key", "source_key", "prefix", "doc", "folder", "channel", "user"]
+GROUNDED = ["owner", "repo", "number", "bucket", "source_bucket", "key", "source_key", "prefix", "doc", "folder", "channel_id", "user", "host"]
 
 
 def needed_arguments(vocab, name):
-    spec = vocab["calls"][name]
-    templates = spec["needs"] + ([vocab["hosts"][spec["host"]]] if "host" in spec else [])
-    return sorted({placeholder for template in templates for placeholder in vocabulary.placeholders(template)})
+    return sorted({placeholder for template in vocab["calls"][name]["needs"] for placeholder in vocabulary.placeholders(template)})
 
 
 def argument_problems(vocab, call, arguments):
@@ -36,31 +34,33 @@ def argument_problems(vocab, call, arguments):
         value = arguments.get(name)
         if value in (None, ""):
             problems.append(f"{call['name']}: missing {name}")
-            continue
-        pattern = SANDBOX_PATH if name == "path" and call["name"].startswith("fs.") else FORMATS[name]
-        if not re.fullmatch(pattern, str(value)):
+        elif not re.fullmatch(FORMATS[name], str(value)):
             problems.append(f"{call['name']}: {name}={value!r} is malformed")
     return problems
 
 
-def grounding_problems(call, arguments, task_text, task_arguments):
-    mentioned = task_text + " " + " ".join(str(value) for value in task_arguments.values())
-    return [
-        f"{call['name']}: {name}={arguments[name]!r} is not named in the task"
-        for name in GROUNDED
-        if name in arguments and str(arguments[name]) not in mentioned
-    ]
+def grounding_problems(call, arguments, task_text):
+    return [f"{call['name']}: {name}={arguments[name]!r} is not named in the task" for name in GROUNDED if name in arguments and str(arguments[name]) not in task_text]
 
 
-def run(vocab, task):
+def run_plan(vocab, plan, text, workspace):
     problems, logged = [], []
-    for call in task["plan"]:
+    for call in plan:
         if call.get("name") not in vocab["calls"]:
             problems.append(f"unknown call {call.get('name')!r}")
             continue
-        arguments = {"region": task.get("region", "us-east-1"), **call.get("with", {})}
-        found = argument_problems(vocab, call, arguments) + grounding_problems(call, call.get("with", {}), task["text"], task["arguments"])
+        arguments = {"workspace": workspace, **call.get("with", {})}
+        found = argument_problems(vocab, call, arguments) + grounding_problems(call, call.get("with", {}), text)
         problems += found
         if not found:
             logged += vocabulary.call_permissions(vocab, call, arguments)
     return problems, logged
+
+
+def run(vocab, task):
+    """the mock service: runs both plans, logging the permission of every call. a malformed or ungrounded call fails."""
+    problems, logged = run_plan(vocab, task["plan"], task["text"], task["workspace"])
+    extra_problems, extra_logged = run_plan(vocab, task.get("alternative", []), task["text"], task["workspace"])
+    if not 0 <= task.get("check_calls", 0) < max(len(task["plan"]), 1):
+        problems.append("check_calls leaves no step after the check")
+    return problems + extra_problems, logged + extra_logged

@@ -1,44 +1,38 @@
-# call plans for the 17 benchmark templates, written from the task text alone.
-# label.py turns each plan into an answer key; it should equal the human-reviewed key (validates the labeler, not the generator).
+# call plans for the 17 development templates, written from the task text alone.
+# label.py turns each plan into an answer key; it should equal the development key (checks the labeler, not the generator).
 bc1-read:
-  - {name: github.issues.get, with: {number: "{issue_number}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
 bc1-read-label:
-  - {name: github.issues.get, with: {number: "{issue_number}"}}
-  - {name: github.issues.add_labels, with: {number: "{issue_number}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
+  - {name: github.issues.add_labels, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
 bc1-read-two:
-  - {name: github.issues.get, with: {number: "{issue_number}"}}
-  - {name: github.issues.get, with: {number: "{issue_number2}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number2}"}}
 bc1-label-second:
-  - {name: github.issues.get, with: {number: "{issue_number}"}}
-  - {name: github.issues.get, with: {number: "{issue_number2}"}}
-  - {name: github.issues.add_labels, with: {number: "{issue_number2}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
+  - {name: github.issues.get, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number2}"}}
+  - {name: github.issues.add_labels, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number2}"}}
 bc1-label-only:
-  - {name: github.issues.add_labels, with: {number: "{issue_number}"}}
+  - {name: github.issues.add_labels, with: {owner: "{owner}", repo: "{repo}", number: "{issue_number}"}}
 bc2-test:
-  - {name: fs.read, with: {path: /workspace/src}}
-  - {name: exec.run, with: {program: /usr/bin/make}}
+  - {name: fs.read, with: {volume: /workspace/src}}
 bc2-build:
-  - {name: fs.read, with: {path: /workspace/src}}
-  - {name: exec.run, with: {program: /usr/bin/make}}
-  - {name: fs.write, with: {path: /artifacts}}
+  - {name: fs.read, with: {volume: /workspace/src}}
+  - {name: fs.write, with: {volume: /artifacts}}
+  - {name: s3.put_object, with: {bucket: "{owner}-builds", key: "{prefix}/{artifact}"}}
 bc2-lint:
-  - {name: fs.read, with: {path: /workspace/src}}
-  - {name: exec.run, with: {program: /usr/bin/python3}}
+  - {name: fs.read, with: {volume: /workspace/src}}
 bc2-build-test:
-  - {name: fs.read, with: {path: /workspace/src}}
-  - {name: exec.run, with: {program: /usr/bin/make}}
-  - {name: fs.write, with: {path: /artifacts}}
+  - {name: fs.read, with: {volume: /workspace/src}}
+  - {name: fs.write, with: {volume: /artifacts}}
+  - {name: s3.put_object, with: {bucket: "{owner}-builds", key: "{prefix}/{artifact}"}}
 bc2-deploy-one:
-  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
-  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+  - {name: s3.copy_object, with: {source_bucket: "{owner}-builds", source_key: "{prefix}/{artifact}", bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
 bc2-deploy-two:
-  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
-  - {name: fs.read, with: {path: "/artifacts/{artifact2}"}}
-  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
-  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact2}"}}
+  - {name: s3.copy_object, with: {source_bucket: "{owner}-builds", source_key: "{prefix}/{artifact}", bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+  - {name: s3.copy_object, with: {source_bucket: "{owner}-builds", source_key: "{prefix}/{artifact2}", bucket: "{owner}-staging", key: "{prefix}/{artifact2}"}}
 bc2-deploy-verify:
-  - {name: fs.read, with: {path: "/artifacts/{artifact}"}}
-  - {name: s3.put_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
+  - {name: s3.copy_object, with: {source_bucket: "{owner}-builds", source_key: "{prefix}/{artifact}", bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
   - {name: s3.get_object, with: {bucket: "{owner}-staging", key: "{prefix}/{artifact}"}}
 bc3-read-one:
   - {name: docs.documents.get, with: {doc: "{doc}"}}
@@ -48,7 +42,7 @@ bc3-read-two:
 bc3-extract:
   - {name: docs.documents.get, with: {doc: "{doc}"}}
 bc3-post-one:
-  - {name: slack.chat.post_message, with: {channel: "{channel}"}}
+  - {name: slack.chat.post_message, with: {channel_id: "{channel_id}"}}
 bc3-post-two:
-  - {name: slack.chat.post_message, with: {channel: "{channel}"}}
-  - {name: slack.chat.post_message, with: {channel: "{channel2}"}}
+  - {name: slack.chat.post_message, with: {channel_id: "{channel_id}"}}
+  - {name: slack.chat.post_message, with: {channel_id: "{channel2_id}"}}
