@@ -311,3 +311,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Labels:** review sheets regenerated before anyone labeled: development 254 candidate rows (166 carried, 88 new), final test 139. Carrying pilot labels now prefers a label on the pilot's exact permission over one on a wildcard mapped to the same permission, and does not carry conflicting labels (before, `fs:w:*` "not needed" was carried onto the needed source folder). Labeling guide rule 2 and worked example 3 amended.
 - **Baselines:** CPU baselines re-run on the development set; tables in `bench/results/tables/dev/`.
 - **Still open with BoundClaw (H8):** their `candidates()` lists holdings only, without the narrower grants for named resources that `mbla.Candidates` adds. Either the adapter supplies named resources or the benchmark drops narrowing; until they answer, the benchmark keeps the methodology's Table 1.
+
+## D-35 · Fourteen-day plan: fine-tuning stays, the two 2-GPU models are skipped
+- **Decided:** 2026-11-04 by Joseph. Paper deadline 2026-11-18. The final methodology stands; no set changes and no prompt tuning.
+- **Fine-tuning (RQ5) stays.** It is required for this paper.
+- **Skipped unless a second GPU arrives:** gpt-oss-120b as a helper, and Qwen3-30B-A3B both prompted and with QLoRA. Reported as not run for lack of hardware.
+- **Synthetic writer:** the methodology asks for a local open model, which stays. gpt-oss-120b, named in the earlier proposal (`finetune_dataset.md`), does not fit one GPU, so a model that fits one GPU writes the tasks; the two judges remain different models from the writer.
+- **Known limitation, reported, not fixed:** development templates each list one plan; 3 of 8 final-test templates list more.

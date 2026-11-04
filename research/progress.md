@@ -30,7 +30,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | Component | Status | Where | Notes |
 |---|---|---|---|
 | Permission model (C atom forms, destinations, whole volumes, rw covers ro) | done | `mbla/permission.go`, `bench/mbla_bench/reference.py` | Go and Python tests |
-| No structured arguments; receiver name and kind in the prompt | done | `mbla/propose.go` | |
+| No structured arguments; the prompt shows the task text and manifest only (D-33) | done | `mbla/propose.go` | |
 | Candidates (narrower grants for named resources, no volumes for remote receivers, read-write folders also offered read-only) | done | `mbla/propose.go`, `bench/mbla_bench/answer.py` | Go and Python lists identical on all 408 development tasks |
 | Ceiling check; recovery rules (volume denials final, destinations within ceiling, k counts requests) | done | `mbla/check.go`, `mbla/recovery.go` | |
 | Answer keys from plans; unavoidable goals | done | `bench/mbla_bench/answer.py` | |
@@ -65,3 +65,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-11-03** · H6 re-diagnosed: the GPUs work but are reserved by access list for two other users; we need an allocation, not a repair.
 - **2026-11-03** · Access granted to GPU device 1 (ACL); CUDA sees one L40S.
 - **2026-11-03** · First development runs on one GPU: Qwen3 1.7B, 4B, 8B, both rerankers, CAPMAS (0 errors). CAPMAS under our rules added to tuning. No helper meets 98% coverage, mainly because missing folders cannot be requested (F-30). Provisional: labels unreviewed.
+- **2026-11-04** · D-35. Deadline 2026-11-18; fine-tuning stays; gpt-oss-120b and Qwen3-30B skipped without a second GPU. Exploratory input comparison on the development set under way (`bench/explore/`, `bench/results/explore/`).
