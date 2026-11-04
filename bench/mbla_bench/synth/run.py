@@ -17,7 +17,7 @@ WORK = Path("data/synth/work")
 RAW = WORK / "raw.jsonl"
 RAW_TOPUP = WORK / "raw_topup.jsonl"
 JUDGED = WORK / "judged.jsonl"
-FIRST_TOPUP_SEED = 1000
+FIRST_TOPUP_SEED = 2000
 TOPUP_MARGIN = 1.1
 MAX_TOPUP_REQUESTS = 45
 SIZES = {"train": 1500, "validation": 300, "heldout": 200}
@@ -63,13 +63,6 @@ def write_all(arguments):
     print(f"{len(jobs)} requests; {sum(1 for _ in raw.open())} tasks", flush=True)
 
 
-def both_accepted():
-    """tasks of the first pass that both judges took."""
-    first = data.read_jsonl(WORK / "judged_llama.jsonl")
-    second = {task["id"]: task for task in data.read_jsonl(WORK / "judged_qwen.jsonl")}
-    return [{**task, "judges": task["judges"] + second[task["id"]]["judges"]} for task in first if task["id"] in second]
-
-
 def topup_jobs(families, kept):
     """more requests only where the first pass fell short, sized by each family's observed yield."""
     raw, have = Counter(task["family"] for task in data.read_jsonl(RAW)), Counter(task["family"] for task in kept)
@@ -87,8 +80,7 @@ def topup_jobs(families, kept):
 def topup_all(arguments):
     families = data.load_yaml(FAMILIES)
     names, vocab = data.load_yaml(write.NAMES), vocabulary.load()
-    kept = both_accepted()
-    JUDGED.write_text("".join(json.dumps(task) + "\n" for task in kept))
+    kept = data.read_jsonl(JUDGED)
     jobs = topup_jobs(families["families"], kept)
     print(len(kept), "kept;", len(jobs), "requests", flush=True)
     with ThreadPoolExecutor(CONCURRENCY) as pool, RAW_TOPUP.open("a") as out:
@@ -162,6 +154,17 @@ def split_of(family, tasks, outside, rng):
     return [(task, "train") for task in tasks[:cut]] + [(task, "validation") for task in tasks[cut:]]
 
 
+def capped(tasks, size):
+    """at most size tasks, cutting the largest families first."""
+    by_family = {}
+    for task in tasks:
+        by_family.setdefault(task[0]["family"], []).append(task)
+    cap = max(len(members) for members in by_family.values())
+    while sum(min(len(members), cap) for members in by_family.values()) > size:
+        cap -= 1
+    return [task for members in by_family.values() for task in members[:cap]]
+
+
 def assemble_all(arguments):
     families = data.load_yaml(FAMILIES)
     specs = {family["id"]: family for family in families["families"]}
@@ -172,9 +175,11 @@ def assemble_all(arguments):
         by_family.setdefault(task["family"], []).append(task)
     rng = random.Random("D-36-synth")
     outputs = {split: [] for split in SIZES}
-    for family, tasks in sorted(by_family.items()):
+    placed = [pair for family, tasks in sorted(by_family.items()) for pair in split_of(family, tasks, outside, rng)]
+    kept = [pair for split in SIZES for pair in capped([pair for pair in placed if pair[1] == split], SIZES[split])]
+    for family in sorted(by_family):
         handoff, spec = write.handoff_of(specs[family], families)
-        for task, split in split_of(family, tasks, outside, rng):
+        for task, split in [pair for pair in kept if pair[0]["family"] == family]:
             outputs[split].append(assemble.build_item(task, specs[family], handoff, spec, rng.choice(holdings.BREADTHS), rng.choice(["benign", "injection"]), split, vocab, by_service, meaning))
     for split, items in outputs.items():
         Path(f"data/tasks/synth_{split}.jsonl").write_text("".join(json.dumps(item) + "\n" for item in items))
