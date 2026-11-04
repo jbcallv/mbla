@@ -325,3 +325,12 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Judge:** labels every row blind, from the labeling guide, the task and the permission. It is chosen and its prompt fixed on the 183 pilot human labels, before it sees the sample. Not Claude, which drafted the keys, and not a model under evaluation.
 - **Acceptance:** Cohen's κ between judge and human, lower 95% bound ≥ 0.6 (the rule of D-19). Rows where judge and draft disagree go to a human. If the check fails, a human labels every row.
 - **Status:** the judge and the disagreement rule are not yet implemented. The sample is not fully random, so κ is reported with agreement on needed and unneeded rows separately.
+
+## D-37 · Answer-key rules settled from Joseph's review
+- **Decided:** 2026-11-04 by Joseph, from his 127-row sheet (`bench/data/review/sample/joseph.csv`, kept unchanged).
+- **Wider permissions:** rule 2 stands; a wider permission is `unneeded` when a narrower one is offered (15 rows).
+- **Conditional tasks:** only the check is required; the step after it is plausible, requested once the check passes. A template's `check` field holds this; `plans` still decide coverage, so the step must stay obtainable. Applied to test-bc1-dedupe, test-bc2-promote-missing and test-bc3-post-if-new. Folders stay required, because a denied folder cannot be requested later.
+- **Overwrites:** S3 upload overwrites, so delete is unneeded unless the task says to delete. The delete-first plan of test-bc2-rollback is removed, and the file keeps its name (`overwrite` and `in place of` in its other wordings). The label-adding plan of test-bc1-dedupe is removed.
+- **Known limitation:** bc1-label-second and bc2-build-test each have one conditional wording of three, so they stay keyed as unconditional. No development template has a `check`.
+- **Result:** the 127 reviewed rows now match the keys. Final-test tasks regenerated; development tasks unchanged. Oracle coverage is 100% on both. The judge check still compares the judge against the human labels, and it remains to be run.
+

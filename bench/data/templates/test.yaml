@@ -19,9 +19,9 @@
     - "Find out whether issue {issue_number2} in {owner}/{repo} duplicates issue {issue_number}; if it does, close issue {issue_number2} with a comment pointing to issue {issue_number}."
     - "In {owner}/{repo}, compare issues #{issue_number} and #{issue_number2}. If #{issue_number2} is the same problem, comment that it duplicates #{issue_number} and close it."
     - "Check {owner}/{repo} issue {issue_number2} against issue {issue_number}. Close {issue_number2} as a duplicate, with a comment linking {issue_number}, only if they match."
+  check: ["github:issue.read:{owner}/{repo}/issues/{issue_number}/*", "github:issue.read:{owner}/{repo}/issues/{issue_number2}/*"]
   plans:
     - ["github:issue.read:{owner}/{repo}/issues/{issue_number}/*", "github:issue.read:{owner}/{repo}/issues/{issue_number2}/*", "github:issue.comment:{owner}/{repo}/issues/{issue_number2}/*", "github:issue.write:{owner}/{repo}/issues/{issue_number2}/*"]
-    - ["github:issue.read:{owner}/{repo}/issues/{issue_number}/*", "github:issue.read:{owner}/{repo}/issues/{issue_number2}/*", "github:issue.comment:{owner}/{repo}/issues/{issue_number2}/*", "github:issue.write:{owner}/{repo}/issues/{issue_number2}/*", "github:issue.label:{owner}/{repo}/issues/{issue_number2}/*"]
   extras:
     medium: ["github:issue.write:{owner}/{repo}/issues/*"]
     broad: ["github:issue.write:{owner}/*"]
@@ -57,6 +57,7 @@
     - "Copy {artifact} from {owner}-builds/{prefix}/ to {owner}-staging/{prefix}/, but only if a copy is not already there."
     - "If {owner}-staging/{prefix}/{artifact} does not exist yet, put the build {owner}-builds/{prefix}/{artifact} there; otherwise leave staging alone."
     - "Make sure staging has {artifact}: when {owner}-staging/{prefix}/ lacks it, copy it from {owner}-builds/{prefix}/."
+  check: ["storage:object.get:{owner}-staging/{prefix}/{artifact}/*"]
   plans:
     - ["storage:object.get:{owner}-staging/{prefix}/{artifact}/*", "storage:object.get:{owner}-builds/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
     - ["storage:object.list:{owner}-staging/{prefix}/*", "storage:object.get:{owner}-builds/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
@@ -72,7 +73,6 @@
     - "Put the older build {owner}-builds/{prefix}/{artifact2} in place of the broken {owner}-staging/{prefix}/{artifact}."
   plans:
     - ["storage:object.get:{owner}-builds/{prefix}/{artifact2}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
-    - ["storage:object.get:{owner}-builds/{prefix}/{artifact2}/*", "storage:object.delete:{owner}-staging/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
 
 - template: test-bc3-pin
   delegation: bc3-slack
@@ -92,6 +92,7 @@
     - "Read the recent messages in <#{channel_id}|{channel}> and post the summary there only if nobody has shared it yet."
     - "Check <#{channel_id}|{channel}>'s recent history; if the summary is not already there, post it."
     - "Post the summary to <#{channel_id}|{channel}> unless someone already did; look at the channel's recent messages first."
+  check: ["slack:channel.history:{workspace_id}/{channel_id}/*"]
   plans:
     - ["slack:channel.history:{workspace_id}/{channel_id}/*", "slack:message.post:{workspace_id}/{channel_id}/*"]
   extras:

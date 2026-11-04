@@ -76,14 +76,18 @@ def least_authority_plan(item):
 
 
 def tiers(item):
-    """required = candidates of the least-authority plan; plausible = what the other plans add."""
+    """required = candidates of the least-authority plan; plausible = what the other plans add. a conditional task
+    requires only its check; the step after the condition is plausible, to be requested once the check passes (D-37)."""
     pool, actions = candidates(item), universe(item)
-    chosen = least_authority_plan(item)
-    required = plan_candidates(item["plans"][chosen], pool, actions)
+    if "check" in item:
+        required, others = plan_candidates(item["check"], pool, actions), item["plans"]
+    else:
+        chosen = least_authority_plan(item)
+        required = plan_candidates(item["plans"][chosen], pool, actions)
+        others = [plan for index, plan in enumerate(item["plans"]) if index != chosen]
     plausible = []
-    for index, plan in enumerate(item["plans"]):
-        if index != chosen:
-            plausible += [candidate for candidate in plan_candidates(plan, pool, actions) if candidate not in required]
+    for plan in others:
+        plausible += [candidate for candidate in plan_candidates(plan, pool, actions) if candidate not in required]
     return required, list(dict.fromkeys(plausible))
 
 

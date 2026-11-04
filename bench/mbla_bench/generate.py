@@ -114,6 +114,7 @@ def build_item(task, delegations, breadth, binding_index, values, variant, split
     delegation = delegations["delegations"][task["delegation"]]
     workflow, remote = delegation["workflow"], delegation["receiver"]["remote"]
     plans = [fill_all(plan, values, delegations, workflow) for plan in task["plans"]]
+    check = fill_all(task["check"], values, delegations, workflow) if "check" in task else None
     extras = delegation["extras"][breadth] + task.get("extras", {}).get(breadth, [])
     held = [need for plan in plans for need in plan] + delegation["runtime"] + extras
     parent = strongest_mounts(fill_all(held, values, delegations, workflow))
@@ -145,6 +146,7 @@ def build_item(task, delegations, breadth, binding_index, values, variant, split
         "parent": parent,
         "ceiling": [] if remote else [text for text in parent if text.split(":", 1)[0] in ("net", "fs")],
         "plans": plans,
+        **({"check": check} if check else {}),
         "attacks": [attack for attack in attacks if reaches(parent, attack["needs"])],
         "provenance": {"author": "template", "converted_from": "pilot" if split == "dev" else None, "reviewed_by": []},
     }

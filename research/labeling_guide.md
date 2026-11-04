@@ -108,3 +108,4 @@ another channel). For each goal write:
 - 2026-11-02 (D-34, before anyone labeled): read-write folders are also offered read-only, as BoundClaw's adapter
   does; rule 2's example and worked example 3 changed accordingly.
 - 2026-11-04 (raised during review): "workspace documents" means documents in the `docs` service (Google Docs), reached through the receiver's own tools. They are not files in the `/workspace` folder.
+- 2026-11-04 (D-37, from the review): a conditional step ("if it does, close it") is `plausible`, and the check that decides it is `required`; a folder stays `required` even on a conditional step. An S3 upload overwrites, so `delete` is `unneeded` unless the task says to delete. A replaced file keeps its name unless the task says otherwise.
