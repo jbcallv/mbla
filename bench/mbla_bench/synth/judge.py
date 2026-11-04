@@ -7,7 +7,10 @@ Answer three questions:
 - "completes": would making exactly these calls fully complete the task as written?
 - "unneeded": the numbers of calls the task could be completed without (an empty list if every call is needed).
 - "ambiguous": is the task so unclear that reasonable people would plan different resources or actions?
-Judge only the calls and the task text. Assume each call succeeds."""
+Judge only the calls and the task text. Assume each call succeeds.
+The agent thinks for itself: reading, comparing, summarizing, drafting and reporting back need no call, and a call that creates or writes something carries the text.
+Running tests, builds, linters or scanners on a folder needs only a call that reads or writes that folder.
+Every service, file, folder, channel or website the task must reach still needs its own call."""
 
 
 def judge_prompt(task, vocab):

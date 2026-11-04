@@ -339,3 +339,21 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Judge:** Llama-3.3-70B AWQ, labeling one permission at a time from the labeling guide. The first prompt labeled whole lists and scored κ = 0.24 on pilot labels and 0.38 on the review sheet; it is kept in `judge_llama_attempt1.csv` and must be disclosed. The prompt was then changed using pilot labels only and frozen: κ = 0.867 (95% 0.745–0.959) on 166 pilot rows.
 - **Check:** on 119 scored rows of the review sheet, agreement 87.4%, κ = 0.685 (95% 0.547–0.813). The rule required a lower bound of at least 0.6, so the judge fails. The threshold is not changed after the fact.
 - **Fallback, as D-36 set out:** a human labels the remaining 107 candidate rows (`share/review_sheet_2.csv`). Llama stays as an independent second reader, and κ is reported.
+
+## D-39 · Synthetic judges: wording fixed once, tested on broken plans; targeted top-up
+- **Decided:** 2026-11-04 by Claude under Joseph's standing instruction. The method is unchanged: two judges other than the writer, both must accept. This records implementation choices and needs disclosing in the paper.
+- **Judges:** Llama-3.3-70B AWQ (`casperhansen/llama-3.3-70b-instruct-awq`, revision 64d255621f40) and Qwen3-32B-AWQ (revision 0499c3ac83fd). Neither is the writer or an evaluated helper. Temperature 0, seed 0. Failed requests are counted apart from rejections (0 so far).
+- **First judge wording failed for a reason of format, not task quality:** it asked whether "exactly these calls" complete the task, but local work has no API call, so whole families were rejected (lint 1%, run-tests 3%) although the answer keys treat them as folder access only. Results of that pass are kept in `bench/data/synth/work/judge_v1/`: Llama 1,556 and Qwen3-32B 1,407 of 2,779.
+- **Fix, once, then frozen:** three sentences saying that thinking and reporting need no call, that running tests, builds or linters on a folder needs only that folder's call, and that anything the task must reach still needs its own call.
+- **Test of the fixed wording on 400 plans broken on purpose (`synth/corrupt.py`), share still accepted:**
+
+| | Needed call dropped (200) | Unrelated call added (200) |
+|---|---|---|
+| Llama-3.3-70B | 27.5% | 4.5% |
+| Qwen3-32B | 10.5% | 4.0% |
+| Both, as the method requires | 8.0% | 2.0% |
+
+  Dropped-call figures are upper bounds, because a dropped call was not always truly needed. The labels of the accepted set are checked separately by the 93-task human check.
+- **Yield of the first pass, new wording:** Llama 2,052, Qwen3-32B 1,576, both 1,460 of 2,779 (122 held-out, 1,338 train and validation). Target 2,000. license-check 0, run-tests 3, lint 3.
+- **Top-up:** many tasks asked for things their plan never did, because the writer's rule ran one way only (plan to text). A reverse rule was added to the writer, and the license-check description was made clearer. A second writing pass ran only for short families, sized by each family's yield, at most 45 requests per family (823 requests). All tasks pass the same filters and the same frozen judges.
+- **Cost:** the kept tasks lean toward what judges accept, so families are not perfectly balanced. Yield per stage and per family will be reported.

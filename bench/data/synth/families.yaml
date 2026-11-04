@@ -61,6 +61,6 @@ families:
   - {id: changelog-compare, workflow: BC-1, description: "read a public changelog page and comment on an issue whether it fixes the reported problem", calls: [http.fetch, github.issues.get, github.issues.create_comment]}
   - {id: advisory-triage, workflow: BC-1, description: "read a public security advisory and label the matching issue", calls: [http.fetch, github.issues.get, github.issues.add_labels]}
   - {id: fetch-deps, workflow: BC-2, description: "download a dependency from a public package site into the workspace and build", calls: [http.fetch, fs.read, fs.write]}
-  - {id: license-check, workflow: BC-2, description: "look up a package's license on a public site and report it from the source tree", calls: [http.fetch, fs.read]}
+  - {id: license-check, workflow: BC-2, description: "look up a package's license on its public registry page, read the license file in the source folder, and report whether the two match", calls: [http.fetch, fs.read]}
   - {id: doc-link-check, workflow: BC-3, description: "read a document and check that a public page it cites still says the same thing", calls: [docs.documents.get, http.fetch]}
   - {id: doc-from-web, workflow: BC-3, description: "read a public web page and add its key points to a document", calls: [http.fetch, docs.documents.batch_update]}

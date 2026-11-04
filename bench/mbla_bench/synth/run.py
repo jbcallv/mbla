@@ -2,7 +2,9 @@
 import argparse
 import json
 import random
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
+from math import ceil
 from pathlib import Path
 
 import requests
@@ -13,6 +15,11 @@ from mbla_bench.synth import assemble, decontaminate, execute, holdings, holdout
 FAMILIES = "data/synth/families.yaml"
 WORK = Path("data/synth/work")
 RAW = WORK / "raw.jsonl"
+RAW_TOPUP = WORK / "raw_topup.jsonl"
+JUDGED = WORK / "judged.jsonl"
+FIRST_TOPUP_SEED = 1000
+TOPUP_MARGIN = 1.1
+MAX_TOPUP_REQUESTS = 45
 SIZES = {"train": 1500, "validation": 300, "heldout": 200}
 OVERSAMPLE = 2.6
 CONCURRENCY = 8
@@ -55,6 +62,51 @@ def write_all(arguments):
     print(f"{len(jobs)} requests; {sum(1 for _ in RAW.open())} tasks", flush=True)
 
 
+def both_accepted():
+    """tasks of the first pass that both judges took."""
+    first = data.read_jsonl(WORK / "judged_llama.jsonl")
+    second = {task["id"]: task for task in data.read_jsonl(WORK / "judged_qwen.jsonl")}
+    return [{**task, "judges": task["judges"] + second[task["id"]]["judges"]} for task in first if task["id"] in second]
+
+
+def topup_jobs(families, kept):
+    """more requests only where the first pass fell short, sized by each family's observed yield."""
+    raw, have = Counter(task["family"] for task in data.read_jsonl(RAW)), Counter(task["family"] for task in kept)
+    outside = set(holdout.held_out(families))
+    target = {True: SIZES["heldout"] / len(outside), False: (SIZES["train"] + SIZES["validation"]) / (len(families) - len(outside))}
+    jobs = []
+    for family in families:
+        gap = target[family["id"] in outside] * TOPUP_MARGIN - have[family["id"]]
+        rate = max(have[family["id"]] / max(raw[family["id"]], 1), 0.1)
+        count = min(ceil(gap / (write.TASKS_PER_REQUEST * rate)), MAX_TOPUP_REQUESTS) if gap > 0 else 0
+        jobs += [(family, FIRST_TOPUP_SEED + seed) for seed in range(count)]
+    return jobs
+
+
+def topup_all(arguments):
+    families = data.load_yaml(FAMILIES)
+    names, vocab = data.load_yaml(write.NAMES), vocabulary.load()
+    kept = both_accepted()
+    JUDGED.write_text("".join(json.dumps(task) + "\n" for task in kept))
+    jobs = topup_jobs(families["families"], kept)
+    print(len(kept), "kept;", len(jobs), "requests", flush=True)
+    with ThreadPoolExecutor(CONCURRENCY) as pool, RAW_TOPUP.open("a") as out:
+        for batch in pool.map(lambda job: write_request(arguments, families, job[0], names, vocab, job[1]), jobs):
+            out.writelines(json.dumps(task) + "\n" for task in batch)
+            out.flush()
+    print(sum(1 for _ in RAW_TOPUP.open()), "tasks", flush=True)
+
+
+def filter_topup(arguments):
+    kept = data.read_jsonl(JUDGED)
+    earlier = {task["id"] for task in kept}
+    raw = data.read_jsonl(RAW_TOPUP)
+    ran = executed(raw, vocabulary.load())
+    fresh = [task for task in clean(kept + ran) if task["id"] not in earlier]
+    print(f"topup raw {len(raw)}, executed {len(ran)}, after leak and duplicate filters {len(fresh)}", flush=True)
+    (WORK / "filtered_topup.jsonl").write_text("".join(json.dumps(task) + "\n" for task in fresh))
+
+
 def executed(tasks, vocab):
     kept = []
     for task in tasks:
@@ -78,15 +130,16 @@ def judge_all(arguments, tasks, vocab, out):
 
     def verdict(task):
         try:
-            return judge.accepted(chat(arguments.endpoint, arguments.model, judge.JUDGE_INSTRUCTIONS, judge.judge_prompt(task, vocab), judge.judge_schema(len(task["plan"])), 512, 0))
+            return (chat(arguments.endpoint, arguments.model, judge.JUDGE_INSTRUCTIONS, judge.judge_prompt(task, vocab), judge.judge_schema(len(task["plan"])), 512, 0))
         except (requests.RequestException, ValueError, KeyError, TypeError) as error:
             print(task["id"], "judge failed:", error, flush=True)
             return None
 
     with ThreadPoolExecutor(CONCURRENCY) as pool:
         verdicts = list(pool.map(verdict, tasks))
-    kept = [{**task, "judges": task.get("judges", []) + [arguments.model]} for task, accepted in zip(tasks, verdicts) if accepted]
+    kept = [{**task, "judges": task.get("judges", []) + [arguments.model]} for task, found in zip(tasks, verdicts) if found and judge.accepted(found)]
     Path(out).write_text("".join(json.dumps(task) + "\n" for task in kept))
+    Path(f"{out}.verdicts").write_text("".join(json.dumps({"id": task["id"], "verdict": found}) + "\n" for task, found in zip(tasks, verdicts)))
     print(f"judge {arguments.model}: {len(kept)} of {len(tasks)} accepted, {verdicts.count(None)} failed requests", flush=True)
 
 
@@ -129,7 +182,7 @@ def assemble_all(arguments):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["write", "filter", "judge", "assemble"])
+    parser.add_argument("stage", choices=["write", "topup", "filter", "filter-topup", "judge", "assemble"])
     parser.add_argument("--endpoint")
     parser.add_argument("--model")
     parser.add_argument("--input", default=str(WORK / "filtered.jsonl"))
@@ -139,8 +192,12 @@ def main():
     arguments = parser.parse_args()
     if arguments.stage == "write":
         write_all(arguments)
+    elif arguments.stage == "topup":
+        topup_all(arguments)
     elif arguments.stage == "filter":
         filter_tasks(arguments)
+    elif arguments.stage == "filter-topup":
+        filter_topup(arguments)
     elif arguments.stage == "judge":
         judge_all(arguments, data.read_jsonl(arguments.input), vocabulary.load(), arguments.out)
     else:

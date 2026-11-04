@@ -14,6 +14,7 @@ Rules:
 - "alternative" is another valid set of calls for the same task that a competent engineer would really use, or an empty list if there is none.
 - A later step may depend on what an earlier call finds ("label it if it is a duplicate"). Then "check_calls" is the number of leading calls that decide the condition. Otherwise it is 0.
 - Every resource a call touches (repository, issue or pull request number, file path, bucket, object key, document, folder, channel id, user, website) must appear in the task text, spelled exactly.
+- The reverse also holds: the task must not ask for anything the plan does not do. If the task says to post, share, notify, upload or read something, the plan has a call for it. Local work on a folder (running tests, builds, linters) needs only that folder's call, and the result goes back to the delegator.
 - A channel appears in the text as <#ID|name>. The call argument channel_id is the ID.
 - Write repositories as owner/repo and objects as bucket/key in full, for example "issue 42 in alpine/frontend" and "alpine-staging/nightly/server.tar.gz". A call's key is the whole path after the bucket.
 - Use the names given; you may invent issue numbers, file paths and object keys.
