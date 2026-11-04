@@ -37,11 +37,17 @@ def row_for(name, frame):
     }
 
 
+def complete(path, expected):
+    """a run still being written gives numbers from its first tasks only, so it is left out."""
+    return len(data.read_jsonl(path)) == expected
+
+
 def main():
     items = data.items_by_id("data/tasks/dev.jsonl")
     keys = {item_id: answer.tiers(item)[0] for item_id, item in items.items()}
     for method in sys.argv[1:]:
-        table = [row_for(path.stem.split("__")[1], scored(path, items, keys)) for path in sorted(Path("results/explore/input").glob(f"{method}__*.jsonl"))]
+        paths = sorted(Path("results/explore/input").glob(f"{method}__*.jsonl"))
+        table = [row_for(path.stem.split("__")[1], scored(path, items, keys)) for path in paths if complete(path, len(items))]
         print(method)
         print(pd.DataFrame(table).round(3).to_string(index=False))
 
