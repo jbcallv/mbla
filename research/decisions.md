@@ -357,3 +357,13 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Yield of the first pass, new wording:** Llama 2,052, Qwen3-32B 1,576, both 1,460 of 2,779 (122 held-out, 1,338 train and validation). Target 2,000. license-check 0, run-tests 3, lint 3.
 - **Top-up:** many tasks asked for things their plan never did, because the writer's rule ran one way only (plan to text). A reverse rule was added to the writer, and the license-check description was made clearer. A second writing pass ran only for short families, sized by each family's yield, at most 45 requests per family (823 requests). All tasks pass the same filters and the same frozen judges.
 - **Cost:** the kept tasks lean toward what judges accept, so families are not perfectly balanced. Yield per stage and per family will be reported.
+
+## D-40 · Writer and judges chosen by a test fixed in advance; one writer and one judge pair for the whole set
+- **Decided:** 2026-11-04 by Joseph (consistency) and Claude (the test), after Joseph asked that models be chosen on merit, not because they were on the server.
+- **Consistency rule:** every task in the synthetic set comes from one writer with one writer prompt and passes the same two judges with one judge prompt. If the test picks a different model, the whole set is regenerated; the two passes are not mixed.
+- **Who may qualify:** one 46 GB GPU; public weights from the maker or an established packager; not from the same family as a helper under training (Qwen3), so the training data is not filtered by a relative of the models it trains. Writer and the two judges come from three different makers.
+- **Candidates:** Llama-3.3-70B (Meta), Qwen3-32B (reference only, now disqualified by the family rule), Gemma 4 31B (Google, RedHatAI FP8), Granite 4.2 30B (IBM official FP8), GLM-4.7-Flash (Z.ai, Unsloth FP8), gpt-oss-20b (OpenAI, writer role and judge role).
+- **Judge test (`synth/bakeoff.py`):** the 66 distinct benign development wordings with their plans, which should be accepted, and the 400 broken plans of D-39, which should be rejected.
+- **Judge rule:** pick the pair with the most known-good tasks kept, among pairs that together keep at most 8% of dropped-call plans and at most 2% of extra-call plans (the figures of the current pair). Ties go to fewer broken plans kept.
+- **Writer test:** each candidate writes the same 72-request trial with the same prompt. **Writer rule:** the most tasks per request that pass execution and both chosen judges, counting only writers with at least 30 of the 40 families surviving; ties go to more families.
+- **Limits:** the known-good set is small, and its plans come from templates Claude drafted, so it estimates false rejection only roughly.
