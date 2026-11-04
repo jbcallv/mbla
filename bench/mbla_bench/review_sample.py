@@ -2,6 +2,7 @@
 import csv
 import json
 import random
+import sys
 from pathlib import Path
 
 from mbla_bench import answer, data
@@ -85,6 +86,19 @@ def main():
     print(len(chosen), "rows:", len(needed), "drafted needed,", SIZE - len(needed), "drafted unneeded,", len(goals), "attack permissions;", len(candidates), "candidates in all")
 
 
+def rest():
+    """the rows the first sheet left out, for the fallback when the judge fails its check (D-38)."""
+    with open("data/review/sample/joseph.csv", newline="") as sheet, open("data/review/sample/key.csv", newline="") as key:
+        done = {(entry["template"], row["permission"]) for row, entry in zip(csv.DictReader(sheet), csv.DictReader(key))}
+    left = [row for split in ("dev", "test") for row in candidate_rows(split, drafts(split)) if (row["template"], row["permission"]) not in done]
+    left.sort(key=lambda row: (row["task"], row["permission"]))
+    for number, row in enumerate(left, 1):
+        row["row"] = number
+    write("../share/review_sheet_2.csv", SHEET_COLUMNS, left)
+    write("data/review/sample/key_2.csv", KEY_COLUMNS, left)
+    print(len(left), "rows left")
+
+
 def write(path, columns, rows):
     with open(path, "w", newline="") as sheet:
         writer = csv.DictWriter(sheet, columns, extrasaction="ignore")
@@ -93,4 +107,4 @@ def write(path, columns, rows):
 
 
 if __name__ == "__main__":
-    main()
+    rest() if "rest" in sys.argv else main()

@@ -334,3 +334,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Known limitation:** bc1-label-second and bc2-build-test each have one conditional wording of three, so they stay keyed as unconditional. No development template has a `check`.
 - **Result:** the 127 reviewed rows now match the keys. Final-test tasks regenerated; development tasks unchanged. Oracle coverage is 100% on both. The judge check still compares the judge against the human labels, and it remains to be run.
 
+
+## D-38 · The judge fails its check; a human labels the remaining rows
+- **Judge:** Llama-3.3-70B AWQ, labeling one permission at a time from the labeling guide. The first prompt labeled whole lists and scored κ = 0.24 on pilot labels and 0.38 on the review sheet; it is kept in `judge_llama_attempt1.csv` and must be disclosed. The prompt was then changed using pilot labels only and frozen: κ = 0.867 (95% 0.745–0.959) on 166 pilot rows.
+- **Check:** on 119 scored rows of the review sheet, agreement 87.4%, κ = 0.685 (95% 0.547–0.813). The rule required a lower bound of at least 0.6, so the judge fails. The threshold is not changed after the fact.
+- **Fallback, as D-36 set out:** a human labels the remaining 107 candidate rows (`share/review_sheet_2.csv`). Llama stays as an independent second reader, and κ is reported.
