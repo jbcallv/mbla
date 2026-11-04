@@ -55,11 +55,12 @@ def write_all(arguments):
         requests_needed = round(wanted[family["id"] in outside] * OVERSAMPLE * arguments.scale / write.TASKS_PER_REQUEST + 0.5)
         jobs += [(family, seed) for seed in range(requests_needed)]
     WORK.mkdir(parents=True, exist_ok=True)
-    with ThreadPoolExecutor(CONCURRENCY) as pool, RAW.open("a") as out:
+    raw = Path(arguments.raw)
+    with ThreadPoolExecutor(CONCURRENCY) as pool, raw.open("a") as out:
         for batch in pool.map(lambda job: write_request(arguments, families, job[0], names, vocab, job[1]), jobs):
             out.writelines(json.dumps(task) + "\n" for task in batch)
             out.flush()
-    print(f"{len(jobs)} requests; {sum(1 for _ in RAW.open())} tasks", flush=True)
+    print(f"{len(jobs)} requests; {sum(1 for _ in raw.open())} tasks", flush=True)
 
 
 def both_accepted():
@@ -189,6 +190,7 @@ def main():
     parser.add_argument("--out", default=str(WORK / "judged.jsonl"))
     parser.add_argument("--scale", type=float, default=1.0)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--raw", default=str(RAW))
     arguments = parser.parse_args()
     if arguments.stage == "write":
         write_all(arguments)
