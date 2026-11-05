@@ -53,7 +53,7 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 | CAPMAS under our rules in the new format | planned | | |
 | Adaptive attacker (attack (c)) | planned | | Needs GPUs (H6) |
 | Synthetic generator, mock execution, injection writer | in progress | `bench/mbla_bench/synth/` | Moved to the final format; 4,915 tasks written, 2,779 passed mock execution, two judges next; 93-task sheet code ported (`synth/audit.py`) |
-| Training | in progress | `bench/mbla_bench/train.py` | Trainer for generative helpers and rerankers built; both ran on an 80-task slice on 2026-11-05 (loss fell, no fit reported). Real runs wait for the 93-task check. CAPMAS retrain not built |
+| Training | code ready, waiting for the 93-task check | `bench/mbla_bench/train.py`, `synth/capmas_export.py` | Tested on small runs only (2026-11-05): generative and reranker on an 80-task slice, QLoRA code path on Qwen3-1.7B, CAPMAS's own trainer for one epoch; all test weights deleted. QLoRA not yet run on Qwen3-30B itself |
 
 ## Log
 
@@ -72,3 +72,4 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 - **2026-11-04** · Cutoffs tuned on 2026-11-03 used unreviewed keys and are invalid (F-30); they will be re-set on reviewed keys.
 - **2026-11-04** · Synthetic generation by gpt-oss-20b (one GPU, per D-35): 1,072 requests, 4,915 tasks, 89 failed requests, 2,779 passed mock execution, 0 removed by the 8-word and near-duplicate filters (checked: closest pair 0.78 against the 0.8 cutoff). The judge stage now runs at temperature 0 and counts failed requests apart from rejections.
 - **2026-11-05** · GPU device 0 now open to us, shared with ben. Models for the synthetic set chosen by a fixed test (D-40): writer gpt-oss-20b, judges Gemma 4 31B and Llama-3.3-70B; set being rebuilt.
+- **2026-11-05** · D-41, D-42. Six F5 tests; model second reader; synthetic set frozen at 1,966 tasks; blind 93-task sheet (1,136 rows) sent to Joseph.
