@@ -14,7 +14,7 @@ STRUCTURAL = {"", "issues", "contents", "pulls", "releases", "actions", "doc", "
 
 def load_items(task_dir):
     items = []
-    for split_file in sorted(task_dir.glob("*.jsonl")):
+    for split_file in sorted(path for path in task_dir.glob("*.jsonl") if not path.name.startswith("synth_")):
         items += [json.loads(line) for line in split_file.read_text().splitlines() if line]
     return items
 

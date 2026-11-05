@@ -386,3 +386,21 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Family coverage:** all 8 held-out families survive (15 to 32 tasks each), so F5's limit of 6 tests holds. 31 of 32 training families survive. `issue-sweep` has none: 93 tasks reached the judges and almost all were rejected, because the writer must name the matching issues in advance, which makes the task unnatural. The filter was not weakened to keep it. Thin families in train: issue-label-blind 5, upload 6, upload-many 8, issue-label 9.
 - **Mix:** injected 992 of 1,966; conditional tasks 158; tasks with a second valid plan 467; remote receivers 388; with a manifest 960.
 
+## D-43 · Sheet 2 labeled; Gemma aligns with the human; one key changed
+- **Decided:** 2026-11-05. Joseph's labels stand as the eval keys. Sheet 2 is in `bench/data/review/sample/joseph_2.csv`, unchanged.
+- **Sheet 2 against the draft keys:** 106 of 107 agree (99.1%). 106 rows are unneeded. κ is 0.000 and not informative here: only one row is not unneeded, so chance agreement is near 1.
+- **Sheet 2 against models, labeled before the sheet came back:** Gemma 4 31B 107 of 107 (exact 95% lower bound 96.6%); Llama-3.3-70B 96 of 107 (89.7%, κ 0.142); GLM-4.7-Flash 90 of 107 (84.1%, κ 0.046). κ intervals on sheet 2 are not meaningful for the same reason.
+- **Second reader selection (rule of D-41):**
+
+| Model | Pilot, 166 rows: κ (95%) | Sheet 1, 119 rows: agreement, κ (95%) | Passes lower bound ≥ 0.6 |
+|---|---|---|---|
+| Gemma 4 31B | 1.000 (1.000–1.000) | 97.5%, 0.928 (0.842–1.000) | Yes |
+| Llama-3.3-70B | 0.867 (0.745–0.959) | 87.4%, 0.685 (0.547–0.813) | No |
+| GLM-4.7-Flash | 0.700 (0.548–0.828) | 86.6%, 0.669 (0.532–0.798) | No |
+
+  Granite 4.2 30B was still running at this writing and can at best tie on the pilot.
+- **Sheets 1 and 2 together, Gemma against the human:** 223 of 226 rows (98.7%, exact 95% 96.2–99.7%), κ 0.937 (0.858–1.000). The 3 misses are all rows the human called plausible in `test-bc2-promote-missing`. On the 26 sheet-1 rows the human called needed: 88.5%, κ 0.642 (0.228–1.000).
+- **Limits, disclosed:** (1) the guide was amended after sheet 1 (D-37), so sheet 1 is not a clean test for any model that read those amendments; sheet 2 is the clean one, but almost all its rows are unneeded. (2) The labeling prompt was fixed on the pilot rows with Llama, so pilot scores may flatter. (3) Gemma also filtered the synthetic set, so as second reader on the 93-task check it is not independent of that filter. (4) The first judge failed and others were tried afterward; this is a second reader, not a replacement: every eval key is human.
+- **Key change:** row 30. Human and Gemma both call `storage:object.list:{staging}/{prefix}/{artifact}/*` required; the draft said unneeded. It joins the check of `test-bc2-promote-missing` (24 test tasks change, `check` field only). Development keys are unchanged, so development cutoffs and results stand; cutoffs re-run on reviewed keys.
+- **Carried-label spot check:** 45 tasks, 31 development and 14 final test, in `share/spot_check.csv`.
+

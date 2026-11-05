@@ -35,6 +35,20 @@ def read(path):
         return list(csv.DictReader(sheet))
 
 
+def second_sheet(labels):
+    """sheet 2: the human against the draft keys and against the model, with every row where they part (D-38, D-41)."""
+    key = {row["row"]: row for row in read("data/review/sample/key_2.csv")}
+    rows = read("data/review/sample/joseph_2.csv")
+    human = [row["answer"].strip() for row in rows]
+    report("sheet 2, human vs draft key", human, [key[row["row"]]["draft"] for row in rows])
+    judge = [labels[(key[row["row"]]["template"], row["permission"])] for row in rows]
+    report("sheet 2, human vs model", human, judge)
+    for row, wanted, got in zip(rows, human, judge):
+        draft = key[row["row"]]["draft"]
+        if len({wanted, got, draft}) > 1:
+            print(" ", row["row"], key[row["row"]]["template"], "human", wanted, "draft", draft, "model", got, row["permission"])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--judge", required=True)
@@ -45,6 +59,7 @@ def main():
     report("pilot labels (needed vs not)", [row["pilot_label"] for row in pilot], ["needed" if labels[(row["template"], row["permission"])] != "unneeded" else "not needed" for row in pilot])
     if arguments.pilot_only:
         return
+    second_sheet(labels)
     key = {row["row"]: row for row in read("data/review/sample/key.csv")}
     rows = [row for row in read("data/review/sample/joseph.csv") if row["row"] not in SKIPPED]
     human = [RULED.get(row["row"], row["answer"]) for row in rows]
