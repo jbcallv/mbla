@@ -7,7 +7,7 @@ trial() { # name model
   rm -f data/synth/work/bakeoff/raw_$1.jsonl
   python -m mbla_bench.synth.run write --endpoint http://127.0.0.1:$3/v1 --model $2 --scale 0.1 --raw data/synth/work/bakeoff/raw_$1.jsonl 2>&1 | tail -1 | cut -c1-140
   kill $server; wait $server 2>/dev/null
-  until [ "$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits)" -lt 1000 ]; do timeout 3 tail -f /dev/null; done
+  wait $server 2>/dev/null
 }
 explore/serve_writer.sh > results/logs/serve_w_gptoss.log 2>&1 & server=$!; echo $server > results/logs/writer.pid
 trial gptoss openai/gpt-oss-20b 8108

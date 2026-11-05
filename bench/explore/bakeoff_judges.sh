@@ -20,6 +20,6 @@ for pair in "$@"; do
   else
     echo "$name failed to start"; grep -i "error" results/logs/serve_$name.log | tail -2 | cut -c1-200
   fi
-  until [ "$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits)" -lt 1000 ]; do timeout 3 tail -f /dev/null; done
+  wait $server 2>/dev/null
   port=$((port + 1))
 done
