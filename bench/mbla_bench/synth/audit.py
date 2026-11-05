@@ -17,6 +17,7 @@ ERROR_BOUND = 0.05
 SEED = "D-21-audit"
 SHEET = "../share/synth_check_sheet.csv"
 KEY = "data/review/synth/key.csv"
+SEEN = "data/review/synth_seen.txt"
 SHEET_COLUMNS = ["row", "item", "task", "receiver", "permission", "meaning", "answer", "note"]
 KEY_COLUMNS = ["row", "item", "family", "split", "permission", "generated"]
 
@@ -36,8 +37,14 @@ def allocation(tasks, total):
     return by_family, counts
 
 
+def unseen(tasks):
+    """tasks shown with their answers in the preview would not be blind, so they cannot enter the sample."""
+    seen = tuple(f"{line.strip()}-" for line in Path(SEEN).read_text().splitlines())
+    return [task for task in tasks if not task["id"].startswith(seen)]
+
+
 def sample(tasks):
-    by_family, counts = allocation(tasks, SAMPLE_SIZE)
+    by_family, counts = allocation(unseen(tasks), SAMPLE_SIZE)
     rng = random.Random(SEED)
     return [task for family in sorted(counts) for task in rng.sample(sorted(by_family[family], key=lambda entry: entry["id"]), counts[family])]
 
