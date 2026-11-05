@@ -18,7 +18,7 @@ SEED = "D-21-audit"
 SHEET = "../share/synth_check_sheet.csv"
 KEY = "data/review/synth/key.csv"
 SEEN = "data/review/synth_seen.txt"
-SHEET_COLUMNS = ["row", "item", "task", "receiver", "permission", "meaning", "answer", "note"]
+SHEET_COLUMNS = ["row", "task_number", "task", "receiver", "permission", "meaning", "answer", "note"]
 KEY_COLUMNS = ["row", "item", "family", "split", "permission", "generated"]
 
 
@@ -85,7 +85,7 @@ def make_sheet():
     chosen = sample(items())
     rng = random.Random(SEED)
     rng.shuffle(chosen)
-    rows = [row for task in chosen for row in rows_of(task, glossary)]
+    rows = [{**row, "task_number": number} for number, task in enumerate(chosen, 1) for row in rows_of(task, glossary)]
     for number, row in enumerate(rows, 1):
         row["row"] = number
     write(SHEET, SHEET_COLUMNS, rows)
