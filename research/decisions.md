@@ -426,3 +426,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Decided:** 2026-11-05 by Joseph, after the spot check (D-45). The checksums in `bench/data/tasks/SHA256SUMS` are the frozen record; `make verify` fails if any task file changes. No helper had run on the final test set before this point.
 - **Attack data rebuilt before the freeze:** `data/attacks/test_manifest.jsonl` was stale. It still held keys from before D-37 and D-43 for `test-bc1-dedupe`, `test-bc3-post-if-new`, `test-bc2-rollback` and `test-bc2-promote-missing`. Rebuilding it changed 48 of 84 tasks there and 1 of 172 in the development file (the D-45 change). The attack files are outside `SHA256SUMS`.
 - **Not started:** final test runs wait on the coverage target decision, so that rule is set before any final result exists.
+
+## D-47 · 93-task check shortened to 59 tasks, before any scoring
+- **Decided:** 2026-11-05 by Joseph, to save time. His answers were not scored or compared with the keys before this rule was set. This replaces the acceptance rule of D-21 and D-44.
+- **Rule:** Joseph labels the first 59 tasks of `share/synth_check_compact.csv`, whose order is random. The check passes only if none of the 59 is wrong after differences are settled. That gives an error rate under 5% with 95% confidence (exact upper bound 4.95%).
+- **If it fails:** finish the 93, or report the weaker bound. Either is disclosed.
+- **Second reader:** Gemma 4 31B still labels all 93 tasks blind. Tasks 60 to 93 are reported as checked by a model only, and do not count toward the human result.
+- **Limit, disclosed:** smaller sample than planned, with no wrong task allowed; one human reviewer.
