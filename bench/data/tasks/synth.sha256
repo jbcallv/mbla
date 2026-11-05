@@ -1,0 +1,3 @@
+20116ca8c44e0ccea5a1bc9f53ba94af1e4931826d79a811502f6448345d363d  data/tasks/synth_train.jsonl
+b9dcda5867dcfc4b96d2539967fb3cae24037e578b304022a8a57b7db167f07a  data/tasks/synth_validation.jsonl
+705f817739cf8c63583c2092914afba37d70b2b2abb0547a4c07f7fb33c377fa  data/tasks/synth_heldout.jsonl

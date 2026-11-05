@@ -378,3 +378,11 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Limit, disclosed:** one human, where the plan had two.
 - **Choosing the second reader, rule fixed before any candidate ran:** candidates are Llama-3.3-70B, Gemma 4 31B, GLM-4.7-Flash and Granite 4.2 30B, all with the frozen prompt of `label_judge.py`. Pick the highest lower 95% bound of κ on the 166 pilot human labels, which were not used in choosing the synthetic set's models. Then check it on Joseph's 119 scored rows of sheet 1; the threshold stays a lower bound of at least 0.6 (D-19, D-36). A candidate that fails on sheet 1 is reported as failed, and the next by pilot score is tried; if none passes, the model's disagreements are not trusted, and Joseph's labels stand alone.
 - **Preview:** Joseph may inspect the tasks. Task text carries no key. 40 tasks shown with their answers (`bench/data/review/synth_seen.txt`) are left out of the 93-task draw, so the sample stays blind.
+
+## D-42 · Synthetic set frozen for the human check
+- **Decided:** 2026-11-05 by Claude under Joseph's standing instruction; size shortfall and the missing family are reported as limitations.
+- **Final set:** train 1,469 of 1,500, validation 298 of 300, held-out 199 of 200: 1,966 tasks, 1.7% under plan. Writer gpt-oss-20b, final prompt; every task accepted by Gemma 4 31B and Llama-3.3-70B. Checksums in `bench/data/tasks/synth.sha256`.
+- **Yield per stage (final prompt):** 8,765 tasks written (4,365 + 4,400); 4,398 passed mock execution; 4,392 after leak and duplicate filters; Gemma accepted 2,613; both judges 2,043; 1,966 kept after capping the held-out families at 200.
+- **Family coverage:** all 8 held-out families survive (15 to 32 tasks each), so F5's limit of 6 tests holds. 31 of 32 training families survive. `issue-sweep` has none: 93 tasks reached the judges and almost all were rejected, because the writer must name the matching issues in advance, which makes the task unnatural. The filter was not weakened to keep it. Thin families in train: issue-label-blind 5, upload 6, upload-many 8, issue-label 9.
+- **Mix:** injected 992 of 1,966; conditional tasks 158; tasks with a second valid plan 467; remote receivers 388; with a manifest 960.
+
