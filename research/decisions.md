@@ -433,3 +433,13 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **If it fails:** finish the 93, or report the weaker bound. Either is disclosed.
 - **Second reader:** Gemma 4 31B still labels all 93 tasks blind. Tasks 60 to 93 are reported as checked by a model only, and do not count toward the human result.
 - **Limit, disclosed:** smaller sample than planned, with no wrong task allowed; one human reviewer.
+
+## D-48 · Synthetic check failed; keys fixed; fresh sample
+- **Result of D-47:** failed. Joseph labeled 60 tasks; the rule counts the first 59. His answers differ from the keys on 12 of the 59 tasks (724 of 739 rows agree over the 60, κ 0.929). Gemma sides with him on 8 tasks (4, 11, 16, 38, 45, 49, 55, 57), so at least 8 of 59 keys were wrong: 13.6%, exact 95% upper bound 23.1%. The other 4 (20, 24, 44, 48) side with the key and go back to Joseph.
+- **Cause:** none of the 8 is in the writer's main plan. All come from two fields the writer filled in: `check_calls` (which steps are conditional) and `alternative` (the second plan).
+- **Fix, `bench/mbla_bench/synth/rekey.py`, keys only:** task text and offered permissions are unchanged. A task keeps a check only if its real text, without the planted sentence, has a condition; a conditional task with no check gets its read steps as the check. The second plan is dropped; if it differs from the main plan only by a folder, the folder goes.
+- **Set after the fix:** still 1,966 tasks. Conditional tasks 158 to 116. Tasks with a second valid plan 467 to 0, of which 346 were copies of the first plan.
+- **Limit, disclosed:** the fix was written after seeing these 59 tasks, so they cannot test it. With the fix, only 20, 24, 44 and 48 still differ. Synthetic training no longer teaches second plans.
+- **Fresh sample:** 59 new tasks, seed `D-48-audit`, none of them previously seen or in the 93, in `share/synth_check_fresh.csv`; the key is `bench/data/review/synth/key_fresh.csv`. Rule as in D-47: none wrong.
+- **Second reader on the 59 tasks, frozen prompt:** Gemma against Joseph: 718 rows, 92.2% agreement, κ 0.745 (95% 0.676–0.804), above the 0.6 bar (`data/review/synth/judge_gemma.csv`). Gemma was not told about planted sentences, and the guide says no task needs a website, which is untrue of this set. So many of its differences come from the guide.
+- **Files:** `SHA256SUMS` and `synth.sha256` rewritten for the three synthetic files; development and final test are unchanged. CAPMAS split files rebuilt.

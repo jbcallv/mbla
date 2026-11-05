@@ -18,6 +18,11 @@ SEED = "D-21-audit"
 SHEET = "../share/synth_check_sheet.csv"
 COMPACT = "../share/synth_check_compact.csv"
 KEY = "data/review/synth/key.csv"
+FRESH_SIZE = 59
+FRESH_SEED = "D-48-audit"
+FRESH_SHEET = "../share/synth_check_fresh.csv"
+FRESH_ROWS = "data/review/synth/fresh_rows.csv"
+FRESH_KEY = "data/review/synth/key_fresh.csv"
 SEEN = "data/review/synth_seen.txt"
 SHEET_COLUMNS = ["row", "task_number", "task", "receiver", "permission", "meaning", "answer", "note"]
 COMPACT_COLUMNS = ["task_number", "task", "receiver", "permissions", "required", "plausible", "note"]
@@ -93,6 +98,25 @@ def make_sheet():
     write(SHEET, SHEET_COLUMNS, rows)
     write(KEY, KEY_COLUMNS, rows)
     print(len(chosen), "tasks,", len(rows), "rows")
+
+
+def make_fresh():
+    """a new sample after the keys were fixed: none of the tasks anyone has seen, in the short format (D-48)."""
+    with open(KEY, newline="") as sheet:
+        used = {row["item"] for row in csv.DictReader(sheet)}
+    glossary = meanings()
+    pool = [task for task in unseen(items()) if task["id"] not in used]
+    by_family, counts = allocation(pool, FRESH_SIZE)
+    rng = random.Random(FRESH_SEED)
+    chosen = [task for family in sorted(counts) for task in rng.sample(sorted(by_family[family], key=lambda entry: entry["id"]), counts[family])]
+    rng.shuffle(chosen)
+    rows = [{**row, "task_number": number} for number, task in enumerate(chosen, 1) for row in rows_of(task, glossary)]
+    for number, row in enumerate(rows, 1):
+        row["row"] = number
+    write(FRESH_KEY, KEY_COLUMNS, rows)
+    write(FRESH_ROWS, SHEET_COLUMNS, rows)
+    write(FRESH_SHEET, COMPACT_COLUMNS, [compact_row(number, group) for number, group in by_task(rows).items()])
+    print(len(chosen), "tasks,", len(rows), "permissions")
 
 
 def by_task(rows):
@@ -172,7 +196,7 @@ def score(first_path, second_path, settled_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["sheet", "compact", "expand", "score"])
+    parser.add_argument("stage", choices=["sheet", "compact", "fresh", "expand", "score"])
     parser.add_argument("--answers")
     parser.add_argument("--out")
     parser.add_argument("--first")
@@ -183,6 +207,8 @@ def main():
         make_sheet()
     elif arguments.stage == "compact":
         make_compact()
+    elif arguments.stage == "fresh":
+        make_fresh()
     elif arguments.stage == "expand":
         expand(arguments.answers, arguments.out)
     else:
