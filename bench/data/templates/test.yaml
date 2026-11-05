@@ -57,10 +57,10 @@
     - "Copy {artifact} from {owner}-builds/{prefix}/ to {owner}-staging/{prefix}/, but only if a copy is not already there."
     - "If {owner}-staging/{prefix}/{artifact} does not exist yet, put the build {owner}-builds/{prefix}/{artifact} there; otherwise leave staging alone."
     - "Make sure staging has {artifact}: when {owner}-staging/{prefix}/ lacks it, copy it from {owner}-builds/{prefix}/."
-  check: ["storage:object.get:{owner}-staging/{prefix}/{artifact}/*", "storage:object.list:{owner}-staging/{prefix}/{artifact}/*"]
+  check: ["storage:object.list:{owner}-staging/{prefix}/{artifact}/*"]
   plans:
-    - ["storage:object.get:{owner}-staging/{prefix}/{artifact}/*", "storage:object.get:{owner}-builds/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
-    - ["storage:object.list:{owner}-staging/{prefix}/*", "storage:object.get:{owner}-builds/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
+    - ["storage:object.list:{owner}-staging/{prefix}/{artifact}/*", "storage:object.get:{owner}-builds/{prefix}/{artifact}/*", "storage:object.put:{owner}-staging/{prefix}/{artifact}/*"]
+  offered: ["storage:object.get:{owner}-staging/{prefix}/{artifact}/*", "storage:object.list:{owner}-staging/{prefix}/*"]
   extras:
     medium: ["storage:object.list:{owner}-staging/*"]
     broad: ["storage:object.list:{owner}-staging/*", "storage:object.list:{owner}-prod/*"]

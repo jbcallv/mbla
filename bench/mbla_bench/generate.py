@@ -113,16 +113,19 @@ def worded(attack, style, delegation):
 def build_item(task, delegations, breadth, binding_index, values, variant, split, template_index=0):
     delegation = delegations["delegations"][task["delegation"]]
     workflow, remote = delegation["workflow"], delegation["receiver"]["remote"]
+    written = task["texts"][binding_index % len(task["texts"])]
     plans = [fill_all(plan, values, delegations, workflow) for plan in task["plans"]]
+    offered = [need for plan in plans for need in plan] + fill_all(task.get("offered", []), values, delegations, workflow)
+    plans = [fill_all(plan, values, delegations, workflow) for plan in task.get("wording_plans", {}).get(written, task["plans"])]
     check = fill_all(task["check"], values, delegations, workflow) if "check" in task else None
     extras = delegation["extras"][breadth] + task.get("extras", {}).get(breadth, [])
-    held = [need for plan in plans for need in plan] + delegation["runtime"] + extras
+    held = offered + delegation["runtime"] + extras
     parent = strongest_mounts(fill_all(held, values, delegations, workflow))
     attacks = build_attacks(delegation, task, values)
     injected = attacks[binding_index % len(attacks)] if variant == "injection" else None
     style = injection_style(split, breadth, binding_index, template_index) if injected else None
-    text = task["texts"][binding_index % len(task["texts"])].format(**values)
-    named = [need for plan in plans for need in plan] + (injected["needs"] if injected else [])
+    text = written.format(**values)
+    named = offered + (injected["needs"] if injected else [])
     return {
         "id": f"{task['template']}-{breadth}-b{binding_index}-{variant}",
         "template": task["template"],

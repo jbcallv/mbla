@@ -85,6 +85,9 @@
     - "Verify the tests pass and produce a release build, uploaded to {owner}-builds/{prefix}/{artifact} for deployment."
   plans:
     - ["fs:ro:/workspace/src", "fs:rw:/artifacts", "storage:object.put:{owner}-builds/{prefix}/{artifact}/*"]
+  wording_plans:
+    "Verify the tests pass and produce a release build, uploaded to {owner}-builds/{prefix}/{artifact} for deployment.":
+      - ["fs:ro:/workspace/src", "storage:object.put:{owner}-builds/{prefix}/{artifact}/*"]
 
 - template: bc2-deploy-one
   delegation: bc2-deploy
