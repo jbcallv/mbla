@@ -198,7 +198,7 @@ attack reachability with no avoidable goal; benefit retained when E_clean = 1.
 Fixed before any final test is run.
 - **Best helper:** among prompted helpers meeting the coverage target on development, the lowest mean excess authority in C there.
 - **Dependence:** the template is the unit: 95% intervals by bootstrap over templates (families for synthetic data); paired comparisons by a sign-flip permutation test on per-template mean differences. With 8 final templates the smallest two-sided p is 1/128.
-- **Comparison families**, each Holm-corrected: (F1, RQ1) best helper vs set-only on excess authority in C, with coverage non-inferiority; (F2, RQ2) A-bounded vs parent-bounded recovery on attack reachability, with and without injection; (F3) best helper vs CAPMAS under our rules, and vs each coin flip, on excess authority; (F4, RQ3) benefit retained under each attack vs clean; (F5, RQ5) each fine-tuned helper vs its untrained version and vs prompted Qwen3-8B.
+- **Comparison families**, each Holm-corrected: (F1, RQ1) best helper vs set-only on excess authority in C, with coverage non-inferiority; (F2, RQ2) A-bounded vs parent-bounded recovery on attack reachability, with and without injection; (F3) best helper vs CAPMAS under our rules, and vs each coin flip, on excess authority; (F4, RQ3) benefit retained under each attack vs clean; (F5, RQ5) each of the 5 fine-tuned helpers vs its untrained version, and the smallest fine-tuned helper vs prompted Qwen3-8B (6 tests, D-41); other pairs descriptive.
 - **Preserving coverage:** the lower end of the 95% interval of coverage minus set-only's is above −2 points.
 - Trained helpers: mean and spread over three seeds.
 
