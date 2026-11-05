@@ -404,3 +404,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Key change:** row 30. Human and Gemma both call `storage:object.list:{staging}/{prefix}/{artifact}/*` required; the draft said unneeded. It joins the check of `test-bc2-promote-missing` (24 test tasks change, `check` field only). Development keys are unchanged, so development cutoffs and results stand; cutoffs re-run on reviewed keys.
 - **Carried-label spot check:** 45 tasks, 31 development and 14 final test, in `share/spot_check.csv`.
 
+
+## D-44 · Shorter sheet for the 93-task check
+- **Decided:** 2026-11-05. Same check, shorter sheet: 1,136 rows was not workable for one reviewer.
+- **What changed:** only the form. `share/synth_check_compact.csv` has one line per task, 93 lines, with that task's permissions numbered inside the line. Joseph writes the numbers of the required and plausible ones. Anything unmarked counts as unneeded.
+- **What did not change:** the same 93 tasks and the same 1,136 decisions, blind to the keys; at most 1 task wrong; Gemma 4 31B labels all 1,136 rows blind as second reader; disagreements go back to Joseph. `audit expand` turns the short answers back into row answers for scoring.
+- **Limit, disclosed:** unneeded is the default, not an active choice per permission, so a permission overlooked counts as unneeded.
+- **The rest of the set:** the other 1,873 tasks get no human or row-level review. Their keys come from mock execution and both judges filtered them. The 93-task check is what supports the claim about the whole set.

@@ -16,9 +16,11 @@ ALLOWED_ERRORS = 1
 ERROR_BOUND = 0.05
 SEED = "D-21-audit"
 SHEET = "../share/synth_check_sheet.csv"
+COMPACT = "../share/synth_check_compact.csv"
 KEY = "data/review/synth/key.csv"
 SEEN = "data/review/synth_seen.txt"
 SHEET_COLUMNS = ["row", "task_number", "task", "receiver", "permission", "meaning", "answer", "note"]
+COMPACT_COLUMNS = ["task_number", "task", "receiver", "permissions", "required", "plausible", "note"]
 KEY_COLUMNS = ["row", "item", "family", "split", "permission", "generated"]
 
 
@@ -93,6 +95,47 @@ def make_sheet():
     print(len(chosen), "tasks,", len(rows), "rows")
 
 
+def by_task(rows):
+    tasks = defaultdict(list)
+    for row in rows:
+        tasks[row["task_number"]].append(row)
+    return tasks
+
+
+def compact_row(number, rows):
+    listed = "\n".join(f"{position}. {row['permission']}" for position, row in enumerate(rows, 1))
+    return {"task_number": number, "task": rows[0]["task"], "receiver": rows[0]["receiver"], "permissions": listed}
+
+
+def make_compact():
+    with open(SHEET, newline="") as sheet:
+        tasks = by_task(csv.DictReader(sheet))
+    write(COMPACT, COMPACT_COLUMNS, [compact_row(number, rows) for number, rows in tasks.items()])
+    print(len(tasks), "tasks")
+
+
+def positions(text):
+    return {int(part) for part in text.replace(";", ",").split(",") if part.strip()}
+
+
+def expanded(rows, entry):
+    """one task's short answer back to row answers; a permission left unmarked is unneeded."""
+    required, plausible = positions(entry["required"]), positions(entry["plausible"])
+    if required & plausible or not required | plausible <= set(range(1, len(rows) + 1)):
+        raise ValueError(f"task {entry['task_number']}: bad positions")
+    tiers = {**{position: "required" for position in required}, **{position: "plausible" for position in plausible}}
+    return [{"row": row["row"], "answer": tiers.get(position, "unneeded")} for position, row in enumerate(rows, 1)]
+
+
+def expand(compact_path, out):
+    with open(SHEET, newline="") as sheet:
+        tasks = by_task(csv.DictReader(sheet))
+    with open(compact_path, newline="", encoding="utf-8-sig") as sheet:
+        rows = [row for entry in csv.DictReader(sheet) for row in expanded(tasks[entry["task_number"]], entry)]
+    write(out, ["row", "answer"], rows)
+    print(len(rows), "rows")
+
+
 def read_answers(path):
     with open(path, newline="", encoding="utf-8-sig") as sheet:
         return {row["row"]: row["answer"].strip().lower() for row in csv.DictReader(sheet)}
@@ -129,13 +172,19 @@ def score(first_path, second_path, settled_path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["sheet", "score"])
+    parser.add_argument("stage", choices=["sheet", "compact", "expand", "score"])
+    parser.add_argument("--answers")
+    parser.add_argument("--out")
     parser.add_argument("--first")
     parser.add_argument("--second")
     parser.add_argument("--settled")
     arguments = parser.parse_args()
     if arguments.stage == "sheet":
         make_sheet()
+    elif arguments.stage == "compact":
+        make_compact()
+    elif arguments.stage == "expand":
+        expand(arguments.answers, arguments.out)
     else:
         print(score(arguments.first, arguments.second, arguments.settled))
 
