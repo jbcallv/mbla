@@ -470,3 +470,11 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 ## D-53 · Training restarted on the corrected keys
 - **Decided:** 2026-11-06 by Joseph: no third round. The set is as in D-52. Partial runs on earlier keys were deleted.
 - **Reported:** two rounds of human review with corrections after each: round 1, at least 8 of 59 keys wrong; round 2, 3 of 59 after the reviewer re-checked his answers (5 on first pass), not blind. The planned under-5% claim is not met, and the corrected keys have no measured error rate.
+
+## D-54 · All helpers ranked; the coverage rule picks the recommended setting
+- **Decided:** 2026-11-06 by Joseph, before any final result exists. Every helper stays in the evaluation and is reported. The output is a ranked list, and the top one is the setting recommended to BoundClaw. No helper reaches 98% on development, so the old rule named none.
+- **Rule:** prompted helpers whose development coverage is at least set-only's minus 2 points, ranked by development excess authority in C, lowest first. The 98% target stays only as the scorer tuning target in section 4, and is no longer an eligibility bar. Supersedes D-32's eligibility text in section 9.
+- **Interval version tried and dropped:** the section 9 test (lower 95% bound above -2 points) was tried first on development. With 17 templates the intervals are too wide and no helper passes, so it cannot pick a setting. The plain margin was then used, chosen after seeing that result on development data. Section 9's interval test stays as the final test report.
+- **Development ranking on corrected keys (coverage / excess in C):** set-only 90.2 / 1.000, so the floor is 88.2. Qwen3-4B 89.4 / 0.102; Qwen3-8B 93.6 / 0.123; Reranker-8B tuned 95.6 / 0.463; CAPMAS our rules 91.9 / 0.647. Qwen3-1.7B 88.1 / 0.150 misses the floor by under 0.1 points. Provisional: Qwen3-30B and gpt-oss-120b have no development run yet.
+- **Reported:** 4B ranks first on 0.021 less excess than 8B while covering 4.2 points fewer tasks.
+

@@ -169,12 +169,18 @@ def test_inflated_manifest_lists_an_avoidable_goal():
     assert attacks.inflated_manifest(dict(item, variant="injection")) is None
 
 
-def test_best_helper_needs_the_coverage_target():
-    frame = pd.DataFrame({
-        "method": ["a", "a", "b", "b", "set-only", "set-only"],
-        "covered_A-bounded_k3": [1, 1, 1, 0, 1, 1],
-        "excess_C": [0.3, 0.3, 0.0, 0.0, 1, 1],
-    })
-    models = {"a": {"paradigm": "generative"}, "b": {"paradigm": "generative"}, "set-only": {"paradigm": "bound"}}
-    assert analysis.best_helper(frame, models, {})[0] == "a"
-    assert analysis.best_helper(frame, models, {"a": {"meets_target": False}})[0] is None
+def test_best_helper_must_preserve_coverage_and_ranks_by_excess():
+    rows = []
+    for template in range(8):
+        rows += [
+            ("a", template, 1, 0.3),
+            ("c", template, 1, 0.2),
+            ("b", template, 0, 0.0),
+            ("set-only", template, 1, 1.0),
+        ]
+    frame = pd.DataFrame(rows, columns=["method", "template", "covered_A-bounded_k3", "excess_C"])
+    frame["item"] = frame["template"]
+    models = {name: {"paradigm": "generative"} for name in "abc"} | {"set-only": {"paradigm": "bound"}}
+    best, ranked = analysis.best_helper(frame, models)
+    assert best == "c"
+    assert list(ranked) == ["c", "a"]

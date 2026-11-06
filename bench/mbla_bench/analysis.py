@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from mbla_bench import data, stats, tune
+from mbla_bench import data, stats
 
 PROMPTED = ("generative", "decision", "capmas")
 MARGIN = 0.02
@@ -23,24 +23,23 @@ def per_task(experiment):
     return frame.groupby(keys, as_index=False).mean(numeric_only=True)
 
 
-def eligible(frame, models, thresholds):
-    """prompted helpers meeting the coverage target on development; a scorer whose cutoffs miss it is not eligible."""
+def eligible(frame, models):
+    """prompted helpers within the margin of set-only's development coverage (D-54)."""
+    floor = frame.loc[frame["method"] == "set-only", COVERAGE].mean() - MARGIN
     chosen = {}
     for method, group in frame.groupby("method"):
         if models.get(method, {}).get("paradigm") not in PROMPTED or "fixed_thresholds" in models.get(method, {}):
             continue
-        if method in thresholds and not thresholds[method]["meets_target"]:
-            continue
-        coverage = group[COVERAGE].mean()
-        if coverage >= tune.TARGET_COVERAGE:
-            chosen[method] = {"coverage": coverage, "excess_C": group["excess_C"].mean()}
+        if group[COVERAGE].mean() >= floor:
+            chosen[method] = {"coverage": group[COVERAGE].mean(), "excess_C": group["excess_C"].mean()}
     return chosen
 
 
-def best_helper(development, models, thresholds):
-    candidates = eligible(development, models, thresholds)
-    best = min(candidates, key=lambda method: candidates[method]["excess_C"]) if candidates else None
-    return best, candidates
+def best_helper(development, models):
+    """helpers ranked by development excess in C, lowest first; the top one is the recommended setting."""
+    candidates = eligible(development, models)
+    ranked = dict(sorted(candidates.items(), key=lambda pair: pair[1]["excess_C"]))
+    return next(iter(ranked), None), ranked
 
 
 def compare(frame, first, second, column, subset=None):
@@ -104,8 +103,8 @@ def families(final, best, manifest=None):
 
 
 def write_markdown(path, best, candidates, inferiority, tests):
-    lines = [f"# Analysis ({path.parent.name})", "", f"Best helper, chosen on the development set: **{best}**", ""]
-    lines += ["| Eligible helper | Development coverage | Development excess C |", "|---|---|---|"]
+    lines = [f"# Analysis ({path.parent.name})", "", f"Recommended setting, chosen on the development set: **{best}**", ""]
+    lines += ["| Ranked helper | Development coverage | Development excess C |", "|---|---|---|"]
     lines += [f"| {method} | {values['coverage']:.3f} | {values['excess_C']:.3f} |" for method, values in sorted(candidates.items())]
     if inferiority:
         lines += ["", f"Coverage non-inferiority (margin 2 points): difference {inferiority['coverage_difference']:.3f} [{inferiority['low']:.3f}, {inferiority['high']:.3f}], preserves coverage: {inferiority['preserves']}"]
@@ -119,14 +118,12 @@ def main():
     parser = argparse.ArgumentParser(description="best helper and comparison families")
     parser.add_argument("--development", default="dev")
     parser.add_argument("--final", default="final")
-    parser.add_argument("--thresholds", default="results/thresholds.json")
     arguments = parser.parse_args()
     models = data.load_yaml("config/models.yaml")["methods"]
-    thresholds = json.loads(Path(arguments.thresholds).read_text()) if Path(arguments.thresholds).exists() else {}
-    best, candidates = best_helper(per_task(arguments.development), models, thresholds)
+    best, candidates = best_helper(per_task(arguments.development), models)
     out = Path("results/tables") / arguments.final / "analysis.md"
     if best is None:
-        out.write_text(f"# Analysis ({arguments.final})\n\nNo prompted helper meets the coverage target on the development set yet.\n")
+        out.write_text(f"# Analysis ({arguments.final})\n\nNo prompted helper preserves coverage against set-only on the development set yet.\n")
         print(out.read_text())
         return
     final = per_task(arguments.final)

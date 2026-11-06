@@ -78,7 +78,7 @@ same recovery as our helpers. The primary comparison uses (ii) and its retrained
 output s ∈ [0, 1] and need two cutoffs τ_init ≥ τ_admit: required if s ≥ τ_init, plausible if τ_admit ≤ s < τ_init. On
 development data only, over the grid {0.05, 0.10, …, 1} (zero excluded): τ_init maximizes mean F1 of the proposal;
 τ_admit is the highest value with coverage ≥ 98% at k = 3. If no value meets the target, the helper is reported as not
-meeting it, at the value with the highest development coverage, and is not eligible as best helper. Scorers are also
+meeting it, at the value with the highest development coverage. Scorers are also
 reported untuned (required if s ≥ 0.5, no plausible tier), with the full trade-off curves.
 
 ## 5. Datasets
@@ -196,7 +196,7 @@ attack reachability with no avoidable goal; benefit retained when E_clean = 1.
 ## 9. Analysis plan
 
 Fixed before any final test is run.
-- **Best helper:** among prompted helpers meeting the coverage target on development, the lowest mean excess authority in C there.
+- **Best helper (the recommended setting):** all helpers are evaluated and reported. Prompted helpers whose development coverage is within 2 points of set-only's are ranked by mean excess authority in C there, lowest first; the top one is the recommended setting BoundClaw receives (D-54).
 - **Dependence:** the template is the unit: 95% intervals by bootstrap over templates (families for synthetic data); paired comparisons by a sign-flip permutation test on per-template mean differences. With 8 final templates the smallest two-sided p is 1/128.
 - **Comparison families**, each Holm-corrected: (F1, RQ1) best helper vs set-only on excess authority in C, with coverage non-inferiority; (F2, RQ2) A-bounded vs parent-bounded recovery on attack reachability, with and without injection; (F3) best helper vs CAPMAS under our rules, and vs each coin flip, on excess authority; (F4, RQ3) benefit retained under each attack vs clean; (F5, RQ5) each of the 5 fine-tuned helpers vs its untrained version, and the smallest fine-tuned helper vs prompted Qwen3-8B (6 tests, D-41); other pairs descriptive.
 - **Preserving coverage:** the lower end of the 95% interval of coverage minus set-only's is above −2 points.
