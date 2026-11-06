@@ -443,3 +443,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Fresh sample:** 59 new tasks, seed `D-48-audit`, none of them previously seen or in the 93, in `share/synth_check_fresh.csv`; the key is `bench/data/review/synth/key_fresh.csv`. Rule as in D-47: none wrong.
 - **Second reader on the 59 tasks, frozen prompt:** Gemma against Joseph: 718 rows, 92.2% agreement, κ 0.745 (95% 0.676–0.804), above the 0.6 bar (`data/review/synth/judge_gemma.csv`). Gemma was not told about planted sentences, and the guide says no task needs a website, which is untrue of this set. So many of its differences come from the guide.
 - **Files:** `SHA256SUMS` and `synth.sha256` rewritten for the three synthetic files; development and final test are unchanged. CAPMAS split files rebuilt.
+
+## D-49 · No fresh sample; Joseph's answers set the reviewed keys; training starts
+- **Decided:** 2026-11-06 by Joseph: no second review, because of the deadline. This replaces the fresh sample of D-48.
+- **Reviewed keys:** Joseph's answers are now the keys for his 60 tasks (`data/review/synth/settled.json`). 4 changed beyond the D-48 fix: tasks 20, 24, 44 and 48. On 44 and 48 his answer is `fs:ro:/workspace` where the task names `/workspace/src`.
+- **Limit, disclosed:** the synthetic check failed (at least 8 of 59 keys wrong) and the fix was never tested on new tasks, so no error bound on the synthetic keys can be claimed. Results are fine-tuning on a set whose key error rate is unmeasured after the fix.
+- **Learning rate:** each model tries the three rates on seed 0; seeds 1 and 2 run at the best by validation loss. Code: `bench/mbla_bench/train_all.py`.
