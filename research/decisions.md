@@ -450,3 +450,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Limit, disclosed:** the synthetic check failed (at least 8 of 59 keys wrong) and the fix was never tested on new tasks, so no error bound on the synthetic keys can be claimed. Results are fine-tuning on a set whose key error rate is unmeasured after the fix.
 - **Learning rate:** each model tries the three rates on seed 0; seeds 1 and 2 run at the best by validation loss. Code: `bench/mbla_bench/train_all.py`.
 - **Training changes, method unchanged:** answers now count loss only on answer tokens, batches run in smaller chunks with the same effective batch, and training mode is set from the first step. 8B models span GPUs 0 and 1, because the optimizer's state alone outgrows one GPU.
+
+## D-50 · Training stopped; fresh check goes ahead as yes/no
+- **Decided:** 2026-11-06 by Joseph. Training stopped after partial runs; this replaces the no-review decision of D-49.
+- **Fresh check:** the 59 tasks of D-48 in `share/synth_check_fresh_yesno.csv`, key shown, one yes/no per task, none wrong to pass.
+- **Limit, disclosed:** the human is not blind on this sample.
