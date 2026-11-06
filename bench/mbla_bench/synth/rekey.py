@@ -37,10 +37,30 @@ def settled(item):
     return {**kept, "plans": [plan], **({"check": check} if check and CONDITION.search(real_text(item)) else {})}
 
 
+def with_issue_read(item):
+    """deciding whether a changelog fixes an issue needs reading that issue (D-52)."""
+    plan = item["plans"][0]
+    reads = [need.replace("issue.comment", "issue.read") for need in plan if need.startswith("github:issue.comment:")]
+    return {**item, "plans": [plan + [need for need in reads if need not in plan]]}
+
+
+def without_unnamed_folder(item):
+    """a pulled artifact needs no folder unless the task says to use one (D-52)."""
+    named = lambda need: need.split(":")[2].rsplit("/", 1)[-1].lower() in real_text(item).lower()
+    return {**item, "plans": [[need for need in item["plans"][0] if not need.startswith("fs:") or named(need)]]}
+
+
+CORRECTIONS = {"changelog-compare": with_issue_read, "ci-artifact-publish": without_unnamed_folder}
+
+
+def corrected(item):
+    return CORRECTIONS.get(item["template"], lambda same: same)(item)
+
+
 def main():
     for split in SIZES:
         path = Path(f"data/tasks/synth_{split}.jsonl")
-        items = [settled(item) for item in data.read_jsonl(path)]
+        items = [corrected(item) for item in data.read_jsonl(path)]
         path.write_text("".join(json.dumps(item) + "\n" for item in items))
         print(split, len(items))
 

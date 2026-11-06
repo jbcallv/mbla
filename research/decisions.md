@@ -460,3 +460,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Result:** Joseph marked 5 of 59 fresh tasks no (1, 8, 17, 22, 51), sheet `data/review/synth/joseph_fresh.csv`. The rule allows none, so if the 5 hold up the check fails: 8.5% wrong, exact 95% upper bound 17.0%. Human not blind on this sample; Gemma was not run on it.
 - **Types:** tasks 22 and 51: the comment needs reading the issue, and the writer's main plan left that out; 8 `changelog-compare` tasks in the set share this. Task 8: a folder the task never mentions. Task 1: a condition with no "if" word. Task 17: no note yet.
 - **Status:** training stays stopped until Joseph decides.
+
+## D-52 · Second check revised by Joseph; two more key fixes
+- **Revision:** after the D-51 result and my note that it would fail, Joseph revised his sheet: lines 1 and 17 changed from no to yes. Both versions are kept (`joseph_fresh.csv`, `joseph_fresh_revised.csv`). Revised result: 3 of 59 no (8, 22, 51), 5.1%, exact 95% upper bound 12.6%. First answers: 5 of 59, 8.5%, upper bound 17.0%. Either way the rule, none wrong, is not met.
+- **Fixes in `synth/rekey.py`, keys only:** `changelog-compare` tasks that comment now also read the issue (8 tasks). `ci-artifact-publish` tasks drop a folder the task does not name (14 tasks). Reading of line 8 as the folder is inferred; Joseph left no note.
+- **Limit, disclosed:** these fixes came after this sample too, so the fixed keys have no measured error rate.
+- **Status:** training stays stopped until Joseph decides.
