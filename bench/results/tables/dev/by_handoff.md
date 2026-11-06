@@ -1,12 +1,12 @@
 | method                        | handoff    |   coverage |   excess_C |   reach_A |   rejected |
 |:------------------------------|:-----------|-----------:|-----------:|----------:|-----------:|
 | capmas                        | bc1-triage |      0.95  |      0.583 |     0.531 |      0     |
-| capmas                        | bc2-build  |      0.969 |      0.915 |     0.266 |      0     |
+| capmas                        | bc2-build  |      0.99  |      0.915 |     0.266 |      0     |
 | capmas                        | bc2-deploy |      0.958 |      0.783 |     0.778 |      0.042 |
 | capmas                        | bc3-docs   |      1     |      0.931 |     0.826 |      0     |
 | capmas                        | bc3-slack  |      1     |      1     |     1     |      0     |
 | capmas-scores                 | bc1-triage |      1     |      0.572 |     0.833 |      0     |
-| capmas-scores                 | bc2-build  |      0.594 |      0.34  |     0     |      0     |
+| capmas-scores                 | bc2-build  |      0.656 |      0.34  |     0     |      0     |
 | capmas-scores                 | bc2-deploy |      1     |      0.772 |     1     |      0     |
 | capmas-scores                 | bc3-docs   |      1     |      0.819 |     0.812 |      0     |
 | capmas-scores                 | bc3-slack  |      1     |      1     |     1     |      0     |
@@ -26,7 +26,7 @@
 | manifest-only                 | bc3-docs   |      0.667 |      0     |     0     |      0     |
 | manifest-only                 | bc3-slack  |      0.5   |      0     |     0     |      0     |
 | qwen3-1.7b                    | bc1-triage |      1     |      0.083 |     0.416 |      0     |
-| qwen3-1.7b                    | bc2-build  |      0.649 |      0.078 |     0.141 |      0     |
+| qwen3-1.7b                    | bc2-build  |      0.67  |      0.078 |     0.141 |      0     |
 | qwen3-1.7b                    | bc2-deploy |      0.889 |      0.288 |     0.407 |      0     |
 | qwen3-1.7b                    | bc3-docs   |      0.986 |      0     |     0.197 |      0     |
 | qwen3-1.7b                    | bc3-slack  |      0.833 |      0.479 |     0.479 |      0.167 |
@@ -36,12 +36,12 @@
 | qwen3-4b                      | bc3-docs   |      1     |      0.09  |     0.264 |      0     |
 | qwen3-4b                      | bc3-slack  |      1     |      0.229 |     0.5   |      0     |
 | qwen3-8b                      | bc1-triage |      0.958 |      0.118 |     0.21  |      0     |
-| qwen3-8b                      | bc2-build  |      0.833 |      0.103 |     0.203 |      0     |
+| qwen3-8b                      | bc2-build  |      0.865 |      0.103 |     0.203 |      0     |
 | qwen3-8b                      | bc2-deploy |      0.889 |      0.126 |     0.25  |      0     |
 | qwen3-8b                      | bc3-docs   |      1     |      0.062 |     0.264 |      0     |
 | qwen3-8b                      | bc3-slack  |      1     |      0.264 |     0.688 |      0     |
 | qwen3-reranker-0.6b           | bc1-triage |      1     |      0.522 |     0.492 |      0     |
-| qwen3-reranker-0.6b           | bc2-build  |      0.427 |      0.674 |     0.25  |      0     |
+| qwen3-reranker-0.6b           | bc2-build  |      0.458 |      0.674 |     0.25  |      0     |
 | qwen3-reranker-0.6b           | bc2-deploy |      1     |      0.416 |     0.472 |      0     |
 | qwen3-reranker-0.6b           | bc3-docs   |      1     |      0.236 |     0.326 |      0     |
 | qwen3-reranker-0.6b           | bc3-slack  |      1     |      0.833 |     0.833 |      0     |
@@ -51,7 +51,7 @@
 | qwen3-reranker-0.6b (untuned) | bc3-docs   |      1     |      0.278 |     0.326 |      0     |
 | qwen3-reranker-0.6b (untuned) | bc3-slack  |      1     |      0.833 |     0.833 |      0     |
 | qwen3-reranker-8b             | bc1-triage |      1     |      0.391 |     0.615 |      0     |
-| qwen3-reranker-8b             | bc2-build  |      0.76  |      0.311 |     0.156 |      0     |
+| qwen3-reranker-8b             | bc2-build  |      0.812 |      0.311 |     0.156 |      0     |
 | qwen3-reranker-8b             | bc2-deploy |      1     |      0.336 |     0.472 |      0     |
 | qwen3-reranker-8b             | bc3-docs   |      1     |      0.653 |     0.625 |      0     |
 | qwen3-reranker-8b             | bc3-slack  |      1     |      0.854 |     0.979 |      0     |
@@ -61,17 +61,17 @@
 | qwen3-reranker-8b (untuned)   | bc3-docs   |      0.972 |      0.75  |     0.625 |      0     |
 | qwen3-reranker-8b (untuned)   | bc3-slack  |      1     |      0.958 |     0.958 |      0     |
 | random-25                     | bc1-triage |      0.248 |      0.287 |     0.302 |      0     |
-| random-25                     | bc2-build  |      0.385 |      0.265 |     0.327 |      0     |
+| random-25                     | bc2-build  |      0.392 |      0.265 |     0.327 |      0     |
 | random-25                     | bc2-deploy |      0.058 |      0.262 |     0.267 |      0.188 |
 | random-25                     | bc3-docs   |      0.392 |      0.257 |     0.267 |      0     |
 | random-25                     | bc3-slack  |      0.254 |      0.275 |     0.246 |      0.202 |
 | random-50                     | bc1-triage |      0.544 |      0.551 |     0.565 |      0     |
-| random-50                     | bc2-build  |      0.629 |      0.541 |     0.609 |      0     |
+| random-50                     | bc2-build  |      0.642 |      0.541 |     0.609 |      0     |
 | random-50                     | bc2-deploy |      0.178 |      0.538 |     0.457 |      0.288 |
 | random-50                     | bc3-docs   |      0.651 |      0.532 |     0.542 |      0     |
 | random-50                     | bc3-slack  |      0.438 |      0.523 |     0.39  |      0.292 |
 | random-75                     | bc1-triage |      0.798 |      0.786 |     0.798 |      0     |
-| random-75                     | bc2-build  |      0.844 |      0.766 |     0.825 |      0     |
+| random-75                     | bc2-build  |      0.853 |      0.766 |     0.825 |      0     |
 | random-75                     | bc2-deploy |      0.357 |      0.788 |     0.582 |      0.324 |
 | random-75                     | bc3-docs   |      0.833 |      0.782 |     0.79  |      0     |
 | random-75                     | bc3-slack  |      0.54  |      0.756 |     0.508 |      0.325 |
