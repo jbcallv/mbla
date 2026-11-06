@@ -455,3 +455,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Decided:** 2026-11-06 by Joseph. Training stopped after partial runs; this replaces the no-review decision of D-49.
 - **Fresh check:** the 59 tasks of D-48 in `share/synth_check_fresh_yesno.csv`, key shown, one yes/no per task, none wrong to pass.
 - **Limit, disclosed:** the human is not blind on this sample.
+
+## D-51 · Second synthetic check: 54 of 59 yes
+- **Result:** Joseph marked 5 of 59 fresh tasks no (1, 8, 17, 22, 51), sheet `data/review/synth/joseph_fresh.csv`. The rule allows none, so if the 5 hold up the check fails: 8.5% wrong, exact 95% upper bound 17.0%. Human not blind on this sample; Gemma was not run on it.
+- **Types:** tasks 22 and 51: the comment needs reading the issue, and the writer's main plan left that out; 8 `changelog-compare` tasks in the set share this. Task 8: a folder the task never mentions. Task 1: a condition with no "if" word. Task 17: no note yet.
+- **Status:** training stays stopped until Joseph decides.
