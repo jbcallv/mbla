@@ -91,7 +91,7 @@ class Generative:
         keep = longest - (labels != -100).int().argmax(dim=1).min().item() + 1
         positions = (mask.cumsum(dim=1) - 1).clamp(min=0)
         logits = model(input_ids=ids, attention_mask=mask, position_ids=positions, logits_to_keep=keep).logits[:, :-1]
-        return torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), labels[:, 1 - keep:].reshape(-1), ignore_index=-100)
+        return torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), labels[:, 1 - keep:].reshape(-1).to(logits.device), ignore_index=-100)
 
 
 class Scorer:
@@ -117,7 +117,7 @@ class Scorer:
         encoded = self.tokenizer(texts, padding=True, truncation=True, max_length=8192, return_tensors="pt").to(self.device)
         logits = model(**encoded, logits_to_keep=1).logits[:, -1, :]
         yes_no = torch.stack([logits[:, self.no], logits[:, self.yes]], dim=1).float().log_softmax(dim=1)
-        targets = torch.tensor([grade for _, _, grade in batch], device=self.device)
+        targets = torch.tensor([grade for _, _, grade in batch], device=logits.device)
         return -(targets * yes_no[:, 1] + (1 - targets) * yes_no[:, 0]).mean()
 
 

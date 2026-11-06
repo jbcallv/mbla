@@ -466,3 +466,7 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Fixes in `synth/rekey.py`, keys only:** `changelog-compare` tasks that comment now also read the issue (8 tasks), and that read is added to what the delegator holds, so it is offered. `ci-artifact-publish` tasks drop a folder the task does not name (14 tasks). Reading of line 8 as the folder is inferred; Joseph left no note.
 - **Limit, disclosed:** these fixes came after this sample too, so the fixed keys have no measured error rate.
 - **Status:** training stays stopped until Joseph decides.
+
+## D-53 · Training restarted on the corrected keys
+- **Decided:** 2026-11-06 by Joseph: no third round. The set is as in D-52. Partial runs on earlier keys were deleted.
+- **Reported:** two rounds of human review with corrections after each: round 1, at least 8 of 59 keys wrong; round 2, 3 of 59 after the reviewer re-checked his answers (5 on first pass), not blind. The planned under-5% claim is not met, and the corrected keys have no measured error rate.
