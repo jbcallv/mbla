@@ -22,5 +22,29 @@
     "dev_f1": 0.6598439278586338,
     "dev_coverage": 0.9558823529411765,
     "dev_rows": 408
+  },
+  "qwen3-reranker-0.6b-tuned-s0": {
+    "initial": 0.45,
+    "admit": 0.05,
+    "meets_target": false,
+    "dev_f1": 0.9151104886399003,
+    "dev_coverage": 0.9215686274509803,
+    "dev_rows": 408
+  },
+  "qwen3-reranker-0.6b-tuned-s1": {
+    "initial": 0.85,
+    "admit": 0.05,
+    "meets_target": false,
+    "dev_f1": 0.9321856520385933,
+    "dev_coverage": 0.9485294117647058,
+    "dev_rows": 408
+  },
+  "qwen3-reranker-0.6b-tuned-s2": {
+    "initial": 0.85,
+    "admit": 0.85,
+    "meets_target": false,
+    "dev_f1": 0.9231792717086834,
+    "dev_coverage": 0.9264705882352942,
+    "dev_rows": 408
   }
 }

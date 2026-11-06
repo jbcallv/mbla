@@ -156,6 +156,127 @@ methods:
       - command: "vllm serve Qwen/Qwen3-4B --revision 1cfa9a7208912126459214e8b04321603b3df60c --port 8102 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
         health: "http://127.0.0.1:8102/health"
 
+  # fine-tuned helpers on the development set (D-55): one entry per training seed; the learning rate is models/<name>/selection.json's
+  qwen3-1.7b-tuned-s0:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed0
+    endpoint: "http://127.0.0.1:8301/v1"
+    revision: lr2e-05-seed0
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.35
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed0 --port 8301 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8301/health"
+
+  qwen3-1.7b-tuned-s1:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed1
+    endpoint: "http://127.0.0.1:8302/v1"
+    revision: lr2e-05-seed1
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.35
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed1 --port 8302 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8302/health"
+
+  qwen3-1.7b-tuned-s2:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed2
+    endpoint: "http://127.0.0.1:8303/v1"
+    revision: lr2e-05-seed2
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.35
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-1.7B/lr2e-05-seed2 --port 8303 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8303/health"
+
+  qwen3-4b-tuned-s0:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed0
+    endpoint: "http://127.0.0.1:8304/v1"
+    revision: lr2e-05-seed0
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.45
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed0 --port 8304 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8304/health"
+
+  qwen3-4b-tuned-s1:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed1
+    endpoint: "http://127.0.0.1:8305/v1"
+    revision: lr2e-05-seed1
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.45
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed1 --port 8305 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8305/health"
+
+  qwen3-4b-tuned-s2:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed2
+    endpoint: "http://127.0.0.1:8306/v1"
+    revision: lr2e-05-seed2
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.45
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-4B/lr2e-05-seed2 --port 8306 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8306/health"
+
+  qwen3-reranker-0.6b-tuned-s0:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-0.6b-tuned-s0
+    endpoint: "http://127.0.0.1:8307"
+    revision: lr2e-05-seed0
+    gpus: 1
+    shared_fraction: 0.2
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-0.6B/lr2e-05-seed0 --port 8307"
+        health: "http://127.0.0.1:8307/health"
+
+  qwen3-reranker-0.6b-tuned-s1:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-0.6b-tuned-s1
+    endpoint: "http://127.0.0.1:8308"
+    revision: lr2e-05-seed1
+    gpus: 1
+    shared_fraction: 0.2
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-0.6B/lr2e-05-seed1 --port 8308"
+        health: "http://127.0.0.1:8308/health"
+
+  qwen3-reranker-0.6b-tuned-s2:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-0.6b-tuned-s2
+    endpoint: "http://127.0.0.1:8309"
+    revision: lr2e-05-seed2
+    gpus: 1
+    shared_fraction: 0.2
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-0.6B/lr2e-05-seed2 --port 8309"
+        health: "http://127.0.0.1:8309/health"
+
   qwen3-8b:
     paradigm: generative
     scorer: chat

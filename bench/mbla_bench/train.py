@@ -91,7 +91,7 @@ class Generative:
         keep = longest - (labels != -100).int().argmax(dim=1).min().item() + 1
         positions = (mask.cumsum(dim=1) - 1).clamp(min=0)
         logits = model(input_ids=ids, attention_mask=mask, position_ids=positions, logits_to_keep=keep).logits[:, :-1]
-        return torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), labels[:, 1 - keep:].reshape(-1).to(logits.device), ignore_index=-100)
+        return torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), moved(labels[:, 1 - keep:].reshape(-1), logits.device), ignore_index=-100)
 
 
 class Scorer:
@@ -121,10 +121,40 @@ class Scorer:
         return -(targets * yes_no[:, 1] + (1 - targets) * yes_no[:, 0]).mean()
 
 
+def moved(tensor, device):
+    """direct copies from one gpu to another come back wrong on this machine (D-55), so they go through the cpu."""
+    import torch
+
+    return tensor if tensor.device == torch.device(device) else tensor.cpu().to(device)
+
+
+def copy_through_cpu():
+    import accelerate.hooks
+    import torch
+    from accelerate.utils import recursively_apply
+
+    def send(data, device, non_blocking=False, skip_keys=None):
+        return recursively_apply(lambda tensor: moved(tensor, device), data, test_type=torch.is_tensor)
+
+    accelerate.hooks.send_to_device = send
+
+
+def clip_gradients(model, limit):
+    import torch
+
+    gradients = [parameter.grad for parameter in model.parameters() if parameter.grad is not None]
+    total = torch.stack([gradient.float().norm().cpu() for gradient in gradients]).norm()
+    scale = (limit / (total + 1e-6)).clamp(max=1.0).item()
+    for gradient in gradients:
+        gradient.mul_(scale)
+    return total.item()
+
+
 def load(model_id, revision, qlora):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    copy_through_cpu()
     tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, padding_side="left" if "Reranker" in model_id else "right")
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -175,8 +205,10 @@ def fit(arguments):
             for chunk in chunks(batch, task.chunk_size):
                 with torch.autocast("cuda", dtype=torch.bfloat16):
                     loss = task.loss(model, chunk, rng) * len(chunk) / len(batch)
+                if not math.isfinite(loss.item()):
+                    raise SystemExit(f"loss is not finite at step {step}")
                 loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            clip_gradients(model, 1.0)
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad(set_to_none=True)
