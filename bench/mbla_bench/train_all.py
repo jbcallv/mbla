@@ -22,7 +22,7 @@ def run(model, rate, seed, gpu):
     out = OUT / model.split("/")[1] / f"lr{rate}-seed{seed}"
     if (out / "history.json").exists():
         return out
-    environment = {**os.environ, "CUDA_VISIBLE_DEVICES": str(gpu), "HF_HOME": "/scratch/jbcall/huggingface", "PYTHONPATH": os.getcwd()}
+    environment = {**os.environ, "CUDA_VISIBLE_DEVICES": str(gpu).replace("+", ","), "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True", "HF_HOME": "/scratch/jbcall/huggingface", "PYTHONPATH": os.getcwd()}
     command = [sys.executable, "-m", "mbla_bench.train", "--model", model, "--revision", revision(model), "--learning-rate", str(rate), "--seed", str(seed), "--out", str(out)]
     print(gpu, "start", out, flush=True)
     subprocess.run(command, env=environment, check=True)
@@ -56,9 +56,9 @@ def worker(jobs, gpu):
 
 def main():
     jobs = queue.Queue()
-    for model in MODELS:
+    for model in sys.argv[2:] or MODELS:
         jobs.put(model)
-    threads = [threading.Thread(target=worker, args=(jobs, gpu)) for gpu in sys.argv[1:]]
+    threads = [threading.Thread(target=worker, args=(jobs, gpu)) for gpu in sys.argv[1].split(",")]
     for thread in threads:
         thread.start()
     for thread in threads:

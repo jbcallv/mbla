@@ -48,6 +48,10 @@ def pairs(items):
     return [(describe(item["request"]), permission, GRADED[tier]) for item in items for permission, tier in graded(item).items()]
 
 
+def chunks(batch, size):
+    return [batch[start : start + size] for start in range(0, len(batch), size)]
+
+
 def schedule(step, total):
     warm = max(int(total * WARMUP), 1)
     return (step + 1) / warm if step < warm else 0.5 * (1 + math.cos(math.pi * (step - warm) / max(total - warm, 1)))
@@ -57,6 +61,7 @@ class Generative:
     """learns the {required, plausible} answer; only the answer's tokens carry loss."""
 
     batch_size = 8
+    chunk_size = 2
 
     def __init__(self, tokenizer, device):
         self.tokenizer, self.device = tokenizer, device
@@ -80,16 +85,20 @@ class Generative:
         encoded = [self.encode(item, rng) for item in batch]
         longest = max(len(ids) for ids, _ in encoded)
         pad = self.tokenizer.pad_token_id
-        ids = torch.tensor([row + [pad] * (longest - len(row)) for row, _ in encoded], device=self.device)
-        labels = torch.tensor([row + [-100] * (longest - len(row)) for _, row in encoded], device=self.device)
-        mask = torch.tensor([[1] * len(row) + [0] * (longest - len(row)) for row, _ in encoded], device=self.device)
-        return model(input_ids=ids, attention_mask=mask, labels=labels).loss
+        ids = torch.tensor([[pad] * (longest - len(row)) + row for row, _ in encoded], device=self.device)
+        labels = torch.tensor([[-100] * (longest - len(row)) + row for _, row in encoded], device=self.device)
+        mask = torch.tensor([[0] * (longest - len(row)) + [1] * len(row) for row, _ in encoded], device=self.device)
+        keep = longest - (labels != -100).int().argmax(dim=1).min().item() + 1
+        positions = (mask.cumsum(dim=1) - 1).clamp(min=0)
+        logits = model(input_ids=ids, attention_mask=mask, position_ids=positions, logits_to_keep=keep).logits[:, :-1]
+        return torch.nn.functional.cross_entropy(logits.reshape(-1, logits.size(-1)), labels[:, 1 - keep:].reshape(-1), ignore_index=-100)
 
 
 class Scorer:
     """learns graded yes-probabilities, as the deployed reranker reads them."""
 
     batch_size = 32
+    chunk_size = 8
 
     def __init__(self, tokenizer, device):
         self.tokenizer, self.device = tokenizer, device
@@ -120,7 +129,7 @@ def load(model_id, revision, qlora):
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     if not qlora:
-        return tokenizer, AutoModelForCausalLM.from_pretrained(model_id, revision=revision, dtype=torch.bfloat16).to("cuda")
+        return tokenizer, AutoModelForCausalLM.from_pretrained(model_id, revision=revision, dtype=torch.bfloat16, device_map="auto")
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from transformers import BitsAndBytesConfig
 
@@ -137,7 +146,7 @@ def validate(model, task, items):
     losses = []
     with torch.no_grad():
         for batch in task.batches(items, rng):
-            losses.append((task.loss(model, batch, rng).item(), len(batch)))
+            losses += [(task.loss(model, chunk, rng).item(), len(chunk)) for chunk in chunks(batch, task.chunk_size)]
     model.train()
     return sum(value * size for value, size in losses) / sum(size for _, size in losses)
 
@@ -155,6 +164,7 @@ def fit(arguments):
     total = EPOCHS * len(task.batches(train, rng))
     model.gradient_checkpointing_enable()
     model.config.use_cache = False
+    model.train()
     optimizer = torch.optim.AdamW([parameter for parameter in model.parameters() if parameter.requires_grad], lr=arguments.learning_rate)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: schedule(step, total))
     out = Path(arguments.out)
@@ -162,16 +172,17 @@ def fit(arguments):
     history, best, step = [], float("inf"), 0
     for epoch in range(EPOCHS):
         for batch in task.batches(train, rng):
-            with torch.autocast("cuda", dtype=torch.bfloat16):
-                loss = task.loss(model, batch, rng)
-            loss.backward()
+            for chunk in chunks(batch, task.chunk_size):
+                with torch.autocast("cuda", dtype=torch.bfloat16):
+                    loss = task.loss(model, chunk, rng) * len(chunk) / len(batch)
+                loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad(set_to_none=True)
             step += 1
         score = validate(model, task, validation)
-        history.append({"epoch": epoch + 1, "steps": step, "train_loss": loss.item(), "validation_loss": score})
+        history.append({"epoch": epoch + 1, "steps": step, "validation_loss": score})
         print(history[-1], flush=True)
         if score < best:
             best = score
