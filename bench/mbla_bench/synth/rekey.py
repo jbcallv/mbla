@@ -41,7 +41,7 @@ def with_issue_read(item):
     """deciding whether a changelog fixes an issue needs reading that issue (D-52)."""
     plan = item["plans"][0]
     reads = [need.replace("issue.comment", "issue.read") for need in plan if need.startswith("github:issue.comment:")]
-    return {**item, "plans": [plan + [need for need in reads if need not in plan]]}
+    return {**item, "plans": [plan + [need for need in reads if need not in plan]], "parent": item["parent"] + [need for need in reads if need not in item["parent"]]}
 
 
 def without_unnamed_folder(item):

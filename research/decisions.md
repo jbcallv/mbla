@@ -463,6 +463,6 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 
 ## D-52 · Second check revised by Joseph; two more key fixes
 - **Revision:** after the D-51 result and my note that it would fail, Joseph revised his sheet: lines 1 and 17 changed from no to yes. Both versions are kept (`joseph_fresh.csv`, `joseph_fresh_revised.csv`). Revised result: 3 of 59 no (8, 22, 51), 5.1%, exact 95% upper bound 12.6%. First answers: 5 of 59, 8.5%, upper bound 17.0%. Either way the rule, none wrong, is not met.
-- **Fixes in `synth/rekey.py`, keys only:** `changelog-compare` tasks that comment now also read the issue (8 tasks). `ci-artifact-publish` tasks drop a folder the task does not name (14 tasks). Reading of line 8 as the folder is inferred; Joseph left no note.
+- **Fixes in `synth/rekey.py`, keys only:** `changelog-compare` tasks that comment now also read the issue (8 tasks), and that read is added to what the delegator holds, so it is offered. `ci-artifact-publish` tasks drop a folder the task does not name (14 tasks). Reading of line 8 as the folder is inferred; Joseph left no note.
 - **Limit, disclosed:** these fixes came after this sample too, so the fixed keys have no measured error rate.
 - **Status:** training stays stopped until Joseph decides.
