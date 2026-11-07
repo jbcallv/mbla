@@ -277,6 +277,84 @@ methods:
       - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-0.6B/lr2e-05-seed2 --port 8309"
         health: "http://127.0.0.1:8309/health"
 
+  qwen3-8b-tuned-s0:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed0
+    endpoint: "http://127.0.0.1:8310/v1"
+    revision: lr2e-05-seed0
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.85
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed0 --port 8310 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8310/health"
+
+  qwen3-8b-tuned-s1:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed1
+    endpoint: "http://127.0.0.1:8311/v1"
+    revision: lr2e-05-seed1
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.85
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed1 --port 8311 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8311/health"
+
+  qwen3-8b-tuned-s2:
+    paradigm: generative
+    scorer: chat
+    model: /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed2
+    endpoint: "http://127.0.0.1:8312/v1"
+    revision: lr2e-05-seed2
+    extra: {chat_template_kwargs: {enable_thinking: false}}
+    seeds: [0]
+    gpus: 1
+    shared_fraction: 0.85
+    serve:
+      - command: "vllm serve /scratch/jbcall/boundclaw/bench/models/Qwen3-8B/lr2e-05-seed2 --port 8312 --max-model-len 8192 --gpu-memory-utilization 0.85 --seed 0 --structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+        health: "http://127.0.0.1:8312/health"
+
+  qwen3-reranker-8b-tuned-s0:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-8b-tuned-s0
+    endpoint: "http://127.0.0.1:8313"
+    revision: chosen-seed0
+    gpus: 1
+    shared_fraction: 0.4
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-8B/chosen-seed0 --port 8313"
+        health: "http://127.0.0.1:8313/health"
+
+  qwen3-reranker-8b-tuned-s1:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-8b-tuned-s1
+    endpoint: "http://127.0.0.1:8314"
+    revision: chosen-seed1
+    gpus: 1
+    shared_fraction: 0.4
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-8B/chosen-seed1 --port 8314"
+        health: "http://127.0.0.1:8314/health"
+
+  qwen3-reranker-8b-tuned-s2:
+    paradigm: decision
+    scorer: decision
+    model: qwen3-reranker-8b-tuned-s2
+    endpoint: "http://127.0.0.1:8315"
+    revision: chosen-seed2
+    gpus: 1
+    shared_fraction: 0.4
+    serve:
+      - command: "python serve/decision_server.py --backend qwen3-reranker --model /scratch/jbcall/boundclaw/bench/models/Qwen3-Reranker-8B/chosen-seed2 --port 8315"
+        health: "http://127.0.0.1:8315/health"
+
   qwen3-8b:
     paradigm: generative
     scorer: chat

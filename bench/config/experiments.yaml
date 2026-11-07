@@ -24,7 +24,7 @@ experiments:
     purpose: "fine-tuned helpers on the development set, a read only: nothing is chosen from it except scorer cutoffs (D-55)"
     split: dev
     inputs: [full]
-    methods: [qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2]
+    methods: [qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2, qwen3-8b-tuned-s0, qwen3-8b-tuned-s1, qwen3-8b-tuned-s2, qwen3-reranker-8b-tuned-s0, qwen3-reranker-8b-tuned-s1, qwen3-reranker-8b-tuned-s2]
 
   final:
     purpose: "final test set, run once after freezing (RQ1-RQ4; attacks (a) planted and (b) held-out styles)"

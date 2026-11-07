@@ -486,3 +486,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **First fine-tuned read (development, A-bounded, k = 3, mean of three training seeds, coverage / excess in C):** Qwen3-1.7B 86.7 / 0.051 (prompted 88.1 / 0.150); Qwen3-4B 88.6 / 0.041 (prompted 89.4 / 0.102); Reranker-0.6B tuned 93.2 / 0.061 (prompted tuned 87.3 / 0.525). Seed spread is wide: 4B coverage runs from 86.3 to 92.2. No parse failures or errors in 3,672 rows.
 - **Use of this read:** experiment `dev-tuned`, one method per training seed. Development set was not used in training, and only scorer cutoffs come from it, per section 4. It is not a final result and does not change D-54's ranking of prompted helpers.
 
+## D-56 · Two-GPU serving hangs; next runs queued
+- **Found:** 2026-11-07. Qwen3-30B failed 3 of 3 starts on the development set (engine timeout at 600s, both workers stuck after the two-GPU library, NCCL, started). gpt-oss-120b then failed its memory check on a non-zero `nvidia-smi` exit. Neither has a development result. Failed starts left three servers behind, about 700 MiB each per GPU; these were stopped. The GPU 1 to GPU 0 copy fault of D-55 was re-tested and is still present.
+- **Plan:** after Reranker-8B finishes, retry both with NCCL_P2P_DISABLE=1, which stops direct GPU-to-GPU transfer. That this was the cause of the hang is untested.
+- **Qwen3-8B fine-tuned:** all five runs finished with no failure. Validation loss for the chosen rate, 2e-5: 0.0120, 0.0081, 0.0049 by seed. 5e-6 gave 0.1007 and 1e-5 gave 0.0271.
+
