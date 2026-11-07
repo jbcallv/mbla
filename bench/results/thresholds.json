@@ -46,5 +46,29 @@
     "dev_f1": 0.9231792717086834,
     "dev_coverage": 0.9264705882352942,
     "dev_rows": 408
+  },
+  "qwen3-reranker-8b-tuned-s0": {
+    "initial": 0.3,
+    "admit": 0.1,
+    "meets_target": false,
+    "dev_f1": 0.9436041083099908,
+    "dev_coverage": 0.9338235294117647,
+    "dev_rows": 408
+  },
+  "qwen3-reranker-8b-tuned-s1": {
+    "initial": 0.7,
+    "admit": 0.15,
+    "meets_target": false,
+    "dev_f1": 0.944744008714597,
+    "dev_coverage": 0.9779411764705882,
+    "dev_rows": 408
+  },
+  "qwen3-reranker-8b-tuned-s2": {
+    "initial": 0.3,
+    "admit": 0.05,
+    "meets_target": false,
+    "dev_f1": 0.9369631185807656,
+    "dev_coverage": 0.9632352941176471,
+    "dev_rows": 408
   }
 }
