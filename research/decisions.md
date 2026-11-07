@@ -491,3 +491,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Plan:** after Reranker-8B finishes, retry both with NCCL_P2P_DISABLE=1, which stops direct GPU-to-GPU transfer. That this was the cause of the hang is untested.
 - **Qwen3-8B fine-tuned:** all five runs finished with no failure. Validation loss for the chosen rate, 2e-5: 0.0120, 0.0081, 0.0049 by seed. 5e-6 gave 0.1007 and 1e-5 gave 0.0271.
 
+
+## D-57 · Two-GPU retry failed and stopped; fine-tuned 8B read
+- **Retry:** 2026-11-07, at Joseph's request, one attempt with direct GPU transfer off and a 30-minute startup limit. Qwen3-30B loaded on both GPUs, then hung: its workers stopped responding for over 5 minutes, and one `nvidia-smi` call hung. Stopped as Joseph asked. gpt-oss-120b was not tried. Neither has a development result. This account still sees only GPUs 0 and 1.
+- **Lost time:** after the D-56 attempt, a 30B server left behind held both GPUs from about 09:20 to 19:25 UTC on 2026-11-07, and the queued scoring waited. One fine-tuned 8B seed failed on an `nvidia-smi` error and was rerun.
+- **Fine-tuned development read, now all five (mean of three seeds, coverage / excess in C, prompted in brackets):** Qwen3-1.7B 86.7 / 0.051 (88.1 / 0.150); Qwen3-4B 88.6 / 0.041 (89.4 / 0.102); Qwen3-8B 93.8 / 0.061 (93.6 / 0.123); Reranker-0.6B tuned 93.2 / 0.061 (87.3 / 0.525); Reranker-8B tuned 95.8 / 0.077 (95.6 / 0.463). Best single seed coverage 97.8 (8B seed 1, Reranker-8B seed 1). None meets 98%.
