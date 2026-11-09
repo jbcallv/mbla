@@ -62,6 +62,18 @@ experiments:
     inputs: [full]
     methods: *prompted
 
+  dev-adaptive:
+    purpose: "attack (c) on the development set: texts searched against prompted Qwen3-4B, the D-54 pick, at each query budget (D-62)"
+    items: data/attacks/dev_adaptive_qwen3-4b.jsonl
+    inputs: [full]
+    methods: [qwen3-4b]
+
+  final-adaptive:
+    purpose: "attack (c) on the final test set, searched against prompted Qwen3-4B with the settings fixed on development (D-62)"
+    items: data/attacks/test_adaptive_qwen3-4b.jsonl
+    inputs: [full]
+    methods: [qwen3-4b]
+
   fortis1:
     purpose: "external test: FORTIS task 1 (skill selection), its own grading code; cutoffs from our development set"
     items: data/external/fortis/task1.jsonl

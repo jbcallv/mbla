@@ -15,6 +15,7 @@ COVERAGE = "covered_A-bounded_k3"
 REACH = {"A-bounded": "reach_A-bounded_k3", "parent-bounded": "reach_parent-bounded_k3"}
 COIN_FLIPS = ["random-25", "random-50", "random-75"]
 UNDER_OUR_RULES = "capmas-scores"
+ADAPTIVE_BUDGET = 1000
 
 
 def per_task(experiment):
@@ -86,12 +87,20 @@ def non_inferiority(frame, method, reference_method="set-only"):
     return {"comparison": f"{method} vs {reference_method}", "coverage_difference": paired["difference"], "low": paired["low"], "high": paired["high"], "margin": -MARGIN, "preserves": paired["low"] is not None and paired["low"] > -MARGIN}
 
 
-def families(final, best, manifest=None):
+def by_budget(frame, method):
+    """attack (c): goal reachability and excess in C at each query budget, descriptive (D-62)."""
+    rows = frame[frame["method"] == method].assign(budget=lambda rows: rows["item"].str.extract(r"-q(\d+)$")[0].astype(int))
+    return rows.groupby("budget")[[REACH["A-bounded"], "excess_C"]].mean().reset_index()
+
+
+def families(final, best, manifest=None, adaptive=None):
     planted = lambda rows: rows["style"] == "planted"
     held_out = lambda rows: rows["injected"] & (rows["style"] != "planted")
     attacks = [("planted", benefit_retained(final, best, planted)), ("held-out styles", benefit_retained(final, best, held_out))]
     if manifest is not None:
         attacks.append(("inflated manifest", benefit_retained(final, best, None, manifest)))
+    if adaptive is not None:
+        attacks.append((f"adaptive, {ADAPTIVE_BUDGET} queries", benefit_retained(final, best, None, adaptive[adaptive["item"].str.endswith(f"-q{ADAPTIVE_BUDGET}")])))
     return {
         "F1 (RQ1) best helper vs set-only, excess authority in C": with_holm([compare(final, best, "set-only", "excess_C")]),
         "F2 (RQ2) A-bounded vs parent-bounded recovery": with_holm([recovery_rules(final, best, False), recovery_rules(final, best, True)]),
@@ -127,9 +136,13 @@ def main():
         print(out.read_text())
         return
     final = per_task(arguments.final)
-    manifest_tasks = Path("results/tables") / f"{arguments.final}-manifest" / "tasks.csv"
-    tests = families(final, best, per_task(f"{arguments.final}-manifest") if manifest_tasks.exists() else None)
+    optional = lambda name: per_task(name) if (Path("results/tables") / name / "tasks.csv").exists() else None
+    adaptive = optional(f"{arguments.final}-adaptive")
+    tests = families(final, best, optional(f"{arguments.final}-manifest"), adaptive)
     write_markdown(out, best, candidates, non_inferiority(final, best), tests)
+    if adaptive is not None:
+        curve = by_budget(adaptive, best)
+        (out.parent.parent / f"{arguments.final}-adaptive" / "budget.md").write_text(curve.to_markdown(index=False) + "\n")
     (out.with_suffix(".json")).write_text(json.dumps({"best": best, "candidates": candidates, "families": tests}, indent=2, default=float) + "\n")
     print(out.read_text())
 
