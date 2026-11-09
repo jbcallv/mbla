@@ -74,6 +74,14 @@ experiments:
     inputs: [full]
     methods: [qwen3-4b]
 
+  mostargate:
+    purpose: "external test: mostargate's 100 test prompts, its 15 permissions with their descriptions, graded by its own metrics; cutoffs from our development set"
+    items: data/external/mostargate/test.jsonl
+    glossary: data/external/mostargate/universe.json
+    inputs: [full]
+    seeds: [0]
+    methods: *prompted
+
   fortis1:
     purpose: "external test: FORTIS task 1 (skill selection), its own grading code; cutoffs from our development set"
     items: data/external/fortis/task1.jsonl
