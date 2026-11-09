@@ -3,6 +3,8 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from itertools import pairwise
 
+from mbla_bench.capmas import capmas_text
+
 QUESTION = "Is this permission required to complete the delegated task? Permission: "
 RERANKER_INSTRUCTION = "Decide whether the delegated task in the Query needs the permission in the Document."
 RERANKER_PREFIX = (
@@ -53,13 +55,6 @@ class Laya:
         questions = {f"c{index}": {"type": "noul", "instructions": QUESTION + candidate} for index, candidate in enumerate(candidates)}
         answers = self.agent.predict(state, questions)["answers"]
         return [float(answers[f"c{index}"]["noul"]) for index in range(len(candidates))]
-
-
-def capmas_text(candidate):
-    permission, _, meaning = candidate.partition(" (")
-    service, operation, resource = (permission.split(":", 2) + ["", ""])[:3]
-    scope = "" if resource in ("skill", "tool", "") else f" on '{resource}'"
-    return f"Using service environment '{service}', execute capacity '{operation}'{scope} to: {meaning.rstrip(')') or operation}"
 
 
 def elbow_selection(similarities, top_k, drop):

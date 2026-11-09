@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from mbla_bench import data, train
+from mbla_bench.capmas import capmas_text
 
 OUT = Path("data/external/capmas-src/semantic_scoping/data_splits/MBLA/synth")
 SEPARATOR = " Furthermore, "
@@ -14,7 +15,7 @@ def needed(item):
 
 def atoms(items):
     return [
-        {"prompt": train.describe(item["request"]), "individual_caveat": permission, "individual_description": permission}
+        {"prompt": train.describe(item["request"]), "individual_caveat": permission, "individual_description": capmas_text(permission)}
         for item in items
         for permission in needed(item)
     ]
@@ -22,7 +23,7 @@ def atoms(items):
 
 def bundles(items):
     return [
-        {"prompt": train.describe(item["request"]), "target_caveats": " ".join(needed(item)), "target_description": SEPARATOR.join(needed(item))}
+        {"prompt": train.describe(item["request"]), "target_caveats": " ".join(needed(item)), "target_description": SEPARATOR.join(map(capmas_text, needed(item)))}
         for item in items
         if needed(item)
     ]
