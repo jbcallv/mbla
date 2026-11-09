@@ -32,6 +32,24 @@ experiments:
     inputs: [full]
     methods: *prompted
 
+  final-tuned:
+    purpose: "fine-tuned helpers on the final test set (RQ5), run once; cutoffs from dev-tuned (D-58)"
+    split: test
+    inputs: [full]
+    methods: [qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2, qwen3-8b-tuned-s0, qwen3-8b-tuned-s1, qwen3-8b-tuned-s2, qwen3-reranker-8b-tuned-s0, qwen3-reranker-8b-tuned-s1, qwen3-reranker-8b-tuned-s2]
+
+  final-tuned-manifest:
+    purpose: "attack (d) on the final test set for the fine-tuned helpers (D-58)"
+    items: data/attacks/test_manifest.jsonl
+    inputs: [full]
+    methods: [qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2, qwen3-8b-tuned-s0, qwen3-8b-tuned-s1, qwen3-8b-tuned-s2, qwen3-reranker-8b-tuned-s0, qwen3-reranker-8b-tuned-s1, qwen3-reranker-8b-tuned-s2]
+
+  heldout:
+    purpose: "synthetic held-out families (RQ5): fine-tuned helpers and their prompted versions, never seen in training (D-58)"
+    items: data/tasks/synth_heldout.jsonl
+    inputs: [full]
+    methods: [qwen3-reranker-0.6b, qwen3-reranker-8b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2, qwen3-8b-tuned-s0, qwen3-8b-tuned-s1, qwen3-8b-tuned-s2, qwen3-reranker-8b-tuned-s0, qwen3-reranker-8b-tuned-s1, qwen3-reranker-8b-tuned-s2]
+
   dev-manifest:
     purpose: "attack (d) on the development set: the operator's signed manifest lists the attack's target (make attack-data)"
     items: data/attacks/dev_manifest.jsonl

@@ -47,8 +47,13 @@ def wait_until_healthy(url, process):
 
 
 def gpu_memory_used_mib(gpu_id):
+    """inside a lease of the gpu tool the card is ours alone, and nvidia-smi can fail there (D-58): count that as idle."""
     query = ["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits", "-i", gpu_id]
-    return int(subprocess.run(query, capture_output=True, text=True, check=True).stdout.strip())
+    try:
+        return int(subprocess.run(query, capture_output=True, text=True, check=True, timeout=60).stdout.strip())
+    except (subprocess.SubprocessError, ValueError):
+        print(f"nvidia-smi failed on gpu {gpu_id}; treating it as idle", flush=True)
+        return 0
 
 
 def gpu_memory_mib(gpu_id, field):
