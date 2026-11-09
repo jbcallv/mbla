@@ -1,5 +1,7 @@
 """retrain CAPMAS on our synthetic train split with its own train.py and paper settings (D-20, §7). only the base
-encoder, the seed and the run name change. checkpoint chosen by their own rule on our synthetic validation split."""
+encoder, the seed and the run name change. checkpoint chosen by their own rule on our synthetic validation split.
+encoders load in float32, as bge-large does by default: their trainer's fp16 gradient scaler needs float32 weights,
+and Qwen3-Embedding otherwise loads in bfloat16."""
 
 import argparse
 import os
@@ -30,8 +32,12 @@ def main():
     arguments = parser.parse_args()
     os.chdir(SOURCE)
     sys.path.insert(0, str(SOURCE))
+    import torch
     import train
+    import transformers
 
+    loader = transformers.AutoModel.from_pretrained
+    transformers.AutoModel.from_pretrained = lambda *args, **kwargs: loader(*args, **{"dtype": torch.float32, **kwargs})
     original = train.set_seed
     train.set_seed = lambda _: original(arguments.seed)
     train.train_pipeline(config(arguments.encoder, arguments.seed))

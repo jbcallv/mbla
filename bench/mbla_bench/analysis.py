@@ -97,12 +97,6 @@ def non_inferiority(frame, method, reference_method="set-only"):
     return {"comparison": f"{method} vs {reference_method}", "coverage_difference": paired["difference"], "low": paired["low"], "high": paired["high"], "margin": -MARGIN, "preserves": paired["low"] is not None and paired["low"] > -MARGIN}
 
 
-def by_budget(frame, method):
-    """attack (c): goal reachability and excess in C at each query budget, descriptive (D-62)."""
-    rows = frame[frame["method"] == method].assign(budget=lambda rows: rows["item"].str.extract(r"-q(\d+)$")[0].astype(int))
-    return rows.groupby("budget")[[REACH["A-bounded"], "excess_C"]].mean().reset_index()
-
-
 def families(final, best, manifest=None, adaptive=None):
     planted = lambda rows: rows["style"] == "planted"
     held_out = lambda rows: rows["injected"] & (rows["style"] != "planted")
@@ -153,9 +147,7 @@ def main():
     adaptive = optional(f"{arguments.final}-adaptive")
     tests = families(final, best, optional(f"{arguments.final}-manifest"), adaptive)
     write_markdown(out, best, candidates, non_inferiority(final, best), tests)
-    if adaptive is not None:
-        curve = by_budget(adaptive, best)
-        (out.parent.parent / f"{arguments.final}-adaptive" / "budget.md").write_text(curve.to_markdown(index=False) + "\n")
+
     (out.with_suffix(".json")).write_text(json.dumps({"best": best, "candidates": candidates, "families": tests}, indent=2, default=float) + "\n")
     print(out.read_text())
 
