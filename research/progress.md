@@ -5,16 +5,16 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 
 ## Waiting on people
 
+Open as of 2026-11-09. Older items (labeling, reviews, first GPU access) are closed; see the decisions log.
+
 | # | What | Who | Since | Blocks |
 |---|---|---|---|---|
-| H1 | Approve the labeling guide (`research/labeling_guide.md`) before anyone labels | Joseph (advisor if wanted) | 2026-10-30 | H2, H4 |
-| H2 | Development-set review: plans, new candidate rows, attack goals (`bench/data/review/dev/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 | tuning cutoffs, choosing the best helper on final labels |
-| H3 | Confirm the build output bucket `{owner}-builds` (A-11) with BoundClaw | Joseph → BoundClaw | 2026-10-30 | nothing (easy to change) |
-| H4 | Label the final test set blind: candidates and goals first, then correct the draft plans (`bench/data/review/test/*_alvi.csv`, `*_joseph.csv`) | Alvi, Joseph | 2026-10-30 (after H1) | freeze, final runs |
-| H6 | GPU access on `ams1`: since 2026-11-03 jbcall has device 1 (one L40S, 46 GB). Devices 0, 2 and 3 are reserved for other users. Enough for every helper that fits one GPU; gpt-oss-120b and Qwen3-30B are configured for 2 GPUs and need more, or a smaller setup checked first. Do not touch the reservations | Joseph → admins | 2026-10-30 | gpt-oss-120b and Qwen3-30B runs; latency on the reported configuration |
-| H7 | (Text outdated: no wrapper is needed, the helper's own interface carries per-candidate scorers; to confirm in the BoundClaw package.) Decide how per-candidate scorers relate to BoundClaw's adapter (D-33: restrict best helper to chat helpers, or ship a chat-compatible wrapper); confirm gpt-oss-120b as offline reference only | Joseph | 2026-11-02 | best-helper rule (no runs blocked) |
-| H8 | Ask BoundClaw: their adapter's candidate list has no narrower grants for named resources (`mbla.Candidates` adds them); will the adapter supply named resources, or do we drop narrowing? Also tell them: update to the current `mbla`, `clone()` must copy `DecisionModel`, CAPMAS stays offline | Joseph → BoundClaw | 2026-11-02 | candidate list on broad tasks; the review sheets' narrower rows |
-| H5 | After H2 and H4 are adjudicated: confirm 10% of carried tasks (`make label-check SPLIT=dev`, `SPLIT=test`) | one reviewer | – | freeze |
+| J1 | GPUs for Qwen3-30B and gpt-oss-120b: cards 0+1 fault on transfers between them (D-55 to D-57). Ask for cards 2+3 (same NUMA side, other link) in place of 0+1 once our runs finish; run the copy test first. `gpu status`: cap 2 per person, 2 and 3 leased by Zaiyu Cheng | Joseph → admins | 2026-11-09 | 30B, gpt-oss-120b |
+| J2 | Qwen3-30B on one card in FP8 (disclosed precision change), if no working pair | Joseph | 2026-11-09 | 30B fallback |
+| J3 | Review the adaptive attacker's design (D-62), then "go" for its final-test run | Joseph | 2026-11-09 | attack (c) on the final test, F4 |
+| J4 | Answer order (D-64): option (b) chosen, a development-only check; after it, decide (a) disclose or (c) retrain | Joseph | 2026-11-09 | fine-tuned results' reading |
+| J5 | What the security team receives: prompted Qwen3-4B (recommended) or fine-tuned Qwen3-4B seed 2 (D-59, D-60) | Joseph | 2026-11-09 | BoundClaw package |
+| J6 | Ask BoundClaw whether their adapter also sends the schema with keys sorted (plausible first) (D-64) | Joseph → BoundClaw | 2026-11-09 | reading of D-64 |
 
 ## Order of work (§10)
 
