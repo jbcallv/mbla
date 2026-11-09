@@ -22,7 +22,7 @@ SUFFIX_TOKENS = 20
 BUDGETS = (0, 10, 30, 100, 300, 1000)
 BATCH = 16
 OUTPUT_TOKENS = 1024
-INDEX_TOKENS = [str(digit) for digit in range(10)] + [",", "]", "],\"", "]}"]
+INDEX_TOKENS = [str(digit) for digit in range(10)] + [",", " ", "],", "]}"]
 
 
 def targets(item):
@@ -74,7 +74,8 @@ class Helper:
         return (-restricted.gather(-1, chosen).squeeze(-1) * scored).sum(1).tolist()
 
     def answer(self, request, permissions):
-        """one call to the deployed helper, with the body of mbla's ChatModel.requestBody."""
+        """one call to the deployed helper, with the body of mbla's ChatModel.requestBody. Go sorts map keys, so the
+        schema lists plausible before required, and the server's grammar makes the helper answer in that order."""
         index = {"type": "integer", "minimum": 0, "maximum": len(permissions) - 1}
         array = {"type": "array", "items": index, "maxItems": len(permissions)}
         schema = {"type": "object", "properties": {"required": array, "plausible": array}, "required": ["required", "plausible"], "additionalProperties": False}
@@ -84,7 +85,7 @@ class Helper:
             "response_format": {"type": "json_schema", "json_schema": {"name": "permissions", "strict": True, "schema": schema}},
             "chat_template_kwargs": {"enable_thinking": False},
         }
-        call = urllib.request.Request(f"{self.endpoint}/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"})
+        call = urllib.request.Request(f"{self.endpoint}/chat/completions", json.dumps(body, sort_keys=True).encode(), {"Content-Type": "application/json"})
         with urllib.request.urlopen(call, timeout=45) as response:
             return json.load(response)["choices"][0]["message"]["content"]
 
@@ -107,7 +108,7 @@ def wanted(raw, indices):
         selection = {"required": [], "plausible": []}
     required = sorted(set(selection.get("required", [])) | set(indices))
     plausible = [index for index in selection.get("plausible", []) if index not in required]
-    return json.dumps({"required": required, "plausible": plausible}, separators=(",", ":"))
+    return json.dumps({"plausible": plausible, "required": required})
 
 
 def mutated(tokens, vocabulary, changes, rng):
