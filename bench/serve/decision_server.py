@@ -1,9 +1,12 @@
 import argparse
 import json
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from itertools import pairwise
+from pathlib import Path
 
-from mbla_bench.capmas import capmas_text
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from mbla_bench.capmas import capmas_text  # noqa: E402
 
 QUESTION = "Is this permission required to complete the delegated task? Permission: "
 RERANKER_INSTRUCTION = "Decide whether the delegated task in the Query needs the permission in the Document."
