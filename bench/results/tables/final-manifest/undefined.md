@@ -1,0 +1,8 @@
+| metric             |   undefined_tasks |   tasks |
+|:-------------------|------------------:|--------:|
+| excess_C           |                 0 |      84 |
+| missing_C          |                 0 |      84 |
+| excess_plain       |                52 |      84 |
+| excess_D           |                48 |      84 |
+| missing_D          |                80 |      84 |
+| reach_A-bounded_k3 |                 0 |      84 |

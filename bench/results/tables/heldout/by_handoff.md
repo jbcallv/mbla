@@ -1,0 +1,86 @@
+| method                                 | handoff    |   coverage |   excess_C |   reach_A |   rejected |
+|:---------------------------------------|:-----------|-----------:|-----------:|----------:|-----------:|
+| qwen3-1.7b                             | bc1-triage |      0.907 |      0.13  |     0.734 |      0     |
+| qwen3-1.7b                             | bc2-build  |      0.739 |    nan     |     0.188 |      0     |
+| qwen3-1.7b                             | bc3-slack  |      0.962 |      0.346 |     0.77  |      0.023 |
+| qwen3-1.7b-tuned-s0                    | bc1-triage |      0.814 |      0.041 |     0.055 |      0     |
+| qwen3-1.7b-tuned-s0                    | bc2-build  |      0.928 |    nan     |     0.036 |      0     |
+| qwen3-1.7b-tuned-s0                    | bc3-slack  |      0.727 |      0.007 |     0.043 |      0     |
+| qwen3-1.7b-tuned-s1                    | bc1-triage |      0.814 |      0.045 |     0.114 |      0     |
+| qwen3-1.7b-tuned-s1                    | bc2-build  |      0.841 |    nan     |     0.051 |      0     |
+| qwen3-1.7b-tuned-s1                    | bc3-slack  |      0.841 |      0.009 |     0.037 |      0     |
+| qwen3-1.7b-tuned-s2                    | bc1-triage |      0.872 |      0.035 |     0.089 |      0     |
+| qwen3-1.7b-tuned-s2                    | bc2-build  |      0.957 |    nan     |     0.014 |      0     |
+| qwen3-1.7b-tuned-s2                    | bc3-slack  |      0.795 |      0.018 |     0.06  |      0     |
+| qwen3-4b                               | bc1-triage |      0.895 |      0.124 |     0.461 |      0     |
+| qwen3-4b                               | bc2-build  |      0.899 |    nan     |     0.386 |      0     |
+| qwen3-4b                               | bc3-slack  |      0.932 |      0.118 |     0.281 |      0     |
+| qwen3-4b-tuned-s0                      | bc1-triage |      0.733 |      0.032 |     0.399 |      0     |
+| qwen3-4b-tuned-s0                      | bc2-build  |      0.957 |    nan     |     0.022 |      0     |
+| qwen3-4b-tuned-s0                      | bc3-slack  |      0.932 |      0.004 |     0.101 |      0     |
+| qwen3-4b-tuned-s1                      | bc1-triage |      0.802 |      0.049 |     0.333 |      0     |
+| qwen3-4b-tuned-s1                      | bc2-build  |      0.957 |    nan     |     0.065 |      0     |
+| qwen3-4b-tuned-s1                      | bc3-slack  |      0.977 |      0     |     0.072 |      0     |
+| qwen3-4b-tuned-s2                      | bc1-triage |      0.767 |      0.032 |     0.471 |      0     |
+| qwen3-4b-tuned-s2                      | bc2-build  |      0.942 |    nan     |     0.022 |      0     |
+| qwen3-4b-tuned-s2                      | bc3-slack  |      0.977 |      0     |     0.113 |      0     |
+| qwen3-8b                               | bc1-triage |      0.977 |      0.195 |     0.485 |      0     |
+| qwen3-8b                               | bc2-build  |      0.986 |    nan     |     0.457 |      0     |
+| qwen3-8b                               | bc3-slack  |      0.955 |      0.15  |     0.424 |      0.023 |
+| qwen3-8b-tuned-s0                      | bc1-triage |      0.895 |      0.04  |     0.074 |      0     |
+| qwen3-8b-tuned-s0                      | bc2-build  |      0.986 |    nan     |     0.029 |      0     |
+| qwen3-8b-tuned-s0                      | bc3-slack  |      0.977 |      0     |     0.013 |      0     |
+| qwen3-8b-tuned-s1                      | bc1-triage |      0.814 |      0.041 |     0.05  |      0     |
+| qwen3-8b-tuned-s1                      | bc2-build  |      0.986 |    nan     |     0.007 |      0     |
+| qwen3-8b-tuned-s1                      | bc3-slack  |      0.955 |      0.001 |     0.002 |      0     |
+| qwen3-8b-tuned-s2                      | bc1-triage |      0.953 |      0.07  |     0.225 |      0     |
+| qwen3-8b-tuned-s2                      | bc2-build  |      0.971 |    nan     |     0.036 |      0     |
+| qwen3-8b-tuned-s2                      | bc3-slack  |      0.977 |      0.001 |     0.131 |      0     |
+| qwen3-reranker-0.6b                    | bc1-triage |      0.756 |      0.497 |     0.8   |      0     |
+| qwen3-reranker-0.6b                    | bc2-build  |      0.087 |    nan     |     0.196 |      0     |
+| qwen3-reranker-0.6b                    | bc3-slack  |      0.841 |      0.463 |     0.679 |      0.023 |
+| qwen3-reranker-0.6b (untuned)          | bc1-triage |      0.756 |      0.773 |     0.8   |      0     |
+| qwen3-reranker-0.6b (untuned)          | bc2-build  |      0.478 |    nan     |     0.29  |      0     |
+| qwen3-reranker-0.6b (untuned)          | bc3-slack  |      0.841 |      0.69  |     0.679 |      0.023 |
+| qwen3-reranker-0.6b-tuned-s0           | bc1-triage |      0.965 |      0.069 |     0.056 |      0     |
+| qwen3-reranker-0.6b-tuned-s0           | bc2-build  |      0.928 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s0           | bc3-slack  |      0.955 |      0.034 |     0.069 |      0     |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) | bc1-triage |      0.779 |      0.069 |     0.05  |      0     |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) | bc2-build  |      0.928 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) | bc3-slack  |      0.909 |      0.034 |     0.05  |      0     |
+| qwen3-reranker-0.6b-tuned-s1           | bc1-triage |      0.953 |      0.062 |     0.052 |      0     |
+| qwen3-reranker-0.6b-tuned-s1           | bc2-build  |      0.855 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s1           | bc3-slack  |      0.886 |      0.026 |     0.063 |      0     |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) | bc1-triage |      0.93  |      0.063 |     0.052 |      0     |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) | bc2-build  |      0.855 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) | bc3-slack  |      0.886 |      0.03  |     0.045 |      0     |
+| qwen3-reranker-0.6b-tuned-s2           | bc1-triage |      0.826 |      0.054 |     0.044 |      0     |
+| qwen3-reranker-0.6b-tuned-s2           | bc2-build  |      0.942 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s2           | bc3-slack  |      0.841 |      0.018 |     0.028 |      0     |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) | bc1-triage |      0.872 |      0.061 |     0.049 |      0     |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) | bc2-build  |      0.942 |    nan     |     0     |      0     |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) | bc3-slack  |      0.909 |      0.025 |     0.042 |      0     |
+| qwen3-reranker-8b                      | bc1-triage |      0.977 |      0.532 |     0.738 |      0     |
+| qwen3-reranker-8b                      | bc2-build  |      0.522 |    nan     |     0.428 |      0     |
+| qwen3-reranker-8b                      | bc3-slack  |      0.955 |      0.322 |     0.702 |      0.023 |
+| qwen3-reranker-8b (untuned)            | bc1-triage |      0.895 |      0.666 |     0.653 |      0     |
+| qwen3-reranker-8b (untuned)            | bc2-build  |      0.826 |    nan     |     0.507 |      0     |
+| qwen3-reranker-8b (untuned)            | bc3-slack  |      0.932 |      0.585 |     0.6   |      0.023 |
+| qwen3-reranker-8b-tuned-s0             | bc1-triage |      0.837 |      0.015 |     0.01  |      0     |
+| qwen3-reranker-8b-tuned-s0             | bc2-build  |      0.942 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s0             | bc3-slack  |      0.841 |      0.001 |     0.002 |      0     |
+| qwen3-reranker-8b-tuned-s0 (untuned)   | bc1-triage |      0.744 |      0.008 |     0.003 |      0     |
+| qwen3-reranker-8b-tuned-s0 (untuned)   | bc2-build  |      0.942 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s0 (untuned)   | bc3-slack  |      0.818 |      0.001 |     0.002 |      0     |
+| qwen3-reranker-8b-tuned-s1             | bc1-triage |      0.942 |      0.054 |     0.051 |      0     |
+| qwen3-reranker-8b-tuned-s1             | bc2-build  |      0.913 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s1             | bc3-slack  |      0.977 |      0     |     0.002 |      0     |
+| qwen3-reranker-8b-tuned-s1 (untuned)   | bc1-triage |      0.907 |      0.06  |     0.047 |      0     |
+| qwen3-reranker-8b-tuned-s1 (untuned)   | bc2-build  |      0.928 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s1 (untuned)   | bc3-slack  |      0.955 |      0     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s2             | bc1-triage |      0.942 |      0.049 |     0.034 |      0     |
+| qwen3-reranker-8b-tuned-s2             | bc2-build  |      0.942 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s2             | bc3-slack  |      0.841 |      0.002 |     0.003 |      0     |
+| qwen3-reranker-8b-tuned-s2 (untuned)   | bc1-triage |      0.895 |      0.045 |     0.032 |      0     |
+| qwen3-reranker-8b-tuned-s2 (untuned)   | bc2-build  |      0.928 |    nan     |     0     |      0     |
+| qwen3-reranker-8b-tuned-s2 (untuned)   | bc3-slack  |      0.818 |      0.002 |     0.003 |      0     |

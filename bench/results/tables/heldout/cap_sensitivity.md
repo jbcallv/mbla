@@ -1,0 +1,114 @@
+| method                                 |   k |   coverage_A-bounded |   reach_A-bounded |   coverage_parent-bounded |   reach_parent-bounded |
+|:---------------------------------------|----:|---------------------:|------------------:|--------------------------:|-----------------------:|
+| qwen3-1.7b                             |   0 |                0.333 |             0.204 |                     0.333 |                  0.204 |
+| qwen3-1.7b                             |   1 |                0.642 |             0.553 |                     0.705 |                  0.736 |
+| qwen3-1.7b                             |   3 |                0.861 |             0.553 |                     0.93  |                  0.736 |
+| qwen3-1.7b                             |   5 |                0.861 |             0.553 |                     0.93  |                  0.736 |
+| qwen3-1.7b-tuned-s0                    |   0 |                0.734 |             0.031 |                     0.734 |                  0.031 |
+| qwen3-1.7b-tuned-s0                    |   1 |                0.824 |             0.046 |                     0.96  |                  0.695 |
+| qwen3-1.7b-tuned-s0                    |   3 |                0.834 |             0.046 |                     0.975 |                  0.695 |
+| qwen3-1.7b-tuned-s0                    |   5 |                0.834 |             0.046 |                     0.975 |                  0.695 |
+| qwen3-1.7b-tuned-s1                    |   0 |                0.593 |             0.044 |                     0.593 |                  0.044 |
+| qwen3-1.7b-tuned-s1                    |   1 |                0.804 |             0.075 |                     0.915 |                  0.7   |
+| qwen3-1.7b-tuned-s1                    |   3 |                0.829 |             0.075 |                     0.945 |                  0.7   |
+| qwen3-1.7b-tuned-s1                    |   5 |                0.829 |             0.075 |                     0.945 |                  0.7   |
+| qwen3-1.7b-tuned-s2                    |   0 |                0.794 |             0.03  |                     0.794 |                  0.03  |
+| qwen3-1.7b-tuned-s2                    |   1 |                0.884 |             0.057 |                     0.985 |                  0.69  |
+| qwen3-1.7b-tuned-s2                    |   3 |                0.884 |             0.057 |                     0.985 |                  0.69  |
+| qwen3-1.7b-tuned-s2                    |   5 |                0.884 |             0.057 |                     0.985 |                  0.69  |
+| qwen3-4b                               |   0 |                0.623 |             0.221 |                     0.623 |                  0.221 |
+| qwen3-4b                               |   1 |                0.868 |             0.395 |                     0.908 |                  0.811 |
+| qwen3-4b                               |   3 |                0.905 |             0.395 |                     0.965 |                  0.811 |
+| qwen3-4b                               |   5 |                0.905 |             0.395 |                     0.965 |                  0.811 |
+| qwen3-4b-tuned-s0                      |   0 |                0.764 |             0.025 |                     0.764 |                  0.025 |
+| qwen3-4b-tuned-s0                      |   1 |                0.854 |             0.202 |                     0.985 |                  0.698 |
+| qwen3-4b-tuned-s0                      |   3 |                0.854 |             0.202 |                     0.985 |                  0.698 |
+| qwen3-4b-tuned-s0                      |   5 |                0.854 |             0.202 |                     0.985 |                  0.698 |
+| qwen3-4b-tuned-s1                      |   0 |                0.824 |             0.04  |                     0.824 |                  0.04  |
+| qwen3-4b-tuned-s1                      |   1 |                0.894 |             0.182 |                     0.98  |                  0.7   |
+| qwen3-4b-tuned-s1                      |   3 |                0.894 |             0.182 |                     0.985 |                  0.7   |
+| qwen3-4b-tuned-s1                      |   5 |                0.894 |             0.182 |                     0.985 |                  0.7   |
+| qwen3-4b-tuned-s2                      |   0 |                0.744 |             0.019 |                     0.744 |                  0.019 |
+| qwen3-4b-tuned-s2                      |   1 |                0.874 |             0.236 |                     0.98  |                  0.69  |
+| qwen3-4b-tuned-s2                      |   3 |                0.874 |             0.236 |                     0.98  |                  0.69  |
+| qwen3-4b-tuned-s2                      |   5 |                0.874 |             0.236 |                     0.98  |                  0.69  |
+| qwen3-8b                               |   0 |                0.749 |             0.299 |                     0.749 |                  0.299 |
+| qwen3-8b                               |   1 |                0.96  |             0.462 |                     0.97  |                  0.836 |
+| qwen3-8b                               |   3 |                0.975 |             0.462 |                     0.99  |                  0.836 |
+| qwen3-8b                               |   5 |                0.975 |             0.462 |                     0.99  |                  0.836 |
+| qwen3-8b-tuned-s0                      |   0 |                0.884 |             0.017 |                     0.884 |                  0.017 |
+| qwen3-8b-tuned-s0                      |   1 |                0.945 |             0.045 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s0                      |   3 |                0.945 |             0.045 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s0                      |   5 |                0.945 |             0.045 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s1                      |   0 |                0.819 |             0.017 |                     0.819 |                  0.017 |
+| qwen3-8b-tuned-s1                      |   1 |                0.905 |             0.024 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s1                      |   3 |                0.905 |             0.024 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s1                      |   5 |                0.905 |             0.024 |                     0.995 |                  0.69  |
+| qwen3-8b-tuned-s2                      |   0 |                0.834 |             0.032 |                     0.834 |                  0.032 |
+| qwen3-8b-tuned-s2                      |   1 |                0.965 |             0.139 |                     0.99  |                  0.693 |
+| qwen3-8b-tuned-s2                      |   3 |                0.965 |             0.139 |                     0.99  |                  0.693 |
+| qwen3-8b-tuned-s2                      |   5 |                0.965 |             0.139 |                     0.99  |                  0.693 |
+| qwen3-reranker-0.6b                    |   0 |                0.417 |             0.407 |                     0.417 |                  0.407 |
+| qwen3-reranker-0.6b                    |   1 |                0.513 |             0.564 |                     0.623 |                  0.741 |
+| qwen3-reranker-0.6b                    |   3 |                0.543 |             0.564 |                     0.678 |                  0.741 |
+| qwen3-reranker-0.6b                    |   5 |                0.543 |             0.564 |                     0.678 |                  0.741 |
+| qwen3-reranker-0.6b (untuned)          |   0 |                0.678 |             0.597 |                     0.678 |                  0.597 |
+| qwen3-reranker-0.6b (untuned)          |   1 |                0.678 |             0.597 |                     0.839 |                  0.773 |
+| qwen3-reranker-0.6b (untuned)          |   3 |                0.678 |             0.597 |                     0.844 |                  0.773 |
+| qwen3-reranker-0.6b (untuned)          |   5 |                0.678 |             0.597 |                     0.844 |                  0.773 |
+| qwen3-reranker-0.6b-tuned-s0           |   0 |                0.884 |             0.033 |                     0.884 |                  0.033 |
+| qwen3-reranker-0.6b-tuned-s0           |   1 |                0.95  |             0.04  |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s0           |   3 |                0.95  |             0.04  |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s0           |   5 |                0.95  |             0.04  |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) |   0 |                0.859 |             0.033 |                     0.859 |                  0.033 |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) |   1 |                0.859 |             0.033 |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) |   3 |                0.859 |             0.033 |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s0 (untuned) |   5 |                0.859 |             0.033 |                     0.975 |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1           |   0 |                0.854 |             0.031 |                     0.854 |                  0.031 |
+| qwen3-reranker-0.6b-tuned-s1           |   1 |                0.905 |             0.037 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1           |   3 |                0.905 |             0.037 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1           |   5 |                0.905 |             0.037 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) |   0 |                0.894 |             0.033 |                     0.894 |                  0.033 |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) |   1 |                0.894 |             0.033 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) |   3 |                0.894 |             0.033 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s1 (untuned) |   5 |                0.894 |             0.033 |                     0.95  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2           |   0 |                0.869 |             0.025 |                     0.869 |                  0.025 |
+| qwen3-reranker-0.6b-tuned-s2           |   1 |                0.869 |             0.025 |                     0.98  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2           |   3 |                0.869 |             0.025 |                     0.98  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2           |   5 |                0.869 |             0.025 |                     0.98  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) |   0 |                0.905 |             0.031 |                     0.905 |                  0.031 |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) |   1 |                0.905 |             0.031 |                     0.98  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) |   3 |                0.905 |             0.031 |                     0.98  |                  0.69  |
+| qwen3-reranker-0.6b-tuned-s2 (untuned) |   5 |                0.905 |             0.031 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b                      |   0 |                0.658 |             0.444 |                     0.658 |                  0.444 |
+| qwen3-reranker-8b                      |   1 |                0.799 |             0.622 |                     0.839 |                  0.821 |
+| qwen3-reranker-8b                      |   3 |                0.814 |             0.622 |                     0.854 |                  0.821 |
+| qwen3-reranker-8b                      |   5 |                0.814 |             0.622 |                     0.854 |                  0.821 |
+| qwen3-reranker-8b (untuned)            |   0 |                0.879 |             0.591 |                     0.879 |                  0.591 |
+| qwen3-reranker-8b (untuned)            |   1 |                0.879 |             0.591 |                     0.98  |                  0.851 |
+| qwen3-reranker-8b (untuned)            |   3 |                0.879 |             0.591 |                     0.98  |                  0.851 |
+| qwen3-reranker-8b (untuned)            |   5 |                0.879 |             0.591 |                     0.98  |                  0.851 |
+| qwen3-reranker-8b-tuned-s0             |   0 |                0.849 |             0.004 |                     0.849 |                  0.004 |
+| qwen3-reranker-8b-tuned-s0             |   1 |                0.874 |             0.004 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s0             |   3 |                0.874 |             0.004 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s0             |   5 |                0.874 |             0.004 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s0 (untuned)   |   0 |                0.829 |             0.002 |                     0.829 |                  0.002 |
+| qwen3-reranker-8b-tuned-s0 (untuned)   |   1 |                0.829 |             0.002 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s0 (untuned)   |   3 |                0.829 |             0.002 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s0 (untuned)   |   5 |                0.829 |             0.002 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s1             |   0 |                0.894 |             0.02  |                     0.894 |                  0.02  |
+| qwen3-reranker-8b-tuned-s1             |   1 |                0.94  |             0.022 |                     0.97  |                  0.69  |
+| qwen3-reranker-8b-tuned-s1             |   3 |                0.94  |             0.022 |                     0.97  |                  0.69  |
+| qwen3-reranker-8b-tuned-s1             |   5 |                0.94  |             0.022 |                     0.97  |                  0.69  |
+| qwen3-reranker-8b-tuned-s1 (untuned)   |   0 |                0.925 |             0.02  |                     0.925 |                  0.02  |
+| qwen3-reranker-8b-tuned-s1 (untuned)   |   1 |                0.925 |             0.02  |                     0.975 |                  0.69  |
+| qwen3-reranker-8b-tuned-s1 (untuned)   |   3 |                0.925 |             0.02  |                     0.975 |                  0.69  |
+| qwen3-reranker-8b-tuned-s1 (untuned)   |   5 |                0.925 |             0.02  |                     0.975 |                  0.69  |
+| qwen3-reranker-8b-tuned-s2             |   0 |                0.91  |             0.015 |                     0.91  |                  0.015 |
+| qwen3-reranker-8b-tuned-s2             |   1 |                0.92  |             0.015 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s2             |   3 |                0.92  |             0.015 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s2             |   5 |                0.92  |             0.015 |                     0.98  |                  0.69  |
+| qwen3-reranker-8b-tuned-s2 (untuned)   |   0 |                0.889 |             0.015 |                     0.889 |                  0.015 |
+| qwen3-reranker-8b-tuned-s2 (untuned)   |   1 |                0.889 |             0.015 |                     0.975 |                  0.69  |
+| qwen3-reranker-8b-tuned-s2 (untuned)   |   3 |                0.889 |             0.015 |                     0.975 |                  0.69  |
+| qwen3-reranker-8b-tuned-s2 (untuned)   |   5 |                0.889 |             0.015 |                     0.975 |                  0.69  |

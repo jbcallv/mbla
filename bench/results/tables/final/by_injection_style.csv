@@ -1,0 +1,97 @@
+method,style,coverage,excess_C,reach_A,rejected
+capmas,ignore_previous,0.917,0.805,0.778,0.0
+capmas,important_instructions,0.667,0.875,0.685,0.167
+capmas,injecagent,0.917,0.938,0.833,0.083
+capmas,none,0.948,0.919,0.861,0.0
+capmas,planted,0.938,0.896,0.873,0.0
+capmas,system_message,1.0,0.959,0.892,0.0
+capmas-scores,ignore_previous,0.75,0.676,0.889,0.0
+capmas-scores,important_instructions,0.917,0.645,0.87,0.0
+capmas-scores,injecagent,0.917,0.924,0.924,0.0
+capmas-scores,none,0.969,0.719,0.893,0.0
+capmas-scores,planted,1.0,0.799,0.915,0.0
+capmas-scores,system_message,1.0,0.74,0.817,0.0
+capmas-scores (untuned),ignore_previous,0.333,0.393,0.403,0.0
+capmas-scores (untuned),important_instructions,0.083,0.455,0.444,0.0
+capmas-scores (untuned),injecagent,0.417,0.511,0.455,0.0
+capmas-scores (untuned),none,0.406,0.449,0.452,0.0
+capmas-scores (untuned),planted,0.312,0.545,0.589,0.0
+capmas-scores (untuned),system_message,0.25,0.385,0.325,0.0
+lexical,ignore_previous,0.917,0.806,0.847,0.0
+lexical,important_instructions,0.833,0.762,0.898,0.0
+lexical,injecagent,0.833,0.895,0.864,0.0
+lexical,none,0.875,0.585,0.417,0.0
+lexical,planted,0.875,0.783,0.837,0.0
+lexical,system_message,0.917,0.655,0.767,0.0
+manifest-only,ignore_previous,0.25,0.092,0.0,0.0
+manifest-only,important_instructions,0.25,0.116,0.0,0.0
+manifest-only,injecagent,0.25,0.122,0.0,0.0
+manifest-only,none,0.25,0.107,0.0,0.0
+manifest-only,planted,0.25,0.107,0.0,0.0
+manifest-only,system_message,0.25,0.086,0.0,0.0
+qwen3-1.7b,ignore_previous,0.917,0.336,0.639,0.083
+qwen3-1.7b,important_instructions,0.75,0.177,0.593,0.083
+qwen3-1.7b,injecagent,0.722,0.342,0.591,0.083
+qwen3-1.7b,none,0.896,0.218,0.474,0.0
+qwen3-1.7b,planted,0.771,0.249,0.603,0.021
+qwen3-1.7b,system_message,0.833,0.186,0.7,0.0
+qwen3-4b,ignore_previous,1.0,0.288,0.653,0.0
+qwen3-4b,important_instructions,0.917,0.217,0.676,0.0
+qwen3-4b,injecagent,1.0,0.361,0.712,0.0
+qwen3-4b,none,0.958,0.151,0.287,0.0
+qwen3-4b,planted,0.882,0.22,0.643,0.0
+qwen3-4b,system_message,1.0,0.336,0.458,0.0
+qwen3-8b,ignore_previous,0.917,0.274,0.819,0.0
+qwen3-8b,important_instructions,0.889,0.31,0.759,0.0
+qwen3-8b,injecagent,1.0,0.454,0.712,0.0
+qwen3-8b,none,0.948,0.205,0.346,0.0
+qwen3-8b,planted,0.938,0.383,0.718,0.0
+qwen3-8b,system_message,1.0,0.314,0.458,0.0
+qwen3-reranker-0.6b,ignore_previous,0.75,0.622,0.681,0.0
+qwen3-reranker-0.6b,important_instructions,0.75,0.582,0.843,0.0
+qwen3-reranker-0.6b,injecagent,0.75,0.62,0.833,0.0
+qwen3-reranker-0.6b,none,0.844,0.458,0.604,0.0
+qwen3-reranker-0.6b,planted,0.875,0.645,0.756,0.0
+qwen3-reranker-0.6b,system_message,0.833,0.486,0.608,0.0
+qwen3-reranker-0.6b (untuned),ignore_previous,0.75,0.772,0.722,0.0
+qwen3-reranker-0.6b (untuned),important_instructions,0.833,0.739,0.843,0.0
+qwen3-reranker-0.6b (untuned),injecagent,0.833,0.868,0.833,0.0
+qwen3-reranker-0.6b (untuned),none,0.854,0.676,0.604,0.0
+qwen3-reranker-0.6b (untuned),planted,0.875,0.771,0.768,0.0
+qwen3-reranker-0.6b (untuned),system_message,0.833,0.659,0.608,0.0
+qwen3-reranker-8b,ignore_previous,1.0,0.672,0.847,0.0
+qwen3-reranker-8b,important_instructions,1.0,0.586,0.796,0.0
+qwen3-reranker-8b,injecagent,1.0,0.616,0.742,0.0
+qwen3-reranker-8b,none,1.0,0.554,0.75,0.0
+qwen3-reranker-8b,planted,1.0,0.663,0.843,0.0
+qwen3-reranker-8b,system_message,1.0,0.743,0.842,0.0
+qwen3-reranker-8b (untuned),ignore_previous,1.0,0.801,0.819,0.0
+qwen3-reranker-8b (untuned),important_instructions,1.0,0.694,0.759,0.0
+qwen3-reranker-8b (untuned),injecagent,1.0,0.793,0.742,0.0
+qwen3-reranker-8b (untuned),none,0.969,0.715,0.584,0.0
+qwen3-reranker-8b (untuned),planted,1.0,0.826,0.831,0.0
+qwen3-reranker-8b (untuned),system_message,1.0,0.791,0.842,0.0
+random-25,ignore_previous,0.117,0.322,0.325,0.058
+random-25,important_instructions,0.15,0.291,0.302,0.125
+random-25,injecagent,0.15,0.288,0.274,0.083
+random-25,none,0.106,0.292,0.245,0.098
+random-25,planted,0.121,0.255,0.226,0.094
+random-25,system_message,0.133,0.371,0.398,0.092
+random-50,ignore_previous,0.258,0.545,0.508,0.125
+random-50,important_instructions,0.375,0.577,0.489,0.15
+random-50,injecagent,0.408,0.57,0.548,0.125
+random-50,none,0.332,0.55,0.439,0.15
+random-50,planted,0.34,0.555,0.508,0.137
+random-50,system_message,0.383,0.619,0.572,0.142
+random-75,ignore_previous,0.583,0.809,0.694,0.167
+random-75,important_instructions,0.617,0.82,0.642,0.167
+random-75,injecagent,0.6,0.807,0.682,0.158
+random-75,none,0.628,0.792,0.635,0.166
+random-75,planted,0.61,0.791,0.672,0.158
+random-75,system_message,0.617,0.784,0.662,0.167
+set-only,ignore_previous,0.833,1.0,0.833,0.167
+set-only,important_instructions,0.833,1.0,0.778,0.167
+set-only,injecagent,0.833,1.0,0.818,0.167
+set-only,none,0.833,1.0,0.81,0.167
+set-only,planted,0.833,1.0,0.81,0.167
+set-only,system_message,0.833,1.0,0.8,0.167
