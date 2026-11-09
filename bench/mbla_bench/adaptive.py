@@ -74,20 +74,24 @@ class Helper:
         return (-restricted.gather(-1, chosen).squeeze(-1) * scored).sum(1).tolist()
 
     def answer(self, request, permissions):
-        """one call to the deployed helper, with the body of mbla's ChatModel.requestBody. Go sorts map keys, so the
-        schema lists plausible before required, and the server's grammar makes the helper answer in that order."""
-        index = {"type": "integer", "minimum": 0, "maximum": len(permissions) - 1}
-        array = {"type": "array", "items": index, "maxItems": len(permissions)}
-        schema = {"type": "object", "properties": {"required": array, "plausible": array}, "required": ["required", "plausible"], "additionalProperties": False}
-        body = {
-            "model": self.served, "temperature": 0, "seed": 0, "max_tokens": OUTPUT_TOKENS,
-            "messages": [{"role": "system", "content": self.system}, {"role": "user", "content": train.chat_prompt(request, permissions)}],
-            "response_format": {"type": "json_schema", "json_schema": {"name": "permissions", "strict": True, "schema": schema}},
-            "chat_template_kwargs": {"enable_thinking": False},
-        }
-        call = urllib.request.Request(f"{self.endpoint}/chat/completions", json.dumps(body, sort_keys=True).encode(), {"Content-Type": "application/json"})
-        with urllib.request.urlopen(call, timeout=45) as response:
-            return json.load(response)["choices"][0]["message"]["content"]
+        return deployed_answer(self.endpoint, self.served, request, permissions)
+
+
+def deployed_answer(endpoint, served, request, permissions, go_order=True):
+    """one call with the body of mbla's ChatModel.requestBody. Go sorts map keys, so the schema lists plausible before
+    required, and the server's grammar makes the helper answer in that order. go_order=False keeps required first."""
+    index = {"type": "integer", "minimum": 0, "maximum": len(permissions) - 1}
+    array = {"type": "array", "items": index, "maxItems": len(permissions)}
+    schema = {"type": "object", "properties": {"required": array, "plausible": array}, "required": ["required", "plausible"], "additionalProperties": False}
+    body = {
+        "model": served, "temperature": 0, "seed": 0, "max_tokens": OUTPUT_TOKENS,
+        "messages": [{"role": "system", "content": train.instructions()}, {"role": "user", "content": train.chat_prompt(request, permissions)}],
+        "response_format": {"type": "json_schema", "json_schema": {"name": "permissions", "strict": True, "schema": schema}},
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
+    call = urllib.request.Request(f"{endpoint}/chat/completions", json.dumps(body, sort_keys=go_order).encode(), {"Content-Type": "application/json"})
+    with urllib.request.urlopen(call, timeout=45) as response:
+        return json.load(response)["choices"][0]["message"]["content"]
 
 
 def row_of(raw, permissions):

@@ -32,6 +32,12 @@ experiments:
     inputs: [full]
     methods: [capmas-retrained-bge-large-s0, capmas-retrained-bge-large-s1, capmas-retrained-bge-large-s2, capmas-retrained-qwen3-embedding-0.6b-s0, capmas-retrained-qwen3-embedding-0.6b-s1, capmas-retrained-qwen3-embedding-0.6b-s2]
 
+  dev-order:
+    purpose: "D-64 diagnostic, development only: the BoundClaw pick answered in the deployed order and in the trained order (mbla_bench/order_check.py)"
+    split: dev
+    inputs: [full]
+    methods: [qwen3-4b-tuned-s2-deployed-order, qwen3-4b-tuned-s2-required-first]
+
   final:
     purpose: "final test set, run once after freezing (RQ1-RQ4; attacks (a) planted and (b) held-out styles)"
     split: test
