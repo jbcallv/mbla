@@ -1,0 +1,68 @@
+[
+  {
+    "comparison": "qwen3-reranker-0.6b-tuned vs qwen3-reranker-0.6b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.4358592985710265,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": 0.36515912897822456,
+    "coverage_low": 0.09794628751974722,
+    "coverage_high": 0.6374729995090818
+  },
+  {
+    "comparison": "qwen3-1.7b-tuned vs qwen3-1.7b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.18338434399217904,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": -0.011725293132328328,
+    "coverage_low": -0.14141414141414144,
+    "coverage_high": 0.12319239609270248
+  },
+  {
+    "comparison": "qwen3-4b-tuned vs qwen3-4b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.0948993915033487,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": -0.030150753768844227,
+    "coverage_low": -0.11929824561403511,
+    "coverage_high": 0.05405405405405406
+  },
+  {
+    "comparison": "qwen3-8b-tuned vs qwen3-8b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.14001904711506724,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": -0.03685092127303182,
+    "coverage_low": -0.0858103823482785,
+    "coverage_high": 0.005025760113699802
+  },
+  {
+    "comparison": "qwen3-reranker-8b-tuned vs qwen3-reranker-8b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.41928979704433295,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": 0.09715242881072028,
+    "coverage_low": -0.059108404674548025,
+    "coverage_high": 0.2783469471947192
+  },
+  {
+    "comparison": "qwen3-reranker-0.6b-tuned vs qwen3-8b",
+    "metric": "excess_C",
+    "templates": 5,
+    "difference": -0.12436922063476237,
+    "p": 0.0625,
+    "p_holm": 0.375,
+    "coverage_difference": -0.06700167504187605,
+    "coverage_low": -0.10256410256410257,
+    "coverage_high": -0.03436426116838488
+  }
+]
