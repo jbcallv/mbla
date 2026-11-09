@@ -3,6 +3,7 @@ correction, sign-flip tests on per-template means, coverage non-inferiority with
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -15,11 +16,20 @@ COVERAGE = "covered_A-bounded_k3"
 REACH = {"A-bounded": "reach_A-bounded_k3", "parent-bounded": "reach_parent-bounded_k3"}
 COIN_FLIPS = ["random-25", "random-50", "random-75"]
 UNDER_OUR_RULES = "capmas-scores"
+RETRAINED = "capmas-retrained-bge-large"
 ADAPTIVE_BUDGET = 1000
 
 
 def per_task(experiment):
     frame = pd.read_csv(Path("results/tables") / experiment / "tasks.csv")
+    keys = ["method", "item", "template", "handoff", "injected", "style"]
+    return frame.groupby(keys, as_index=False).mean(numeric_only=True)
+
+
+def seeds_merged(frame):
+    """trained helpers as the mean of their seeds per task; untuned scorer rows left out."""
+    frame = frame[~frame["method"].str.contains("untuned")].copy()
+    frame["method"] = frame["method"].map(lambda method: re.sub(r"-s\d+$", "", method))
     keys = ["method", "item", "template", "handoff", "injected", "style"]
     return frame.groupby(keys, as_index=False).mean(numeric_only=True)
 
@@ -105,7 +115,7 @@ def families(final, best, manifest=None, adaptive=None):
         "F1 (RQ1) best helper vs set-only, excess authority in C": with_holm([compare(final, best, "set-only", "excess_C")]),
         "F2 (RQ2) A-bounded vs parent-bounded recovery": with_holm([recovery_rules(final, best, False), recovery_rules(final, best, True)]),
         "F3 best helper vs CAPMAS under our rules and coin flips, excess authority in C": with_holm(
-            [compare(final, best, other, "excess_C") for other in [UNDER_OUR_RULES] + COIN_FLIPS]
+            [compare(final, best, other, "excess_C") for other in [UNDER_OUR_RULES] + ([RETRAINED] if RETRAINED in set(final["method"]) else []) + COIN_FLIPS]
         ),
         "F4 (RQ3) benefit retained under attack vs clean": with_holm([dict(test, attack=name) for name, test in attacks if test]),
     }
@@ -136,6 +146,9 @@ def main():
         print(out.read_text())
         return
     final = per_task(arguments.final)
+    retrained = Path("results/tables") / f"{arguments.final}-capmas-retrained" / "tasks.csv"
+    if retrained.exists():
+        final = pd.concat([final, seeds_merged(per_task(f"{arguments.final}-capmas-retrained"))], ignore_index=True)
     optional = lambda name: per_task(name) if (Path("results/tables") / name / "tasks.csv").exists() else None
     adaptive = optional(f"{arguments.final}-adaptive")
     tests = families(final, best, optional(f"{arguments.final}-manifest"), adaptive)

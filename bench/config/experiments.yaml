@@ -26,6 +26,12 @@ experiments:
     inputs: [full]
     methods: [qwen3-1.7b-tuned-s0, qwen3-1.7b-tuned-s1, qwen3-1.7b-tuned-s2, qwen3-4b-tuned-s0, qwen3-4b-tuned-s1, qwen3-4b-tuned-s2, qwen3-reranker-0.6b-tuned-s0, qwen3-reranker-0.6b-tuned-s1, qwen3-reranker-0.6b-tuned-s2, qwen3-8b-tuned-s0, qwen3-8b-tuned-s1, qwen3-8b-tuned-s2, qwen3-reranker-8b-tuned-s0, qwen3-reranker-8b-tuned-s1, qwen3-reranker-8b-tuned-s2]
 
+  dev-capmas-retrained:
+    purpose: "CAPMAS retrained on synthetic data, development set: scorer cutoffs only (D-63)"
+    split: dev
+    inputs: [full]
+    methods: [capmas-retrained-bge-large-s0, capmas-retrained-bge-large-s1, capmas-retrained-bge-large-s2, capmas-retrained-qwen3-embedding-0.6b-s0, capmas-retrained-qwen3-embedding-0.6b-s1, capmas-retrained-qwen3-embedding-0.6b-s2]
+
   final:
     purpose: "final test set, run once after freezing (RQ1-RQ4; attacks (a) planted and (b) held-out styles)"
     split: test
@@ -67,6 +73,24 @@ experiments:
     items: data/attacks/dev_adaptive_qwen3-4b.jsonl
     inputs: [full]
     methods: [qwen3-4b]
+
+  final-capmas-retrained:
+    purpose: "CAPMAS retrained on synthetic data, final test set, run once; cutoffs from dev-capmas-retrained (D-63)"
+    split: test
+    inputs: [full]
+    methods: [capmas-retrained-bge-large-s0, capmas-retrained-bge-large-s1, capmas-retrained-bge-large-s2, capmas-retrained-qwen3-embedding-0.6b-s0, capmas-retrained-qwen3-embedding-0.6b-s1, capmas-retrained-qwen3-embedding-0.6b-s2]
+
+  final-capmas-retrained-manifest:
+    purpose: "attack (d) on retrained CAPMAS, final test set (D-63)"
+    items: data/attacks/test_manifest.jsonl
+    inputs: [full]
+    methods: [capmas-retrained-bge-large-s0, capmas-retrained-bge-large-s1, capmas-retrained-bge-large-s2, capmas-retrained-qwen3-embedding-0.6b-s0, capmas-retrained-qwen3-embedding-0.6b-s1, capmas-retrained-qwen3-embedding-0.6b-s2]
+
+  heldout-capmas-retrained:
+    purpose: "CAPMAS retrained, synthetic held-out families (D-63)"
+    items: data/tasks/synth_heldout.jsonl
+    inputs: [full]
+    methods: [capmas-retrained-bge-large-s0, capmas-retrained-bge-large-s1, capmas-retrained-bge-large-s2, capmas-retrained-qwen3-embedding-0.6b-s0, capmas-retrained-qwen3-embedding-0.6b-s1, capmas-retrained-qwen3-embedding-0.6b-s2]
 
   final-adaptive:
     purpose: "attack (c) on the final test set, searched against prompted Qwen3-4B with the settings fixed on development (D-62)"

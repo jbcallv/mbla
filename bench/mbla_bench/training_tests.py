@@ -4,22 +4,14 @@ F1 and F3; coverage is reported beside each test and is not tested."""
 
 import argparse
 import json
-import re
 from pathlib import Path
 
 from mbla_bench import stats
-from mbla_bench.analysis import COVERAGE, compare, per_task, with_holm
+from mbla_bench.analysis import COVERAGE, compare, per_task, seeds_merged, with_holm
 
 HELPERS = ["qwen3-reranker-0.6b", "qwen3-1.7b", "qwen3-4b", "qwen3-8b", "qwen3-reranker-8b"]
 SMALLEST = "qwen3-reranker-0.6b"
 REFERENCE = "qwen3-8b"
-
-
-def seeds_merged(frame):
-    frame = frame[~frame["method"].str.contains("untuned")].copy()
-    frame["method"] = frame["method"].map(lambda method: re.sub(r"-s\d+$", "", method))
-    keys = ["method", "item", "template", "handoff", "injected", "style"]
-    return frame.groupby(keys, as_index=False).mean(numeric_only=True)
 
 
 def with_coverage(frame, test):

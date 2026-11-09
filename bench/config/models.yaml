@@ -101,6 +101,85 @@ methods:
       - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_closed_room_ASTRA_b128.pt --selection scores --port 8206"
         health: "http://127.0.0.1:8206/health"
 
+  # CAPMAS retrained on our synthetic train split (§4, §7, D-63)
+  capmas-retrained-bge-large-s0:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-bge-large-s0
+    endpoint: "http://127.0.0.1:8411"
+    revision: "BAAI/bge-large-en-v1.5@d4aa6901d3a41ba39fb536a557fa166f842b0e09 + CAPMAS training on synthetic train, their train.py and settings, seed 0 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_bge-large-s0.pt --selection scores --port 8411"
+        health: "http://127.0.0.1:8411/health"
+
+  capmas-retrained-bge-large-s1:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-bge-large-s1
+    endpoint: "http://127.0.0.1:8412"
+    revision: "BAAI/bge-large-en-v1.5@d4aa6901d3a41ba39fb536a557fa166f842b0e09 + CAPMAS training on synthetic train, their train.py and settings, seed 1 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_bge-large-s1.pt --selection scores --port 8412"
+        health: "http://127.0.0.1:8412/health"
+
+  capmas-retrained-bge-large-s2:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-bge-large-s2
+    endpoint: "http://127.0.0.1:8413"
+    revision: "BAAI/bge-large-en-v1.5@d4aa6901d3a41ba39fb536a557fa166f842b0e09 + CAPMAS training on synthetic train, their train.py and settings, seed 2 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model BAAI/bge-large-en-v1.5 --revision d4aa6901d3a41ba39fb536a557fa166f842b0e09 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_bge-large-s2.pt --selection scores --port 8413"
+        health: "http://127.0.0.1:8413/health"
+
+  capmas-retrained-qwen3-embedding-0.6b-s0:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-qwen3-embedding-0.6b-s0
+    endpoint: "http://127.0.0.1:8414"
+    revision: "Qwen/Qwen3-Embedding-0.6B@97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 + CAPMAS training on synthetic train, their train.py and settings, seed 0 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model Qwen/Qwen3-Embedding-0.6B --revision 97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_qwen3-embedding-0.6b-s0.pt --selection scores --port 8414"
+        health: "http://127.0.0.1:8414/health"
+
+  capmas-retrained-qwen3-embedding-0.6b-s1:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-qwen3-embedding-0.6b-s1
+    endpoint: "http://127.0.0.1:8415"
+    revision: "Qwen/Qwen3-Embedding-0.6B@97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 + CAPMAS training on synthetic train, their train.py and settings, seed 1 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model Qwen/Qwen3-Embedding-0.6B --revision 97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_qwen3-embedding-0.6b-s1.pt --selection scores --port 8415"
+        health: "http://127.0.0.1:8415/health"
+
+  capmas-retrained-qwen3-embedding-0.6b-s2:
+    paradigm: capmas
+    scorer: decision
+    model: capmas-retrained-qwen3-embedding-0.6b-s2
+    endpoint: "http://127.0.0.1:8416"
+    revision: "Qwen/Qwen3-Embedding-0.6B@97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 + CAPMAS training on synthetic train, their train.py and settings, seed 2 (D-63)"
+    note: "CAPMAS's method retrained on our synthetic data, raw cosine scores, cutoffs tuned on development; our recovery rule"
+    gpus: 1
+    shared_fraction: 0.1
+    serve:
+      - command: "python serve/decision_server.py --backend embedding --model Qwen/Qwen3-Embedding-0.6B --revision 97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3 --checkpoint /scratch/jbcall/boundclaw/bench/data/external/capmas-src/semantic_scoping/models/shared_encoder_synth_MBLA_b128_qwen3-embedding-0.6b-s2.pt --selection scores --port 8416"
+        health: "http://127.0.0.1:8416/health"
+
   bge-large-zs:
     paradigm: decision
     scorer: decision
