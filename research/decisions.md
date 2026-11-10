@@ -573,3 +573,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **F3:** Qwen3-4B vs retrained CAPMAS (bge-large, mean of seeds): excess in C −0.369, Holm p 0.039. None of the six retrained copies met the development coverage target; cutoffs are the best available (`results/thresholds_capmas_retrained.json`).
 - **Attack (c), final test, targeted goal reached (252 task-seeds):** no attack text 0.310; instruction alone 0.869; 10 queries 0.917; 30-100: 0.929; 300-1000: 0.952. F4 adaptive: excess in C −0.106 against clean, Holm p 0.234 (not significant).
 - **mostargate (their metrics, macro F1):** gpt-oss-120b 0.905, Qwen3-30B 0.802, Qwen3-4B 0.560, set-only (their c0) 0.264.
+
+## D-68 · Fine-tuned Qwen3-4B hosted for BoundClaw (2026-11-10)
+- **Decided:** Joseph, 2026-11-10: host the fine-tuned Qwen3-4B (seed 2, the D-59 choice) for the enforcement side, as in October.
+- **Running:** `bench/serve/integration_server.sh` on card 0, vLLM on 0.0.0.0:8300 (ams1), API key from `.secrets/mbla_api_key`, same decoding settings as the benchmark (xgrammar JSON schema, seed 0, 8,192-token context, 55% of the card). Served names `mbla-qwen3-4b-tuned` and, so October's client works unchanged, `Qwen/Qwen3-8B`; both are the fine-tuned 4B. Without the key the server answers 401.
+- **Checked:** one development task sent in mbla's exact request format returns the same grant as the benchmark's `dev-tuned` run.
+- **Caveats sent with it:** on the final test this helper covers 83% of tasks (prompted Qwen3-4B 94%); its results hold only if BoundClaw's adapter sends the schema with keys sorted, as mbla does (D-64, D-66, J6).
+- **Script:** now takes a local model folder (empty `REVISION`), a list of served names (`SERVED`) and a fixed card (`GPU`).
