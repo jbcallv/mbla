@@ -6,14 +6,21 @@ import argparse
 import json
 from pathlib import Path
 
-from mbla_bench import adaptive, answer, data
+from mbla_bench import adaptive, answer, data, simulate
 
 
 def row(item, method, permissions, raw):
     selected = adaptive.row_of(raw, permissions)
     chosen = {"required": [], "plausible": []} if selected.get("parse_failed") else json.loads(raw)
     scores = [1.0 if index in chosen["required"] else 0.5 if index in chosen["plausible"] else 0.0 for index in range(len(permissions))]
-    return {"item": item["id"], "method": method, "input": "full", "seed": 0, "candidates": permissions, "scores": scores, "thresholds": [0.8, 0.2], "error": "", "hardware": "shared GPU (other users' jobs present): latency not used, see the latency experiment", **selected, "parse_failed": bool(selected.get("parse_failed"))}
+    entry = {"item": item["id"], "method": method, "input": "full", "seed": 0, "candidates": permissions, "scores": scores, "thresholds": [0.8, 0.2], "error": "", "latency_ms": None, "hardware": "shared GPU (other users' jobs present): latency not used, see the latency experiment", "parse_failed": bool(selected.get("parse_failed"))}
+    return simulate.with_thresholds(entry, 0.8, 0.2)
+
+
+def reorder(path):
+    """rows written before the fix kept the helper's own list order; the benchmark keeps candidate order. same sets."""
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    path.write_text("".join(json.dumps(simulate.with_thresholds({"latency_ms": None} | entry, *entry["thresholds"])) + "\n" for entry in rows))
 
 
 def main():
