@@ -1,5 +1,5 @@
 # coverage against unneeded authority, final test; arrows from each plain helper to its fine-tuned version
-set terminal cairolatex pdf size 7in,3.1in font ",8"
+set terminal cairolatex pdf size 6.3in,3.1in font ",8"
 set output "figures/tradeoff.tex"
 set xlabel "Unneeded authority granted (0 = none, 1 = everything the delegator holds)"
 set ylabel "Tasks completed (\\%)" offset 1,0
@@ -8,7 +8,7 @@ set xtics 0,0.2,1
 set yrange [45:104]
 set grid lc rgb "#e5e5e5"
 set border 3
-set lmargin 9
+set lmargin 13
 set tics nomirror
 set key bottom right Left reverse samplen 1 spacing 1.2
 plain = "#3b6fb6"; tuned = "#d4572a"; other = "#555555"

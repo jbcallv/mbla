@@ -1,5 +1,5 @@
 # share of tasks where the attack's target permission is reachable, by search budget
-set terminal cairolatex pdf size 3.35in,2.1in font ",8"
+set terminal cairolatex pdf size 4in,2.1in font ",8"
 set output "figures/budget.tex"
 set xlabel "Attack text (search attempts)"
 set ylabel "Target reachable (\\%)"

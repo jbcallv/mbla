@@ -1,235 +1,182 @@
-\documentclass[10pt,twocolumn,letterpaper]{article}
-\usepackage[margin=0.75in,columnsep=0.25in]{geometry}
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.9in]{geometry}
 \usepackage{times}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{multirow}
+\usepackage{float}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
 \setlist{nosep,leftmargin=*}
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{0pt}
 
-\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\question}[2]{\section*{#1}\noindent\emph{#2}\par\smallskip}
+\newcommand{\answer}[1]{\noindent\textbf{Answer.} #1\par}
 
-\title{\Large\bfseries Least-Authority Delegation in BoundClaw:\\Final Evaluation of the Permission Helper}
-\author{Joseph Call\\\small MBLA final evaluation, 10 November 2026}
+\title{\large\bfseries MBLA Final Evaluation: Answers to the Research Questions}
+\author{\normalsize BoundClaw policy inference \quad\textperiodcentered\quad 10 November 2026}
 \date{}
 
 \begin{document}
 \maketitle
+\vspace{-1.5em}
 
-\begin{abstract}
-When one agent delegates a task to another, it usually hands over everything it holds. We evaluate a permission
-helper that reads the task and grants only what it appears to need, with a short list of backup permissions the
-receiver may request later. On 192 frozen delegation tasks, the recommended helper (Qwen3-4B, used as released)
-removes about 80\% of the unneeded authority compared with handing over everything, without reducing the share of
-tasks the receiver can complete (94\%). Limiting later requests to the helper's own backups cuts how often an
-attacker's target permission is reachable from 99\% to 64\% on attacked tasks. Fine-tuning the helper grants even
-less but leaves about one task in six unable to finish. An attacker with full access to the model reaches its
-target in 95\% of tasks, almost all of it from the planted instruction itself: the helper reduces authority but is not
-by itself a defence against injected tasks.
-\end{abstract}
+\paragraph{What was run.} Every experiment in the final methodology (\texttt{methodology.pdf},
+\texttt{methodology\_ml.pdf}). The final test set (192 tasks, 8 templates; 96 clean, 48 with planted injections, 48
+with injection styles never seen in development) was frozen and run once; all cutoffs and the choice of best helper
+came from the development set (408 tasks). Each helper ran three times. Coverage and attack reach are A-bounded
+recovery with $k=3$ unless stated. Tests are sign-flip permutation tests over the 8 templates, Holm-corrected within
+each pre-declared family (smallest possible $p = 1/128$). No run had an error, and no helper ever refused
+(invalid or late output). \textbf{Best helper} (chosen on development by the pre-declared rule): Qwen3-4B, prompted.
 
-\begin{figure*}[t]
-  \centering
-  \input{figures/tradeoff.tex}
-  \caption{Tasks completed against unneeded authority on the final test; top-left is best. Arrows go from each
-  helper used as released (blue) to the same helper fine-tuned by us (orange, mean of three training runs).
-  Fine-tuning always moves left (less authority) and down (more tasks fail). Square markers are other methods;
-  ``Everything'' is handing over all of the delegator's authority.}
-  \label{fig:tradeoff}
-\end{figure*}
+\question{RQ1 Least privilege}{How much excess authority does inference remove per component (C, plain, D), does it
+preserve coverage, and how often is a proposal rejected at $P_\mathrm{ceil}$?}
+\answer{The best helper removes 79\% of excess capability authority (C: 0.21 vs.\ 1.00 for handing over everything,
+$-0.80$, $p_\mathrm{Holm}=0.008$), nearly all excess plain hosts, and about half the excess volume authority (D).
+Coverage is preserved (94\% vs.\ 83\%; non-inferiority difference $+11$ points, 95\% interval $[-0.5, +23]$, within
+the 2-point margin). No helper proposal was rejected at the ceiling, against 17\% for handing over everything.}
 
-\begin{table*}[t]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Final test results for the main methods. Fine-tuned and retrained columns are means of three training runs.
---: not run. $^*$Same model size as the timed version, not timed separately. Remaining helpers are in
-Figure~\ref{fig:tradeoff}.}
-\label{tab:results}
-\begin{tabular}{@{}lrrrrrrrr@{}}
+\begin{table}[H]
+\centering\small
+\caption{RQ1, final test. Excess authority by component (0 = none, 1 = everything the parent holds).}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & \textbf{Qwen3-4B} & gpt-oss & Qwen3 & Qwen3 & Qwen3-4B & CAPMAS & CAPMAS & Hand over \\
- & \textbf{(recomm.)} & 120b & 30B & 8B & fine-tuned & (prior) & retrained & everything \\
+Helper & Coverage & Excess C & Excess plain & Excess D & Rejected at ceiling \\
 \midrule
-\multicolumn{9}{@{}l}{\emph{Usefulness and least authority}}\\
-Tasks completed & \best{94\%} & 97\% & 83\% & 95\% & 83\% & 96\% & 92\% & 83\% \\
-Unneeded authority (0--1) & \best{0.21} & 0.21 & 0.22 & 0.28 & 0.08 & 0.75 & 0.56 & 1.00 \\
-Unneeded destinations (0--1) & \best{0.49} & 0.10 & 0.24 & 0.58 & 0.00 & 0.08 & 0.01 & 1.00 \\
-Ceiling rejections & \best{0\%} & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 17\% \\
-Decoys granted & \best{1\%} & 2\% & 1\% & 2\% & 0\% & 0\% & 0\% & 33\% \\
-Unreadable answers & \best{0\%} & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & -- \\
-\midrule
-\multicolumn{9}{@{}l}{\emph{Attacker's target permission reachable}}\\
-Granted at once (all tasks) & \best{19\%} & 24\% & 26\% & 34\% & 8\% & 76\% & 52\% & 81\% \\
-Later, helper's backups only (attacked) & \best{64\%} & 69\% & 64\% & 71\% & 71\% & 90\% & 65\% & 81\% \\
-Later, anything held (attacked) & \best{99\%} & 99\% & 99\% & 99\% & 98\% & 99\% & 98\% & 81\% \\
-\midrule
-\multicolumn{9}{@{}l}{\emph{Inflated declared-needs attack}}\\
-Tasks completed / unneeded & \best{94\% / 0.25} & 99\% / 0.17 & -- & -- & -- & 94\% / 0.77 & -- & 81\% / 1.00 \\
-\midrule
-\multicolumn{9}{@{}l}{\emph{Outside benchmarks}}\\
-FORTIS exact set, task 1 / task 2 & \best{40\% / 15\%} & 48\% / 31\% & 41\% / 17\% & 36\% / 16\% & -- & 36\% / 0\% & -- & 2\% / 0\% \\
-mostargate accuracy score (0--1) & \best{0.56} & 0.91 & 0.80 & -- & -- & 0.31 & -- & 0.26 \\
-\midrule
-\multicolumn{9}{@{}l}{\emph{Speed (GPUs: one; two for gpt-oss-120b and Qwen3-30B)}}\\
-Typical / slow answer (s) & \best{0.3 / 0.7} & 2.6 / 5.3 & 0.2 / 0.4 & 0.7 / 1.5 & $\approx$0.3$^*$ & 0.02 / 0.03 & $\approx$0.02$^*$ & -- \\
-\bottomrule
+\input{data/rq1.tex}
 \end{tabular}
-\end{table*}
-
-\section{Introduction}
-Agent frameworks pass work between agents: a coding agent hands a review to another agent, a deployment agent hands
-a check to a monitor. Today the receiver typically inherits the delegator's full authority, so a compromised or
-misled receiver can do anything the delegator can. BoundClaw instead lets the delegator grant a subset, bounded by a
-\emph{ceiling} (the most the delegator may ever pass on). The open question is how to pick that subset
-automatically, for each task, without breaking the task.
-
-We evaluate a \emph{permission helper}: a language model that reads the task and selects permissions from a
-numbered list of candidates. It returns two lists: permissions to grant now, and backups the receiver may request
-later, at most three times. We ask four questions:
-\begin{enumerate}
-  \item How much unneeded authority does the helper remove, and do tasks still complete?
-  \item Does bounding later requests to the helper's backups limit attacks?
-  \item Does the helper's benefit survive attacks, including an attacker with full access to the model?
-  \item Does fine-tuning the helper on our task format help?
-\end{enumerate}
-
-\section{Evaluation setup}
-\paragraph{Tasks.} The final test has 192 delegation tasks across 8 task types (code review, builds, tests,
-deployments, issue triage and similar). Each task has a known minimum set of permissions. Half carry a planted
-instruction in the task text that tries to get an extra permission granted; half of those are written in injection
-styles never seen during development. All settings were fixed on a separate practice set of 408 tasks; the final test was frozen before any
-helper ran on it, and each helper was run on it once (three repeats per helper).
-
-\paragraph{Input.} Each helper sees exactly what BoundClaw's adapter sends: the task text, the receiver's declared
-needs, and the numbered candidate permissions.
-
-\paragraph{Methods compared.} Language-model helpers of several sizes, used as released (Qwen3 1.7B, 4B, 8B, 30B;
-gpt-oss-120b; two ranking models); the same models fine-tuned by us on synthetic delegation tasks; CAPMAS, the
-closest prior method, both as published and retrained on our tasks; random choices; and handing over everything.
-The recommended helper was chosen on the practice set by a rule fixed in advance: least unneeded authority among
-helpers that complete as many tasks as handing over everything.
-
-\paragraph{Measures.}
-\begin{itemize}
-  \item \emph{Tasks completed}: the receiver can do the task with the first grant plus at most three backup requests.
-  \item \emph{Unneeded authority}: capability granted beyond the task's minimum, where everything the delegator
-  holds counts as 1. Measured separately for where data may be sent (\emph{destinations}).
-  \item \emph{Ceiling rejections}: grants the receiver refuses because they exceed the delegator's ceiling.
-  \item \emph{Decoys granted}: look-alike permissions in the list that no task needs.
-  \item \emph{Attack reach}: how often an attacker's target permission is granted at once, or reachable through later
-  requests.
-  \item \emph{Speed}: typical (median) and slow (1 in 20) answer time on one NVIDIA L40S GPU.
-\end{itemize}
-
-\paragraph{Statistics.} Comparisons were declared before the final test. Each is a paired test over the 8 task
-types (sign-flip permutation), with a correction for running several tests in the same group (Holm). With 8 task
-types the smallest possible p-value is $1/128$.
-
-\paragraph{Outside benchmarks.} FORTIS (choosing the least-privilege set of tools) and mostargate (an enterprise
-permission benchmark scored by its own authors' code), plus synthetic held-out task families for the fine-tuning
-question.
-
-
-
-\section{Results}
-\subsection{Least authority without breaking tasks}
-The recommended helper, Qwen3-4B used as released, completes 94\% of tasks while granting 0.21 of the unneeded
-authority that handing over everything grants (Table~\ref{tab:results}). Handing over everything completes only
-83\%, because some of those grants exceed the ceiling and the receiver rejects them. The reduction is significant
-(Table~\ref{tab:tests}), and the helper is not worse at completing tasks. It never exceeded the ceiling, never
-returned an unreadable answer, and rarely granted a decoy (1\%).
-
-CAPMAS completes a similar share of tasks but grants far more (0.75), and retraining it on our tasks narrows the gap
-only partly (0.56). Larger models do not help much: gpt-oss-120b completes a few more tasks at the same authority but
-is about eight times slower and needs two GPUs, and Qwen3-30B completes fewer tasks than Qwen3-4B.
-
-\subsection{Fine-tuning: less authority, more failed tasks}
-Fine-tuning moved every helper toward less authority and fewer completed tasks (Figure~\ref{fig:tradeoff}). For
-Qwen3-4B, unneeded authority fell from 0.21 to 0.08, but tasks completed fell from 94\% to 83\%. On the practice set
-the loss was small; it appeared on the final test. On synthetic task families held out from training, all six
-fine-tuning comparisons point to less authority, but there were too few families with defined values (5) for any to
-be significant. Because a task that cannot finish is a real cost, we do not recommend the fine-tuned helpers yet.
-
-\subsection{Attacks}
-\paragraph{Bounding later requests.} If the receiver may later request anything the delegator holds, an attacker's
-target is reachable in 99\% of attacked tasks for every helper. Restricting requests to the helper's backups lowers
-this to 64\% for Qwen3-4B (Figure~\ref{fig:reach}); the difference is significant on both clean and attacked tasks.
-
-\paragraph{The benefit survives attack.} Four attacks were tested: planted instructions, injection styles unseen in
-development, an inflated list of declared needs, and the adaptive attacker below. None significantly reduced the
-helper's cut in unneeded authority (Table~\ref{tab:tests}).
-
-\paragraph{Attacker with full access to the model.} This attacker knows the design and holds the helper's weights.
-It plants an instruction naming its target, then searches for extra text that makes the helper grant it, checking
-each try against the deployed helper. The target became reachable in 31\% of tasks with no attack text, 87\% with
-the instruction alone, and 95\% after 300 search attempts (Figure~\ref{fig:budget}). The practice set showed the same
-shape. Almost all of the effect comes from the instruction itself; the search adds a few points.
-
-\begin{figure}[!tb]
-  \centering
-  \input{figures/reach.tex}
-  \caption{Attacked tasks where the attacker's target is reachable through later requests, when backups come from
-  the helper's list (blue) or from anything the delegator holds (grey).}
-  \label{fig:reach}
-\end{figure}
-
-\begin{figure}[!tb]
-  \centering
-  \input{figures/budget.tex}
-  \caption{Attacker with full access to the model: tasks where its target is reachable, by attack text. ``none'':
-  no attack text; ``0'': the planted instruction alone; then up to that many search attempts.}
-  \label{fig:budget}
-\end{figure}
-
-\begin{table}[!tb]
-\centering
-\small
-\caption{Pre-declared comparisons on the final test, paired over 8 task types, corrected within each group.}
-\label{tab:tests}
-\begin{tabularx}{\columnwidth}{@{}Xl@{}}
-\toprule
-\textbf{Comparison} & \textbf{Result} \\
-\midrule
-Helper vs.\ handing over everything (unneeded authority) & $-0.80$, $p=0.008$ \\
-Helper's backups vs.\ anything held (attack reach, clean / attacked) & $-65$ / $-35$ pts, $p=0.016$ \\
-Helper vs.\ CAPMAS: published / retrained & $-0.55$ / $-0.37$, $p=0.039$ \\
-Helper vs.\ random choice of 50\% / 75\% & $-0.36$ / $-0.60$, $p=0.039$ \\
-Helper vs.\ random choice of 25\% & $-0.09$, n.s.\ (completes 12\%) \\
-Benefit under each of four attacks & no significant loss \\
-Fine-tuned vs.\ released, held-out families & 6 of 6 less, n.s. \\
-\bottomrule
-\end{tabularx}
 \end{table}
 
-\subsection{Outside benchmarks}
-The ranking holds outside our tasks. On FORTIS, Qwen3-4B picks the exact least-privilege set in 40\% and 15\% of
-cases on its two tasks, against 36\% and 0\% for CAPMAS and 2\% and 0\% for handing over everything. On mostargate, scored by its authors' code,
-Qwen3-4B scores 0.56 against 0.26 for granting everything; larger models do better there (gpt-oss-120b 0.91).
+\question{RQ2 Recovery}{How often can an attack still obtain the permissions it needs when recovery is bounded by A,
+compared with recovery bounded by the parent, and what does each rule cost in coverage?}
+\answer{Bounding recovery by the helper's admission set A cuts attack reach from 98\% to 29\% on clean tasks and
+from 99\% to 63\% on injected tasks for the best helper (differences $-65$ and $-35$ points, both
+$p_\mathrm{Holm}=0.016$). The cost is coverage: parent-bounded recovery covers 100\% of tasks, A-bounded 94\%.}
 
-\section{Recommendation}
+\begin{table}[H]
+\centering\small
+\caption{RQ2, final test. Share of attack goals obtainable within $k=3$ requests, and coverage, under each rule.}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Reach, clean} & \multicolumn{2}{c}{Reach, injected} & \multicolumn{2}{c}{Coverage} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(l){6-7}
+Helper & A & parent & A & parent & A & parent \\
+\midrule
+\input{data/rq2.tex}
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\input{figures/reach.tex}
+\caption{RQ2: injected tasks where the attack's goal is obtainable, recovery bounded by A (blue) or by the parent
+(grey). 4B, 8B, 30B: Qwen3 models; gpt-oss: gpt-oss-120b.}
+\end{figure}
+
+\question{RQ3 Robustness}{How much of the RQ1 and RQ2 results survives planted injections, injection styles never seen
+during development or training, an adaptive attacker, and an inflated manifest?}
+\answer{Most of it. Under every attack the best helper keeps coverage at 88--98\% and excess C at or below 0.30,
+against 1.00 without inference; none of the four attacks reduced the benefit significantly ($p_\mathrm{Holm} \ge
+0.16$). Attacks do raise reach under A-bounded recovery, from 29\% clean to 63--65\% under injections and the inflated
+manifest, and 83\% under the adaptive attacker, but it stays below parent-bounded recovery (98--99\%). The adaptive
+attacker, which holds the helper's weights, obtained its single targeted goal in 31\% of tasks with no attack text,
+87\% with its injected instruction alone, and 95\% after 300 or more queries: almost all of its gain comes from the
+injection itself, not the search.}
+
+\begin{table}[H]
+\centering\small
+\caption{RQ3, best helper (Qwen3-4B) on the final test under each attack.}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Condition & Coverage & Excess C & Excess D & Reach (A) & Reach (parent) \\
+\midrule
+\input{data/rq3.tex}
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\input{figures/budget.tex}
+\caption{RQ3, adaptive attacker against Qwen3-4B: tasks where its targeted goal is obtainable, by query budget
+(``none'': no attack text; ``0'': injected instruction only).}
+\end{figure}
+
+\question{RQ4 Cost}{What latency does one helper call add, and how often does the helper refuse?}
+\answer{The best helper adds 0.33\,s per handoff (0.67\,s at the 95th percentile) on one L40S GPU. The largest
+model, gpt-oss-120b, adds 2.6\,s (5.3\,s) on two GPUs. No helper refused on any final-test task.}
+
+\begin{table}[H]
+\centering\small
+\caption{RQ4, per-call latency (seconds), each helper alone on its own GPUs, and refusal rate on the final test.}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Helper & Median & 95th percentile & Refused \\
+\midrule
+\input{data/rq4.tex}
+\end{tabular}
+\end{table}
+
+\question{RQ5 Training}{Does task-specific training let small, fast helpers match the best prompted helper on RQ1--RQ3,
+including on task families and attack styles never seen in training?}
+\answer{No. Training lowers excess authority for every helper, but it lowers coverage more, so no fine-tuned helper
+matches the best prompted helper. The fine-tuned Qwen3-4B has excess C 0.08 (vs.\ 0.21) but covers 83\% (vs.\ 94\%);
+the small fine-tuned rerankers cover 50--69\%. On injected tasks training does not reduce reach for Qwen3-4B (71\% vs.\
+63\%). On held-out injection styles the same pattern holds. On the synthetic held-out families all six pre-declared
+comparisons favour less excess authority, none significantly (5 families with defined excess; smallest $p = 1/16$).}
+
+\begin{table}[H]
+\centering\small
+\caption{RQ5, final test. Each prompted helper and its fine-tuned version (mean of three training seeds).}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c}{All tasks} & \multicolumn{2}{c}{Held-out styles} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-6}
+Helper & Coverage & Excess C & Reach (injected) & Coverage & Excess C \\
+\midrule
+\input{data/rq5.tex}
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{RQ5 (family F5), synthetic held-out families: difference in excess C and in coverage, Holm-corrected.}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Comparison & Excess C & Coverage & $p_\mathrm{Holm}$ \\
+\midrule
+\input{data/f5.tex}
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\input{figures/tradeoff.tex}
+\caption{RQ1 and RQ5 together: coverage against excess C on the final test. Arrows go from each prompted helper
+(blue) to its fine-tuned version (orange).}
+\end{figure}
+
+\section*{Other pre-declared comparisons and external tests}
 \begin{itemize}
-  \item \textbf{Default:} Qwen3-4B used as released, one GPU, about 0.3\,s per decision.
-  \item \textbf{Alternative:} gpt-oss-120b when a few more completed tasks justify two GPUs and about 2.6\,s per
-  decision.
-  \item \textbf{Always} restrict later requests to the helper's backup list and keep the ceiling: the helper alone
-  does not stop injected instructions.
+  \item \textbf{F3, against prior work and chance.} The best helper has less excess C than CAPMAS under our rules
+  ($-0.55$), CAPMAS retrained on our synthetic data ($-0.37$), and coin flips at 50\% and 75\% ($-0.36$, $-0.60$);
+  all $p_\mathrm{Holm}=0.039$. The 25\% coin flip is not significantly different on excess ($-0.09$) but covers only
+  12\% of tasks.
+  \item \textbf{FORTIS} (exact least-privilege set, tasks 1 / 2): Qwen3-4B 40\% / 15\%, gpt-oss-120b 48\% / 31\%,
+  CAPMAS 36\% / 0\%, handing over everything 2\% / 0\%.
+  \item \textbf{mostargate} (macro F1 by its authors' code): gpt-oss-120b 0.91, Qwen3-30B 0.80, Qwen3-4B 0.56,
+  CAPMAS 0.31, handing over everything 0.26.
 \end{itemize}
 
-\section{Limitations}
+\section*{Limitations}
 \begin{itemize}
-  \item No helper reached our goal of 98\% of tasks completed. The main cause is that a folder missing from the first
-  grant cannot be requested later.
-  \item With 8 task types, large effects are clear, but similar helpers (such as Qwen3-4B and Qwen3-8B) cannot be
-  separated.
-  \item The fine-tuned helpers' results assume BoundClaw requests the answer fields in the same order as our client;
-  this is being confirmed with the BoundClaw team.
-  \item Timings are on NVIDIA L40S GPUs and will differ on other hardware.
+  \item No helper meets the 98\% coverage target set for tuning; the main cause is that a folder missing from the
+  proposal cannot be recovered later.
+  \item Eight templates give clear results for large effects but cannot separate similar helpers.
+  \item Fine-tuned results use the answer order BoundClaw's Go client sends; the trained order differs, and whether
+  BoundClaw's adapter sends the same order is being confirmed.
 \end{itemize}
 
 \end{document}

@@ -1,5 +1,5 @@
 "Qwen3-1.7B tuned" 0.0873 56.07 1 0 left
 "Qwen3-4B tuned" 0.0803 82.67 -0.5 -1.4 right
-"Qwen3-8B tuned" 0.1147 80.73 1 -1.6 left
+"Qwen3-8B tuned" 0.1147 80.73 1 -2.6 left
 "Reranker-0.6B tuned" 0.1183 49.80 1 0 left
 "Reranker-8B tuned" 0.1343 68.93 1 0 left
