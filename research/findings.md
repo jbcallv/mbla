@@ -302,3 +302,25 @@ Paper references are to `paper-2.pdf` (Sep 28 2026 draft).
 - **Not known:** whether removing permission descriptions (D-33) contributed; no run compares the prompts on this benchmark.
 - **Not changed:** the methodology. Any change to the tuning rule or the target is Joseph's decision and must be made before the final test set is run.
 
+
+## F-31 · Final results: every planned run complete
+- **Status:** confirmed (2026-11-10). Decisions: D-61 to D-67. Tables: `bench/results/tables/final/analysis.md`, `final/summary.md`, `final-tuned/summary.md`, `final-adaptive/budget.md`, `heldout/f5.md`, `latency/summary.md`, `fortis{1,2}_fortis_metrics.json`, `mostargate_metrics.json`. No run had an error or an unreadable answer.
+- **Best helper (chosen on development, D-54 rule):** Qwen3-4B, lowest development excess in C (0.102) among helpers within 2 points of set-only's coverage. Adding Qwen3-30B (0.128) and gpt-oss-120b (0.131) did not change it.
+- **Final test, prompted helpers (A-bounded, k = 3; coverage / excess in C, 95% intervals):**
+
+  | Helper | Coverage | Excess in C | Latency p50 / p95 ms |
+  |---|---|---|---|
+  | Qwen3-4B | 0.944 [0.885, 0.990] | 0.206 [0.118, 0.291] | 332 / 669 |
+  | Qwen3-8B | 0.946 [0.842, 1.000] | 0.283 [0.197, 0.369] | 659 / 1,496 |
+  | Qwen3-30B | 0.825 [0.590, 0.970] | 0.223 [0.131, 0.303] | 212 / 360 |
+  | gpt-oss-120b | 0.974 [0.948, 0.995] | 0.211 [0.121, 0.294] | 2,635 / 5,316 |
+  | Qwen3-1.7B | 0.842 [0.710, 0.953] | 0.237 [0.138, 0.321] | 145 / 391 |
+  | Reranker-8B | 1.000 [1.000, 1.000] | 0.606 [0.470, 0.731] | 127 / 303 |
+  | CAPMAS under our rules | 0.958 [0.917, 0.990] | 0.747 [0.599, 0.885] | 22 / 30 |
+  | Set-only | 0.833 [0.708, 0.958] | 1.000 | — |
+
+- **F1-F4 (Holm within family):** F1 Qwen3-4B vs set-only excess −0.800, p 0.0078. F2 A-bounded vs parent-bounded attack reachability −0.648 clean, −0.345 injected, both p ≤ 0.016. F3 vs CAPMAS under our rules −0.554, vs retrained CAPMAS (bge-large) −0.369, vs coin flips 50% and 75%, all p 0.039; vs coin flip 25% not significant (p 0.10). F4 no attack lowered the benefit significantly (planted, held-out styles, inflated manifest, adaptive at 1,000 queries; all Holm p ≥ 0.16).
+- **Adaptive attack (c), final test, targeted goal reached:** 0.310 with no attack text, 0.869 with the instruction alone, 0.952 after 300 queries. The instruction does almost all of the work.
+- **Fine-tuned helpers, final test:** less excess than prompted (Qwen3-4B tuned 0.073-0.086) but much lower coverage (4B tuned 0.818-0.839; 1.7B and reranker-0.6B 0.40-0.65). On development their coverage was close to prompted (D-57). F5 on the held-out synthetic families: all six differences favour less excess, none significant (5 families with defined excess, min p 1/16, Holm 0.375).
+- **External:** FORTIS task 1 exact match: gpt-oss-120b 0.478, Qwen3-30B 0.408, Qwen3-4B 0.397, CAPMAS 0.055, set-only 0.017; task 2: 0.309, 0.172, 0.152, 0.002, 0.000. mostargate macro F1 (their metric): gpt-oss-120b 0.905, Qwen3-30B 0.802, Qwen3-4B 0.560, set-only 0.264.
+- **Limitations to report:** no helper meets the 98% coverage target (F-30); fine-tuned helpers lose coverage from development to final test; answer order in deployment (D-64, D-66) is unconfirmed with BoundClaw; Qwen3-Embedding CAPMAS copies trained to only 51-55% validation recall.

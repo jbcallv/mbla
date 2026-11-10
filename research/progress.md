@@ -5,25 +5,23 @@ tested), **in progress**, **waiting** (blocked on a person), **planned**.
 
 ## Waiting on people
 
-Open as of 2026-11-09. Older items (labeling, reviews, first GPU access) are closed; see the decisions log.
+Open as of 2026-11-10. Earlier items are closed; see the decisions log.
 
 | # | What | Who | Since | Blocks |
 |---|---|---|---|---|
-| J1 | GPUs for Qwen3-30B and gpt-oss-120b: cards 0+1 fault on transfers between them (D-55 to D-57). Ask for cards 2+3 (same NUMA side, other link) in place of 0+1 once our runs finish; run the copy test first. `gpu status`: cap 2 per person, 2 and 3 leased by Zaiyu Cheng | Joseph → admins | 2026-11-09 | 30B, gpt-oss-120b |
-| J2 | Qwen3-30B on one card in FP8 (disclosed precision change), if no working pair | Joseph | 2026-11-09 | 30B fallback |
-| J3 | Review the adaptive attacker's design (D-62), then "go" for its final-test run | Joseph | 2026-11-09 | attack (c) on the final test, F4 |
-| J4 | Answer order (D-64): option (b) chosen, a development-only check; after it, decide (a) disclose or (c) retrain | Joseph | 2026-11-09 | fine-tuned results' reading |
-| J5 | What the security team receives: prompted Qwen3-4B (recommended) or fine-tuned Qwen3-4B seed 2 (D-59, D-60) | Joseph | 2026-11-09 | BoundClaw package |
-| J6 | Ask BoundClaw whether their adapter also sends the schema with keys sorted (plausible first) (D-64) | Joseph → BoundClaw | 2026-11-09 | reading of D-64 |
+| J6 | Ask BoundClaw whether their adapter sends the schema with keys sorted (plausible first), as mbla does (D-64, D-66) | Joseph → BoundClaw | 2026-11-09 | reading of fine-tuned results; security-team guide |
+| J7 | Read `findings.md` F-31 and `security_team_guide.md` | Joseph | 2026-11-10 | sending the guide |
+
+Closed 2026-11-10: J1 and J2 (the card fault no longer shows; both two-card models ran, D-65), J3 (go given, D-66), J4 (answer-order check done; no retraining needed, D-66), J5 (guide lists every helper, two recommended).
 
 ## Order of work (§10)
 
 | Step | Status | Notes |
 |---|---|---|
-| 1. Convert and relabel the development set | **waiting** (H1, H2) | Converted, validated, report written; human review sheets ready |
-| 2. Write, label and freeze the final test set | **waiting** (H1, H4, H5) | 8 templates, 192 tasks, held-out styles written and validated (D-31) |
-| 3. Prompted helpers and baselines; deliver helper to BoundClaw | **in progress**, model helpers waiting (H6) | CPU baselines run on the development set; report and analysis built. Development runs need no labels to start (labels only change scoring) |
-| 4. Training study | planned | After step 3 |
+| 1. Convert and relabel the development set | **done** | 408 tasks; reviewed keys (D-37, D-38) |
+| 2. Write, label and freeze the final test set | **done** | 192 tasks, 8 templates; frozen and run once |
+| 3. Prompted helpers and baselines; deliver helper to BoundClaw | **done**, guide awaiting J7 | All prompted helpers incl. Qwen3-30B and gpt-oss-120b (D-67); `security_team_guide.md` |
+| 4. Training study | **done** | Five helpers × three seeds; F5 (D-61); answer-order check (D-66) |
 
 ## Components
 
@@ -50,10 +48,10 @@ Open as of 2026-11-09. Older items (labeling, reviews, first GPU access) are clo
 | Attack (d) inflated manifest | done | `bench/mbla_bench/attacks.py`, `data/attacks/` | Clean tasks only |
 | Conformance of the Go checker on the new forms | done | `bench/mbla_bench/conform.py` | 14,440 pairs, 0 disagreements |
 | FORTIS harness on the new library | done | `bench/mbla_bench/fortis.py` | Smoke-tested with CPU baselines |
-| CAPMAS under our rules in the new format | planned | | |
-| Adaptive attacker (attack (c)) | planned | | Needs GPUs (H6) |
-| Synthetic generator, mock execution, injection writer | in progress | `bench/mbla_bench/synth/` | Moved to the final format; 4,915 tasks written, 2,779 passed mock execution, two judges next; 93-task sheet code ported (`synth/audit.py`) |
-| Training | code ready, waiting for the 93-task check | `bench/mbla_bench/train.py`, `synth/capmas_export.py` | Tested on small runs only (2026-11-05): generative and reranker on an 80-task slice, QLoRA code path on Qwen3-1.7B, CAPMAS's own trainer for one epoch; all test weights deleted. QLoRA not yet run on Qwen3-30B itself |
+| CAPMAS under our rules, and retrained on our data | done | `bench/mbla_bench/capmas*.py` | D-63, D-67 |
+| Adaptive attacker (attack (c)) | done | `bench/mbla_bench/adaptive.py` | Fixed on development (D-62), run once on final test (D-67) |
+| Synthetic generator, mock execution, injection writer | done | `bench/mbla_bench/synth/` | Moved to the final format; 4,915 tasks written, 2,779 passed mock execution, two judges next; 93-task sheet code ported (`synth/audit.py`) |
+| Training | done | `bench/mbla_bench/train.py`, `synth/capmas_export.py` | Tested on small runs only (2026-11-05): generative and reranker on an 80-task slice, QLoRA code path on Qwen3-1.7B, CAPMAS's own trainer for one epoch; all test weights deleted. QLoRA not yet run on Qwen3-30B itself |
 
 ## Log
 
@@ -73,3 +71,6 @@ Open as of 2026-11-09. Older items (labeling, reviews, first GPU access) are clo
 - **2026-11-04** · Synthetic generation by gpt-oss-20b (one GPU, per D-35): 1,072 requests, 4,915 tasks, 89 failed requests, 2,779 passed mock execution, 0 removed by the 8-word and near-duplicate filters (checked: closest pair 0.78 against the 0.8 cutoff). The judge stage now runs at temperature 0 and counts failed requests apart from rejections.
 - **2026-11-05** · GPU device 0 now open to us, shared with ben. Models for the synthetic set chosen by a fixed test (D-40): writer gpt-oss-20b, judges Gemma 4 31B and Llama-3.3-70B; set being rebuilt.
 - **2026-11-05** · D-41, D-42. Six F5 tests; model second reader; synthetic set frozen at 1,966 tasks; blind 93-task sheet (1,136 rows) sent to Joseph.
+- **2026-11-06 to 2026-11-09** · D-55 to D-64. Fine-tuning of five helpers × three seeds; final runs of prompted, fine-tuned and held-out helpers; F5; adaptive attacker built and fixed on development; CAPMAS retrained; FORTIS, mostargate, latency; answer-order mismatch found.
+- **2026-11-10** · D-65 to D-67. Card fault no longer shows; Qwen3-30B and gpt-oss-120b complete; retrained CAPMAS complete; attack (c) run once on the final test; analysis re-run. Every planned run is done (F-31). Security-team guide written.
+
