@@ -1,0 +1,5 @@
+"Qwen3-1.7B" 0.2370 84.20 1 0.6 left
+"Qwen3-4B" 0.2060 94.40 -1 1 right
+"Qwen3-8B" 0.2830 94.60 1 -0.6 left
+"Reranker-0.6B" 0.5350 83.30 1 0 left
+"Reranker-8B" 0.6060 100.00 1 0 left
