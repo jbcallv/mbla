@@ -580,3 +580,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Checked:** one development task sent in mbla's exact request format returns the same grant as the benchmark's `dev-tuned` run.
 - **Caveats sent with it:** on the final test this helper covers 83% of tasks (prompted Qwen3-4B 94%); its results hold only if BoundClaw's adapter sends the schema with keys sorted, as mbla does (D-64, D-66, J6).
 - **Script:** now takes a local model folder (empty `REVISION`), a list of served names (`SERVED`) and a fixed card (`GPU`).
+
+## D-69 · Answers to BoundClaw's adapter questions (2026-11-10)
+- **J6 closed:** BoundClaw's adapter sends the schema through mbla's `ChatModel`, so `plausible` comes before `required`, the order the results are for.
+- **Check:** the development set sent to the hosted fine-tuned Qwen3-4B, unchanged (408 of 408 identical to `dev-tuned` seed 2) and with storage without trailing `/`, `%7Edefault`, sorted names, an approximation of BoundClaw's name extraction, and no names. None made tasks completed or unneeded authority worse; answers changed on 3-37% of tasks.
+- **Limit found:** in our data the delegator already holds the narrow grant on 312 of 408 development and 1,376 of 1,469 training tasks, so named-resource narrowing rarely decides the outcome there. BoundClaw's live setup (whole buckets and teams held) leans on it more than our evaluation tested.
+- **Written up:** `research/boundclaw_adapter_answers.md`; scripts in `bench/explore/adapter_check/`.
