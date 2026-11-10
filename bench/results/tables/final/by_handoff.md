@@ -15,6 +15,11 @@
 | capmas-scores (untuned)       | bc2-deploy |      0.917 |      0.715 |     0.625 |      0     |
 | capmas-scores (untuned)       | bc3-docs   |      0     |      0.076 |     0.097 |      0     |
 | capmas-scores (untuned)       | bc3-slack  |      0.104 |      0.659 |     0.771 |      0     |
+| gpt-oss-120b                  | bc1-triage |      0.986 |      0.216 |     0.452 |      0     |
+| gpt-oss-120b                  | bc2-build  |      0.958 |      0.047 |     0.229 |      0     |
+| gpt-oss-120b                  | bc2-deploy |      0.944 |      0.209 |     0.458 |      0     |
+| gpt-oss-120b                  | bc3-docs   |      1     |      0.118 |     0.528 |      0     |
+| gpt-oss-120b                  | bc3-slack  |      0.986 |      0.338 |     0.771 |      0     |
 | lexical                       | bc1-triage |      1     |      1     |     0.898 |      0     |
 | lexical                       | bc2-build  |      0     |      0.667 |     0.25  |      0     |
 | lexical                       | bc2-deploy |      1     |      0.883 |     0.75  |      0     |
@@ -30,6 +35,11 @@
 | qwen3-1.7b                    | bc2-deploy |      0.764 |      0.279 |     0.604 |      0     |
 | qwen3-1.7b                    | bc3-docs   |      1     |      0.022 |     0.278 |      0     |
 | qwen3-1.7b                    | bc3-slack  |      0.896 |      0.377 |     0.458 |      0.083 |
+| qwen3-30b                     | bc1-triage |      0.924 |      0.242 |     0.417 |      0     |
+| qwen3-30b                     | bc2-build  |      0.875 |      0.031 |     0.188 |      0     |
+| qwen3-30b                     | bc2-deploy |      0.521 |      0.272 |     0.326 |      0     |
+| qwen3-30b                     | bc3-docs   |      1     |      0.116 |     0.375 |      0     |
+| qwen3-30b                     | bc3-slack  |      0.917 |      0.307 |     0.483 |      0     |
 | qwen3-4b                      | bc1-triage |      0.958 |      0.272 |     0.64  |      0     |
 | qwen3-4b                      | bc2-build  |      0.917 |      0.044 |     0.292 |      0     |
 | qwen3-4b                      | bc2-deploy |      0.882 |      0.235 |     0.292 |      0     |

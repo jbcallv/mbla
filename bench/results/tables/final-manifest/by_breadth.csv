@@ -8,6 +8,9 @@ capmas-scores,narrow,0.875,0.792,1.0,0.0
 capmas-scores (untuned),broad,0.469,0.456,0.516,0.0
 capmas-scores (untuned),medium,0.5,0.57,0.661,0.0
 capmas-scores (untuned),narrow,0.417,0.721,0.708,0.0
+gpt-oss-120b,broad,0.99,0.071,0.34,0.0
+gpt-oss-120b,medium,0.976,0.12,0.768,0.0
+gpt-oss-120b,narrow,1.0,0.369,0.319,0.0
 lexical,broad,0.875,0.594,0.219,0.0
 lexical,medium,1.0,0.6,0.571,0.0
 lexical,narrow,1.0,0.583,0.5,0.0
@@ -17,6 +20,9 @@ manifest-only,narrow,0.167,0.822,1.0,0.0
 qwen3-1.7b,broad,0.875,0.2,0.583,0.031
 qwen3-1.7b,medium,0.893,0.362,0.708,0.0
 qwen3-1.7b,narrow,0.958,0.242,0.458,0.0
+qwen3-30b,broad,0.74,0.083,0.109,0.0
+qwen3-30b,medium,0.821,0.111,0.417,0.0
+qwen3-30b,narrow,0.819,0.408,0.417,0.0
 qwen3-4b,broad,0.969,0.111,0.471,0.0
 qwen3-4b,medium,0.929,0.11,0.625,0.0
 qwen3-4b,narrow,0.917,0.611,0.917,0.0

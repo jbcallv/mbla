@@ -1,0 +1,6 @@
+method,handoff,coverage,excess_C,reach_A,rejected
+qwen3-4b,bc1-triage,1.0,0.149,0.626,0.0
+qwen3-4b,bc2-build,0.698,0.071,0.354,0.0
+qwen3-4b,bc2-deploy,0.708,0.45,1.0,0.0
+qwen3-4b,bc3-docs,1.0,0.088,0.806,0.0
+qwen3-4b,bc3-slack,1.0,0.396,0.84,0.0

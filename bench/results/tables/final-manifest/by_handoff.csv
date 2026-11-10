@@ -14,6 +14,11 @@ capmas-scores (untuned),bc2-build,0.25,0.15,0.0,0.0
 capmas-scores (untuned),bc2-deploy,1.0,0.854,1.0,0.0
 capmas-scores (untuned),bc3-docs,0.0,0.179,0.167,0.0
 capmas-scores (untuned),bc3-slack,0.333,0.729,0.833,0.0
+gpt-oss-120b,bc1-triage,1.0,0.204,0.431,0.0
+gpt-oss-120b,bc2-build,1.0,0.017,0.0,0.0
+gpt-oss-120b,bc2-deploy,0.958,0.281,0.431,0.0
+gpt-oss-120b,bc3-docs,1.0,0.0,0.426,0.0
+gpt-oss-120b,bc3-slack,1.0,0.15,0.667,0.0
 lexical,bc1-triage,1.0,1.0,0.883,0.0
 lexical,bc2-build,0.0,1.0,0.0,0.0
 lexical,bc2-deploy,1.0,0.844,0.667,0.0
@@ -29,6 +34,11 @@ qwen3-1.7b,bc2-build,0.5,0.05,0.5,0.0
 qwen3-1.7b,bc2-deploy,0.833,0.271,0.875,0.0
 qwen3-1.7b,bc3-docs,0.917,0.06,0.167,0.0
 qwen3-1.7b,bc3-slack,0.958,0.406,0.451,0.042
+qwen3-30b,bc1-triage,0.8,0.165,0.358,0.0
+qwen3-30b,bc2-build,0.667,0.017,0.0,0.0
+qwen3-30b,bc2-deploy,0.5,0.358,0.5,0.0
+qwen3-30b,bc3-docs,1.0,0.012,0.389,0.0
+qwen3-30b,bc3-slack,0.986,0.144,0.056,0.0
 qwen3-4b,bc1-triage,1.0,0.182,0.604,0.0
 qwen3-4b,bc2-build,1.0,0.25,0.625,0.0
 qwen3-4b,bc2-deploy,0.792,0.353,0.833,0.0

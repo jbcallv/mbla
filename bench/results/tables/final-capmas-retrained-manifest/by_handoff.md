@@ -1,0 +1,62 @@
+| method                                             | handoff    |   coverage |   excess_C |   reach_A |   rejected |
+|:---------------------------------------------------|:-----------|-----------:|-----------:|----------:|-----------:|
+| capmas-retrained-bge-large-s0                      | bc1-triage |      0.9   |      0.814 |     0.742 |          0 |
+| capmas-retrained-bge-large-s0                      | bc2-build  |      0.75  |      0.7   |     0     |          0 |
+| capmas-retrained-bge-large-s0                      | bc2-deploy |      1     |      0.828 |     0.833 |          0 |
+| capmas-retrained-bge-large-s0                      | bc3-docs   |      1     |      0.06  |     0.111 |          0 |
+| capmas-retrained-bge-large-s0                      | bc3-slack  |      1     |      0.522 |     0.5   |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc1-triage |      0.9   |      0.814 |     0.742 |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc2-build  |      0.75  |      0.7   |     0     |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc2-deploy |      1     |      0.828 |     0.833 |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc3-docs   |      1     |      0.06  |     0.111 |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc3-slack  |      1     |      0.522 |     0.5   |          0 |
+| capmas-retrained-bge-large-s1                      | bc1-triage |      1     |      0.741 |     0.742 |          0 |
+| capmas-retrained-bge-large-s1                      | bc2-build  |      0.5   |      0.6   |     0     |          0 |
+| capmas-retrained-bge-large-s1                      | bc2-deploy |      1     |      0.902 |     0.958 |          0 |
+| capmas-retrained-bge-large-s1                      | bc3-docs   |      1     |      0.06  |     0.278 |          0 |
+| capmas-retrained-bge-large-s1                      | bc3-slack  |      0.875 |      0.514 |     0.583 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc1-triage |      1     |      0.741 |     0.667 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc2-build  |      0.5   |      0.6   |     0     |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc2-deploy |      1     |      0.902 |     0.958 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc3-docs   |      1     |      0.06  |     0.111 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc3-slack  |      0.875 |      0.514 |     0.5   |          0 |
+| capmas-retrained-bge-large-s2                      | bc1-triage |      1     |      0.738 |     0.729 |          0 |
+| capmas-retrained-bge-large-s2                      | bc2-build  |      0     |      0.5   |     0     |          0 |
+| capmas-retrained-bge-large-s2                      | bc2-deploy |      1     |      0.831 |     0.958 |          0 |
+| capmas-retrained-bge-large-s2                      | bc3-docs   |      1     |      0.048 |     0.111 |          0 |
+| capmas-retrained-bge-large-s2                      | bc3-slack  |      1     |      0.425 |     0.5   |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc1-triage |      1     |      0.818 |     0.729 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc2-build  |      0.25  |      0.6   |     0     |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc2-deploy |      1     |      0.919 |     0.958 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc3-docs   |      1     |      0.06  |     0.111 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc3-slack  |      1     |      0.514 |     0.5   |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc1-triage |      1     |      0.906 |     0.846 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc2-build  |      0     |      0.6   |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc2-deploy |      1     |      0.86  |     0.875 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc3-docs   |      1     |      0.143 |     0.556 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc3-slack  |      1     |      0.714 |     0.917 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc1-triage |      1     |      0.906 |     0.788 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc2-build  |      0     |      0.6   |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc2-deploy |      1     |      0.86  |     0.792 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc3-docs   |      1     |      0.143 |     0.194 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc3-slack  |      1     |      0.714 |     0.75  |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc1-triage |      1     |      0.717 |     0.804 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc2-build  |      0     |      0.75  |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc2-deploy |      1     |      0.775 |     0.708 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc3-docs   |      1     |      0.071 |     0.194 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc3-slack  |      1     |      0.422 |     0.854 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc1-triage |      1     |      0.809 |     0.708 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc2-build  |      0     |      0.85  |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc2-deploy |      1     |      0.826 |     0.667 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc3-docs   |      1     |      0.071 |     0.111 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc3-slack  |      1     |      0.724 |     0.792 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc1-triage |      1     |      0.695 |     0.817 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc2-build  |      0     |      0.15  |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc2-deploy |      1     |      0.729 |     0.708 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc3-docs   |      1     |      0.083 |     0.111 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc3-slack  |      1     |      0.604 |     1     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc1-triage |      1     |      0.908 |     0.817 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc2-build  |      1     |      0.6   |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc2-deploy |      1     |      0.851 |     0.708 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc3-docs   |      1     |      0.095 |     0.111 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc3-slack  |      1     |      0.992 |     1     |          0 |

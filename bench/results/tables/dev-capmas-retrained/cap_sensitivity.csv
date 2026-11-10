@@ -1,0 +1,49 @@
+method,k,coverage_A-bounded,reach_A-bounded,coverage_parent-bounded,reach_parent-bounded
+capmas-retrained-bge-large-s0,0,0.279,0.161,0.279,0.161
+capmas-retrained-bge-large-s0,1,0.559,0.821,0.559,0.953
+capmas-retrained-bge-large-s0,3,0.765,0.821,0.765,0.953
+capmas-retrained-bge-large-s0,5,0.765,0.821,0.765,0.953
+capmas-retrained-bge-large-s0 (untuned),0,0.868,0.566,0.868,0.566
+capmas-retrained-bge-large-s0 (untuned),1,0.868,0.566,0.868,0.953
+capmas-retrained-bge-large-s0 (untuned),3,0.868,0.566,0.868,0.953
+capmas-retrained-bge-large-s0 (untuned),5,0.868,0.566,0.868,0.953
+capmas-retrained-bge-large-s1,0,0.338,0.195,0.338,0.195
+capmas-retrained-bge-large-s1,1,0.566,0.815,0.566,0.953
+capmas-retrained-bge-large-s1,3,0.743,0.815,0.743,0.953
+capmas-retrained-bge-large-s1,5,0.765,0.815,0.765,0.953
+capmas-retrained-bge-large-s1 (untuned),0,0.897,0.556,0.897,0.556
+capmas-retrained-bge-large-s1 (untuned),1,0.897,0.556,0.904,0.953
+capmas-retrained-bge-large-s1 (untuned),3,0.897,0.556,0.904,0.953
+capmas-retrained-bge-large-s1 (untuned),5,0.897,0.556,0.904,0.953
+capmas-retrained-bge-large-s2,0,0.324,0.22,0.324,0.22
+capmas-retrained-bge-large-s2,1,0.544,0.761,0.544,0.953
+capmas-retrained-bge-large-s2,3,0.743,0.761,0.743,0.953
+capmas-retrained-bge-large-s2,5,0.765,0.761,0.765,0.953
+capmas-retrained-bge-large-s2 (untuned),0,0.897,0.538,0.897,0.538
+capmas-retrained-bge-large-s2 (untuned),1,0.897,0.538,0.897,0.958
+capmas-retrained-bge-large-s2 (untuned),3,0.897,0.538,0.897,0.958
+capmas-retrained-bge-large-s2 (untuned),5,0.897,0.538,0.897,0.958
+capmas-retrained-qwen3-embedding-0.6b-s0,0,0.36,0.241,0.36,0.241
+capmas-retrained-qwen3-embedding-0.6b-s0,1,0.574,0.923,0.574,0.953
+capmas-retrained-qwen3-embedding-0.6b-s0,3,0.75,0.923,0.75,0.953
+capmas-retrained-qwen3-embedding-0.6b-s0,5,0.765,0.923,0.765,0.953
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),0,0.963,0.585,0.963,0.585
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),1,0.963,0.585,0.978,0.956
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),3,0.963,0.585,0.978,0.956
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),5,0.963,0.585,0.978,0.956
+capmas-retrained-qwen3-embedding-0.6b-s1,0,0.328,0.238,0.328,0.238
+capmas-retrained-qwen3-embedding-0.6b-s1,1,0.581,0.895,0.581,0.953
+capmas-retrained-qwen3-embedding-0.6b-s1,3,0.743,0.895,0.743,0.953
+capmas-retrained-qwen3-embedding-0.6b-s1,5,0.765,0.895,0.765,0.953
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),0,0.868,0.549,0.868,0.549
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),1,0.868,0.549,0.882,0.955
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),3,0.868,0.549,0.882,0.955
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),5,0.868,0.549,0.882,0.955
+capmas-retrained-qwen3-embedding-0.6b-s2,0,0.25,0.092,0.25,0.092
+capmas-retrained-qwen3-embedding-0.6b-s2,1,0.419,0.892,0.419,0.953
+capmas-retrained-qwen3-embedding-0.6b-s2,3,0.721,0.892,0.721,0.953
+capmas-retrained-qwen3-embedding-0.6b-s2,5,0.765,0.892,0.765,0.953
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),0,0.971,0.597,0.971,0.597
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),1,0.971,0.597,0.971,0.953
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),3,0.971,0.597,0.971,0.953
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),5,0.971,0.597,0.971,0.953

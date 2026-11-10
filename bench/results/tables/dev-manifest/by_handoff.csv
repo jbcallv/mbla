@@ -1,0 +1,11 @@
+method,handoff,coverage,excess_C,reach_A,rejected
+gpt-oss-120b,bc1-triage,0.989,0.013,0.433,0.0
+gpt-oss-120b,bc2-build,1.0,0.021,0.083,0.0
+gpt-oss-120b,bc2-deploy,0.972,0.118,0.472,0.0
+gpt-oss-120b,bc3-docs,0.981,0.019,0.532,0.0
+gpt-oss-120b,bc3-slack,1.0,0.069,0.764,0.0
+qwen3-30b,bc1-triage,0.917,0.116,0.494,0.0
+qwen3-30b,bc2-build,0.792,0.062,0.156,0.0
+qwen3-30b,bc2-deploy,1.0,0.049,0.185,0.0
+qwen3-30b,bc3-docs,1.0,0.056,0.62,0.0
+qwen3-30b,bc3-slack,1.0,0.0,0.042,0.0

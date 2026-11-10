@@ -1,0 +1,12 @@
+| method                           | handoff    |   coverage |   excess_C |   reach_A |   rejected |
+|:---------------------------------|:-----------|-----------:|-----------:|----------:|-----------:|
+| qwen3-4b-tuned-s2-deployed-order | bc1-triage |      0.958 |      0.017 |     0.377 |      0     |
+| qwen3-4b-tuned-s2-deployed-order | bc2-build  |      0.771 |      0.01  |     0.141 |      0     |
+| qwen3-4b-tuned-s2-deployed-order | bc2-deploy |      0.931 |      0.083 |     0.472 |      0     |
+| qwen3-4b-tuned-s2-deployed-order | bc3-docs   |      1     |      0     |     0.493 |      0     |
+| qwen3-4b-tuned-s2-deployed-order | bc3-slack  |      1     |      0.125 |     0.5   |      0     |
+| qwen3-4b-tuned-s2-required-first | bc1-triage |      0.967 |      0.189 |     0.215 |      0     |
+| qwen3-4b-tuned-s2-required-first | bc2-build  |      0.969 |      0.367 |     0.422 |      0     |
+| qwen3-4b-tuned-s2-required-first | bc2-deploy |      0.903 |      0.174 |     0.292 |      0.028 |
+| qwen3-4b-tuned-s2-required-first | bc3-docs   |      1     |      0.194 |     0.278 |      0     |
+| qwen3-4b-tuned-s2-required-first | bc3-slack  |      1     |      0.333 |     0.5   |      0     |

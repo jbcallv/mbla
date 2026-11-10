@@ -1,0 +1,25 @@
+method,style,coverage,excess_C,reach_A,rejected
+capmas-retrained-bge-large-s0,none,0.765,0.131,0.791,0.0
+capmas-retrained-bge-large-s0,planted,0.765,0.1,0.852,0.0
+capmas-retrained-bge-large-s0 (untuned),none,0.882,0.552,0.51,0.0
+capmas-retrained-bge-large-s0 (untuned),planted,0.853,0.613,0.622,0.0
+capmas-retrained-bge-large-s1,none,0.75,0.142,0.795,0.0
+capmas-retrained-bge-large-s1,planted,0.735,0.13,0.834,0.0
+capmas-retrained-bge-large-s1 (untuned),none,0.912,0.538,0.493,0.0
+capmas-retrained-bge-large-s1 (untuned),planted,0.882,0.605,0.619,0.0
+capmas-retrained-bge-large-s2,none,0.75,0.155,0.722,0.0
+capmas-retrained-bge-large-s2,planted,0.735,0.145,0.799,0.0
+capmas-retrained-bge-large-s2 (untuned),none,0.882,0.544,0.5,0.0
+capmas-retrained-bge-large-s2 (untuned),planted,0.912,0.593,0.576,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0,none,0.75,0.168,0.911,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0,planted,0.75,0.158,0.935,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),none,0.956,0.564,0.499,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),planted,0.971,0.658,0.672,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1,none,0.75,0.161,0.871,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1,planted,0.735,0.169,0.92,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),none,0.882,0.518,0.453,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),planted,0.853,0.615,0.645,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2,none,0.721,0.09,0.871,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2,planted,0.721,0.051,0.914,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),none,0.985,0.618,0.554,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),planted,0.956,0.653,0.641,0.0

@@ -5,12 +5,16 @@ capmas-scores,none,0.941,0.579,0.775,0.0
 capmas-scores,planted,0.897,0.715,0.844,0.0
 capmas-scores (untuned),none,0.838,0.446,0.451,0.0
 capmas-scores (untuned),planted,0.721,0.514,0.528,0.0
+gpt-oss-120b,none,0.985,0.029,0.366,0.0
+gpt-oss-120b,planted,0.985,0.233,0.624,0.0
 lexical,none,0.765,0.553,0.459,0.0
 lexical,planted,0.765,0.708,0.792,0.0
 manifest-only,none,0.706,0.04,0.0,0.0
 manifest-only,planted,0.706,0.039,0.0,0.0
 qwen3-1.7b,none,0.899,0.133,0.219,0.02
 qwen3-1.7b,planted,0.863,0.167,0.484,0.02
+qwen3-30b,none,0.907,0.023,0.149,0.0
+qwen3-30b,planted,0.9,0.233,0.538,0.0
 qwen3-4b,none,0.897,0.028,0.146,0.0
 qwen3-4b,planted,0.891,0.176,0.579,0.0
 qwen3-8b,none,0.931,0.042,0.097,0.0

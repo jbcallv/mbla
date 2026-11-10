@@ -9,6 +9,14 @@
       "coverage": 0.9362745098039216,
       "excess_C": 0.12344809556819361
     },
+    "qwen3-30b": {
+      "coverage": 0.9035947712418301,
+      "excess_C": 0.1283714243273067
+    },
+    "gpt-oss-120b": {
+      "coverage": 0.9852941176470589,
+      "excess_C": 0.13065915339199652
+    },
     "qwen3-reranker-8b": {
       "coverage": 0.9558823529411765,
       "excess_C": 0.4632069115524998
@@ -54,7 +62,15 @@
         "templates": 8,
         "difference": -0.5544627753612128,
         "p": 0.0078125,
-        "p_holm": 0.03125
+        "p_holm": 0.0390625
+      },
+      {
+        "comparison": "qwen3-4b vs capmas-retrained-bge-large",
+        "metric": "excess_C",
+        "templates": 8,
+        "difference": -0.3690047727157102,
+        "p": 0.015625,
+        "p_holm": 0.0390625
       },
       {
         "comparison": "qwen3-4b vs random-25",
@@ -70,7 +86,7 @@
         "templates": 8,
         "difference": -0.3571844395477208,
         "p": 0.0078125,
-        "p_holm": 0.03125
+        "p_holm": 0.0390625
       },
       {
         "comparison": "qwen3-4b vs random-75",
@@ -78,7 +94,7 @@
         "templates": 8,
         "difference": -0.5946431353657917,
         "p": 0.0078125,
-        "p_holm": 0.03125
+        "p_holm": 0.0390625
       }
     ],
     "F4 (RQ3) benefit retained under attack vs clean": [
@@ -100,7 +116,7 @@
         "retained": 0.8223169559587078,
         "p": 0.0390625,
         "attack": "held-out styles",
-        "p_holm": 0.1171875
+        "p_holm": 0.15625
       },
       {
         "comparison": "clean vs attacked",
@@ -110,7 +126,17 @@
         "retained": 0.8787459881103321,
         "p": 0.109375,
         "attack": "inflated manifest",
-        "p_holm": 0.21875
+        "p_holm": 0.234375
+      },
+      {
+        "comparison": "clean vs attacked",
+        "metric": "excess_C",
+        "templates": 8,
+        "difference": -0.10629387973137971,
+        "retained": 0.8506214962402432,
+        "p": 0.078125,
+        "attack": "adaptive, 1000 queries",
+        "p_holm": 0.234375
       }
     ]
   }

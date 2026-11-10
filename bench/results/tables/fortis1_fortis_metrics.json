@@ -1,5 +1,35 @@
 [
   {
+    "method": "capmas",
+    "items": 579,
+    "exact_match": 0.055267702936096716,
+    "under_privilege": 0.018998272884283247,
+    "over_privilege": 0.92573402417962,
+    "no_action": 0.0,
+    "safe_rate": 0.07426597582037997,
+    "fail_rate": 0.92573402417962
+  },
+  {
+    "method": "capmas-scores",
+    "items": 579,
+    "exact_match": 0.3644214162348877,
+    "under_privilege": 0.16234887737478412,
+    "over_privilege": 0.47322970639032813,
+    "no_action": 0.0,
+    "safe_rate": 0.5267702936096719,
+    "fail_rate": 0.47322970639032813
+  },
+  {
+    "method": "gpt-oss-120b",
+    "items": 579,
+    "exact_match": 0.4784110535405872,
+    "under_privilege": 0.16062176165803108,
+    "over_privilege": 0.3592400690846287,
+    "no_action": 0.0017271157167530224,
+    "safe_rate": 0.6390328151986183,
+    "fail_rate": 0.36096718480138174
+  },
+  {
     "method": "lexical",
     "items": 579,
     "exact_match": 0.06563039723661486,
@@ -8,6 +38,106 @@
     "no_action": 0.8255613126079447,
     "safe_rate": 0.08981001727115717,
     "fail_rate": 0.9101899827288429
+  },
+  {
+    "method": "manifest-only",
+    "items": 579,
+    "exact_match": 0.0,
+    "under_privilege": 0.0,
+    "over_privilege": 0.0,
+    "no_action": 1.0,
+    "safe_rate": 0.0,
+    "fail_rate": 1.0
+  },
+  {
+    "method": "qwen3-1.7b",
+    "items": 579,
+    "exact_match": 0.32469775474956825,
+    "under_privilege": 0.2763385146804836,
+    "over_privilege": 0.39896373056994816,
+    "no_action": 0.0,
+    "safe_rate": 0.6010362694300518,
+    "fail_rate": 0.39896373056994816
+  },
+  {
+    "method": "qwen3-30b",
+    "items": 579,
+    "exact_match": 0.4075993091537133,
+    "under_privilege": 0.16407599309153714,
+    "over_privilege": 0.4283246977547496,
+    "no_action": 0.0,
+    "safe_rate": 0.5716753022452504,
+    "fail_rate": 0.4283246977547496
+  },
+  {
+    "method": "qwen3-4b",
+    "items": 579,
+    "exact_match": 0.39723661485319517,
+    "under_privilege": 0.153713298791019,
+    "over_privilege": 0.44905008635578586,
+    "no_action": 0.0,
+    "safe_rate": 0.5509499136442142,
+    "fail_rate": 0.44905008635578586
+  },
+  {
+    "method": "qwen3-8b",
+    "items": 579,
+    "exact_match": 0.35578583765112265,
+    "under_privilege": 0.17271157167530224,
+    "over_privilege": 0.47150259067357514,
+    "no_action": 0.0,
+    "safe_rate": 0.5284974093264249,
+    "fail_rate": 0.47150259067357514
+  },
+  {
+    "method": "qwen3-reranker-0.6b",
+    "items": 579,
+    "exact_match": 0.41968911917098445,
+    "under_privilege": 0.12953367875647667,
+    "over_privilege": 0.45077720207253885,
+    "no_action": 0.0,
+    "safe_rate": 0.5492227979274611,
+    "fail_rate": 0.45077720207253885
+  },
+  {
+    "method": "qwen3-reranker-8b",
+    "items": 579,
+    "exact_match": 0.4369602763385147,
+    "under_privilege": 0.17616580310880828,
+    "over_privilege": 0.38687392055267705,
+    "no_action": 0.0,
+    "safe_rate": 0.613126079447323,
+    "fail_rate": 0.38687392055267705
+  },
+  {
+    "method": "random-25",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
+  },
+  {
+    "method": "random-50",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
+  },
+  {
+    "method": "random-75",
+    "items": 579,
+    "exact_match": 0.04145077720207254,
+    "under_privilege": 0.22625215889464595,
+    "over_privilege": 0.7322970639032815,
+    "no_action": 0.0,
+    "safe_rate": 0.26770293609671847,
+    "fail_rate": 0.7322970639032815
   },
   {
     "method": "set-only",

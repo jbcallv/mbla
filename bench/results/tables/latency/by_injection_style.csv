@@ -1,0 +1,73 @@
+method,style,coverage,excess_C,reach_A,rejected
+capmas,ignore_previous,0.917,0.805,0.778,0.0
+capmas,important_instructions,0.667,0.875,0.685,0.167
+capmas,injecagent,0.917,0.938,0.833,0.083
+capmas,none,0.948,0.919,0.861,0.0
+capmas,planted,0.938,0.896,0.873,0.0
+capmas,system_message,1.0,0.959,0.892,0.0
+capmas-scores,ignore_previous,0.75,0.676,0.889,0.0
+capmas-scores,important_instructions,0.917,0.645,0.87,0.0
+capmas-scores,injecagent,0.917,0.924,0.924,0.0
+capmas-scores,none,0.969,0.719,0.893,0.0
+capmas-scores,planted,1.0,0.799,0.915,0.0
+capmas-scores,system_message,1.0,0.74,0.817,0.0
+capmas-scores (untuned),ignore_previous,0.333,0.393,0.403,0.0
+capmas-scores (untuned),important_instructions,0.083,0.455,0.444,0.0
+capmas-scores (untuned),injecagent,0.417,0.511,0.455,0.0
+capmas-scores (untuned),none,0.406,0.449,0.452,0.0
+capmas-scores (untuned),planted,0.312,0.545,0.589,0.0
+capmas-scores (untuned),system_message,0.25,0.385,0.325,0.0
+gpt-oss-120b,ignore_previous,1.0,0.263,0.778,0.0
+gpt-oss-120b,important_instructions,1.0,0.269,0.796,0.0
+gpt-oss-120b,injecagent,1.0,0.342,0.53,0.0
+gpt-oss-120b,none,0.969,0.127,0.377,0.0
+gpt-oss-120b,planted,0.979,0.302,0.687,0.0
+gpt-oss-120b,system_message,1.0,0.259,0.733,0.0
+qwen3-1.7b,ignore_previous,0.917,0.392,0.694,0.083
+qwen3-1.7b,important_instructions,0.75,0.177,0.593,0.083
+qwen3-1.7b,injecagent,0.667,0.342,0.591,0.083
+qwen3-1.7b,none,0.896,0.219,0.466,0.0
+qwen3-1.7b,planted,0.771,0.234,0.587,0.021
+qwen3-1.7b,system_message,0.833,0.186,0.7,0.0
+qwen3-30b,ignore_previous,0.833,0.263,0.694,0.0
+qwen3-30b,important_instructions,0.833,0.267,0.648,0.0
+qwen3-30b,injecagent,0.667,0.321,0.667,0.0
+qwen3-30b,none,0.833,0.138,0.176,0.0
+qwen3-30b,planted,0.792,0.312,0.639,0.0
+qwen3-30b,system_message,0.917,0.32,0.458,0.0
+qwen3-4b,ignore_previous,1.0,0.294,0.653,0.0
+qwen3-4b,important_instructions,0.917,0.217,0.676,0.0
+qwen3-4b,injecagent,1.0,0.361,0.712,0.0
+qwen3-4b,none,0.958,0.152,0.285,0.0
+qwen3-4b,planted,0.896,0.219,0.643,0.0
+qwen3-4b,system_message,1.0,0.336,0.458,0.0
+qwen3-8b,ignore_previous,0.917,0.274,0.819,0.0
+qwen3-8b,important_instructions,0.833,0.306,0.759,0.0
+qwen3-8b,injecagent,1.0,0.435,0.712,0.0
+qwen3-8b,none,0.948,0.204,0.346,0.0
+qwen3-8b,planted,0.938,0.373,0.738,0.0
+qwen3-8b,system_message,1.0,0.314,0.458,0.0
+qwen3-reranker-0.6b,ignore_previous,0.75,0.622,0.681,0.0
+qwen3-reranker-0.6b,important_instructions,0.75,0.582,0.843,0.0
+qwen3-reranker-0.6b,injecagent,0.75,0.62,0.833,0.0
+qwen3-reranker-0.6b,none,0.844,0.458,0.604,0.0
+qwen3-reranker-0.6b,planted,0.875,0.645,0.756,0.0
+qwen3-reranker-0.6b,system_message,0.833,0.486,0.608,0.0
+qwen3-reranker-0.6b (untuned),ignore_previous,0.75,0.772,0.722,0.0
+qwen3-reranker-0.6b (untuned),important_instructions,0.833,0.739,0.843,0.0
+qwen3-reranker-0.6b (untuned),injecagent,0.833,0.868,0.833,0.0
+qwen3-reranker-0.6b (untuned),none,0.854,0.676,0.604,0.0
+qwen3-reranker-0.6b (untuned),planted,0.875,0.771,0.768,0.0
+qwen3-reranker-0.6b (untuned),system_message,0.833,0.659,0.608,0.0
+qwen3-reranker-8b,ignore_previous,1.0,0.672,0.847,0.0
+qwen3-reranker-8b,important_instructions,1.0,0.586,0.796,0.0
+qwen3-reranker-8b,injecagent,1.0,0.616,0.742,0.0
+qwen3-reranker-8b,none,1.0,0.554,0.75,0.0
+qwen3-reranker-8b,planted,1.0,0.663,0.843,0.0
+qwen3-reranker-8b,system_message,1.0,0.743,0.842,0.0
+qwen3-reranker-8b (untuned),ignore_previous,1.0,0.801,0.819,0.0
+qwen3-reranker-8b (untuned),important_instructions,1.0,0.694,0.759,0.0
+qwen3-reranker-8b (untuned),injecagent,1.0,0.793,0.742,0.0
+qwen3-reranker-8b (untuned),none,0.969,0.715,0.584,0.0
+qwen3-reranker-8b (untuned),planted,1.0,0.826,0.831,0.0
+qwen3-reranker-8b (untuned),system_message,1.0,0.791,0.842,0.0

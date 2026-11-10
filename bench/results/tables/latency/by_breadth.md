@@ -1,0 +1,38 @@
+| method                        | breadth   |   coverage |   excess_C |   reach_A |   rejected |
+|:------------------------------|:----------|-----------:|-----------:|----------:|-----------:|
+| capmas                        | broad     |      0.906 |      0.856 |     0.689 |      0.047 |
+| capmas                        | medium    |      0.969 |      0.922 |     0.92  |      0     |
+| capmas                        | narrow    |      0.906 |      0.946 |     0.979 |      0     |
+| capmas-scores                 | broad     |      0.984 |      0.707 |     0.738 |      0     |
+| capmas-scores                 | medium    |      0.969 |      0.781 |     0.982 |      0     |
+| capmas-scores                 | narrow    |      0.922 |      0.752 |     1     |      0     |
+| capmas-scores (untuned)       | broad     |      0.375 |      0.436 |     0.466 |      0     |
+| capmas-scores (untuned)       | medium    |      0.344 |      0.472 |     0.446 |      0     |
+| capmas-scores (untuned)       | narrow    |      0.328 |      0.507 |     0.521 |      0     |
+| gpt-oss-120b                  | broad     |      0.984 |      0.113 |     0.471 |      0     |
+| gpt-oss-120b                  | medium    |      0.969 |      0.142 |     0.696 |      0     |
+| gpt-oss-120b                  | narrow    |      0.984 |      0.399 |     0.438 |      0     |
+| qwen3-1.7b                    | broad     |      0.828 |      0.233 |     0.547 |      0.062 |
+| qwen3-1.7b                    | medium    |      0.828 |      0.243 |     0.696 |      0     |
+| qwen3-1.7b                    | narrow    |      0.859 |      0.237 |     0.354 |      0     |
+| qwen3-30b                     | broad     |      0.797 |      0.108 |     0.331 |      0     |
+| qwen3-30b                     | medium    |      0.828 |      0.159 |     0.42  |      0     |
+| qwen3-30b                     | narrow    |      0.828 |      0.418 |     0.479 |      0     |
+| qwen3-4b                      | broad     |      0.922 |      0.135 |     0.371 |      0     |
+| qwen3-4b                      | medium    |      0.969 |      0.164 |     0.491 |      0     |
+| qwen3-4b                      | narrow    |      0.953 |      0.336 |     0.542 |      0     |
+| qwen3-8b                      | broad     |      0.938 |      0.186 |     0.393 |      0     |
+| qwen3-8b                      | medium    |      0.938 |      0.236 |     0.661 |      0     |
+| qwen3-8b                      | narrow    |      0.953 |      0.432 |     0.562 |      0     |
+| qwen3-reranker-0.6b           | broad     |      0.828 |      0.44  |     0.477 |      0     |
+| qwen3-reranker-0.6b           | medium    |      0.828 |      0.624 |     0.857 |      0     |
+| qwen3-reranker-0.6b           | narrow    |      0.844 |      0.543 |     0.729 |      0     |
+| qwen3-reranker-0.6b (untuned) | broad     |      0.844 |      0.7   |     0.492 |      0     |
+| qwen3-reranker-0.6b (untuned) | medium    |      0.844 |      0.817 |     0.857 |      0     |
+| qwen3-reranker-0.6b (untuned) | narrow    |      0.859 |      0.636 |     0.729 |      0     |
+| qwen3-reranker-8b             | broad     |      1     |      0.496 |     0.568 |      0     |
+| qwen3-reranker-8b             | medium    |      1     |      0.731 |     0.982 |      0     |
+| qwen3-reranker-8b             | narrow    |      1     |      0.59  |     0.854 |      0     |
+| qwen3-reranker-8b (untuned)   | broad     |      0.984 |      0.714 |     0.52  |      0     |
+| qwen3-reranker-8b (untuned)   | medium    |      0.984 |      0.875 |     0.911 |      0     |
+| qwen3-reranker-8b (untuned)   | narrow    |      0.984 |      0.67  |     0.688 |      0     |

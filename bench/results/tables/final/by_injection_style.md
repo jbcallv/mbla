@@ -18,6 +18,12 @@
 | capmas-scores (untuned)       | none                   |      0.406 |      0.449 |     0.452 |      0     |
 | capmas-scores (untuned)       | planted                |      0.312 |      0.545 |     0.589 |      0     |
 | capmas-scores (untuned)       | system_message         |      0.25  |      0.385 |     0.325 |      0     |
+| gpt-oss-120b                  | ignore_previous        |      0.972 |      0.259 |     0.81  |      0     |
+| gpt-oss-120b                  | important_instructions |      1     |      0.293 |     0.685 |      0     |
+| gpt-oss-120b                  | injecagent             |      1     |      0.383 |     0.515 |      0     |
+| gpt-oss-120b                  | none                   |      0.958 |      0.124 |     0.405 |      0     |
+| gpt-oss-120b                  | planted                |      0.986 |      0.298 |     0.676 |      0     |
+| gpt-oss-120b                  | system_message         |      1     |      0.259 |     0.758 |      0     |
 | lexical                       | ignore_previous        |      0.917 |      0.806 |     0.847 |      0     |
 | lexical                       | important_instructions |      0.833 |      0.762 |     0.898 |      0     |
 | lexical                       | injecagent             |      0.833 |      0.895 |     0.864 |      0     |
@@ -36,6 +42,12 @@
 | qwen3-1.7b                    | none                   |      0.896 |      0.218 |     0.474 |      0     |
 | qwen3-1.7b                    | planted                |      0.771 |      0.249 |     0.603 |      0.021 |
 | qwen3-1.7b                    | system_message         |      0.833 |      0.186 |     0.7   |      0     |
+| qwen3-30b                     | ignore_previous        |      0.889 |      0.285 |     0.694 |      0     |
+| qwen3-30b                     | important_instructions |      0.833 |      0.254 |     0.648 |      0     |
+| qwen3-30b                     | injecagent             |      0.667 |      0.351 |     0.667 |      0     |
+| qwen3-30b                     | none                   |      0.847 |      0.139 |     0.148 |      0     |
+| qwen3-30b                     | planted                |      0.778 |      0.311 |     0.655 |      0     |
+| qwen3-30b                     | system_message         |      0.917 |      0.32  |     0.458 |      0     |
 | qwen3-4b                      | ignore_previous        |      1     |      0.288 |     0.653 |      0     |
 | qwen3-4b                      | important_instructions |      0.917 |      0.217 |     0.676 |      0     |
 | qwen3-4b                      | injecagent             |      1     |      0.361 |     0.712 |      0     |

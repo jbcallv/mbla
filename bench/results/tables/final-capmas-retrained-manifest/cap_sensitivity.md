@@ -1,0 +1,50 @@
+| method                                             |   k |   coverage_A-bounded |   reach_A-bounded |   coverage_parent-bounded |   reach_parent-bounded |
+|:---------------------------------------------------|----:|---------------------:|------------------:|--------------------------:|-----------------------:|
+| capmas-retrained-bge-large-s0                      |   0 |                0.964 |             0.573 |                     0.964 |                  0.573 |
+| capmas-retrained-bge-large-s0                      |   1 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s0                      |   3 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s0                      |   5 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s0 (untuned)            |   0 |                0.964 |             0.573 |                     0.964 |                  0.573 |
+| capmas-retrained-bge-large-s0 (untuned)            |   1 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s0 (untuned)            |   3 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s0 (untuned)            |   5 |                0.964 |             0.573 |                     0.988 |                  0.976 |
+| capmas-retrained-bge-large-s1                      |   0 |                0.94  |             0.591 |                     0.94  |                  0.591 |
+| capmas-retrained-bge-large-s1                      |   1 |                0.94  |             0.657 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s1                      |   3 |                0.94  |             0.657 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s1                      |   5 |                0.94  |             0.657 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s1 (untuned)            |   0 |                0.94  |             0.591 |                     0.94  |                  0.591 |
+| capmas-retrained-bge-large-s1 (untuned)            |   1 |                0.94  |             0.591 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s1 (untuned)            |   3 |                0.94  |             0.591 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s1 (untuned)            |   5 |                0.94  |             0.591 |                     0.976 |                  0.976 |
+| capmas-retrained-bge-large-s2                      |   0 |                0.869 |             0.518 |                     0.869 |                  0.518 |
+| capmas-retrained-bge-large-s2                      |   1 |                0.952 |             0.606 |                     0.952 |                  0.976 |
+| capmas-retrained-bge-large-s2                      |   3 |                0.952 |             0.606 |                     0.952 |                  0.976 |
+| capmas-retrained-bge-large-s2                      |   5 |                0.952 |             0.606 |                     0.952 |                  0.976 |
+| capmas-retrained-bge-large-s2 (untuned)            |   0 |                0.964 |             0.606 |                     0.964 |                  0.606 |
+| capmas-retrained-bge-large-s2 (untuned)            |   1 |                0.964 |             0.606 |                     0.964 |                  0.976 |
+| capmas-retrained-bge-large-s2 (untuned)            |   3 |                0.964 |             0.606 |                     0.964 |                  0.976 |
+| capmas-retrained-bge-large-s2 (untuned)            |   5 |                0.964 |             0.606 |                     0.964 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           |   0 |                0.952 |             0.656 |                     0.952 |                  0.656 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           |   1 |                0.952 |             0.793 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           |   3 |                0.952 |             0.793 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           |   5 |                0.952 |             0.793 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) |   0 |                0.952 |             0.656 |                     0.952 |                  0.656 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) |   1 |                0.952 |             0.656 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) |   3 |                0.952 |             0.656 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) |   5 |                0.952 |             0.656 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           |   0 |                0.952 |             0.462 |                     0.952 |                  0.462 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           |   1 |                0.952 |             0.666 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           |   3 |                0.952 |             0.666 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           |   5 |                0.952 |             0.666 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) |   0 |                0.952 |             0.601 |                     0.952 |                  0.601 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) |   1 |                0.952 |             0.601 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) |   3 |                0.952 |             0.601 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) |   5 |                0.952 |             0.601 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           |   0 |                0.929 |             0.498 |                     0.929 |                  0.498 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           |   1 |                0.952 |             0.698 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           |   3 |                0.952 |             0.698 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           |   5 |                0.952 |             0.698 |                     0.952 |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) |   0 |                1     |             0.698 |                     1     |                  0.698 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) |   1 |                1     |             0.698 |                     1     |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) |   3 |                1     |             0.698 |                     1     |                  0.976 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) |   5 |                1     |             0.698 |                     1     |                  0.976 |

@@ -1,0 +1,9 @@
+method,k,coverage_A-bounded,reach_A-bounded,coverage_parent-bounded,reach_parent-bounded
+gpt-oss-120b,0,0.924,0.067,0.924,0.067
+gpt-oss-120b,1,0.955,0.476,0.959,0.959
+gpt-oss-120b,3,0.986,0.476,0.994,0.959
+gpt-oss-120b,5,0.992,0.476,1.0,0.959
+qwen3-30b,0,0.709,0.101,0.709,0.101
+qwen3-30b,1,0.897,0.361,0.928,0.953
+qwen3-30b,3,0.952,0.361,0.988,0.953
+qwen3-30b,5,0.952,0.361,0.988,0.953

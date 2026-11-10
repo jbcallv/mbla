@@ -1,0 +1,37 @@
+method,breadth,coverage,excess_C,reach_A,rejected
+capmas-retrained-bge-large-s0,broad,0.969,0.531,0.368,0.0
+capmas-retrained-bge-large-s0,medium,0.953,0.671,0.759,0.0
+capmas-retrained-bge-large-s0,narrow,0.938,0.643,0.667,0.0
+capmas-retrained-bge-large-s0 (untuned),broad,0.969,0.531,0.368,0.0
+capmas-retrained-bge-large-s0 (untuned),medium,0.953,0.671,0.759,0.0
+capmas-retrained-bge-large-s0 (untuned),narrow,0.938,0.643,0.667,0.0
+capmas-retrained-bge-large-s1,broad,0.938,0.492,0.435,0.0
+capmas-retrained-bge-large-s1,medium,0.938,0.674,0.795,0.0
+capmas-retrained-bge-large-s1,narrow,0.922,0.607,0.688,0.0
+capmas-retrained-bge-large-s1 (untuned),broad,0.906,0.492,0.335,0.0
+capmas-retrained-bge-large-s1 (untuned),medium,0.922,0.674,0.759,0.0
+capmas-retrained-bge-large-s1 (untuned),narrow,0.906,0.607,0.667,0.0
+capmas-retrained-bge-large-s2,broad,0.875,0.379,0.299,0.0
+capmas-retrained-bge-large-s2,medium,0.891,0.547,0.679,0.0
+capmas-retrained-bge-large-s2,narrow,0.859,0.509,0.583,0.0
+capmas-retrained-bge-large-s2 (untuned),broad,0.922,0.483,0.299,0.0
+capmas-retrained-bge-large-s2 (untuned),medium,0.922,0.654,0.679,0.0
+capmas-retrained-bge-large-s2 (untuned),narrow,0.906,0.554,0.583,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0,broad,0.875,0.539,0.503,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0,medium,0.875,0.695,0.83,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0,narrow,0.875,0.634,0.75,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),broad,0.875,0.539,0.389,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),medium,0.875,0.695,0.732,0.0
+capmas-retrained-qwen3-embedding-0.6b-s0 (untuned),narrow,0.875,0.634,0.688,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1,broad,0.875,0.42,0.342,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1,medium,0.875,0.528,0.741,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1,narrow,0.875,0.554,0.708,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),broad,0.875,0.5,0.288,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),medium,0.875,0.646,0.67,0.0
+capmas-retrained-qwen3-embedding-0.6b-s1 (untuned),narrow,0.875,0.643,0.667,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2,broad,0.875,0.311,0.454,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2,medium,0.859,0.457,0.804,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2,narrow,0.875,0.532,0.688,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),broad,1.0,0.637,0.454,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),medium,0.969,0.773,0.804,0.0
+capmas-retrained-qwen3-embedding-0.6b-s2 (untuned),narrow,0.984,0.652,0.688,0.0

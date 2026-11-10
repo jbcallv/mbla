@@ -9,6 +9,9 @@
 | capmas-scores (untuned)       | broad     |      0.375 |      0.436 |     0.466 |      0     |
 | capmas-scores (untuned)       | medium    |      0.344 |      0.472 |     0.446 |      0     |
 | capmas-scores (untuned)       | narrow    |      0.328 |      0.507 |     0.521 |      0     |
+| gpt-oss-120b                  | broad     |      0.948 |      0.11  |     0.47  |      0     |
+| gpt-oss-120b                  | medium    |      0.984 |      0.155 |     0.717 |      0     |
+| gpt-oss-120b                  | narrow    |      0.99  |      0.392 |     0.444 |      0     |
 | lexical                       | broad     |      0.875 |      0.681 |     0.462 |      0     |
 | lexical                       | medium    |      0.875 |      0.722 |     0.75  |      0     |
 | lexical                       | narrow    |      0.875 |      0.643 |     0.708 |      0     |
@@ -18,6 +21,9 @@
 | qwen3-1.7b                    | broad     |      0.839 |      0.231 |     0.557 |      0.062 |
 | qwen3-1.7b                    | medium    |      0.828 |      0.243 |     0.696 |      0     |
 | qwen3-1.7b                    | narrow    |      0.859 |      0.237 |     0.354 |      0     |
+| qwen3-30b                     | broad     |      0.797 |      0.11  |     0.331 |      0     |
+| qwen3-30b                     | medium    |      0.828 |      0.161 |     0.39  |      0     |
+| qwen3-30b                     | narrow    |      0.849 |      0.422 |     0.479 |      0     |
 | qwen3-4b                      | broad     |      0.911 |      0.133 |     0.374 |      0     |
 | qwen3-4b                      | medium    |      0.969 |      0.164 |     0.491 |      0     |
 | qwen3-4b                      | narrow    |      0.953 |      0.336 |     0.542 |      0     |

@@ -1,0 +1,38 @@
+| method                                             | handoff    |   coverage |   excess_C |   reach_A |   rejected |
+|:---------------------------------------------------|:-----------|-----------:|-----------:|----------:|-----------:|
+| capmas-retrained-bge-large-s0                      | bc1-triage |      0.919 |      0.77  |     0.82  |          0 |
+| capmas-retrained-bge-large-s0                      | bc2-build  |      0.739 |    nan     |     0.014 |          0 |
+| capmas-retrained-bge-large-s0                      | bc3-slack  |      1     |      0.588 |     0.79  |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc1-triage |      0.919 |      0.77  |     0.82  |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc2-build  |      0.739 |    nan     |     0.014 |          0 |
+| capmas-retrained-bge-large-s0 (untuned)            | bc3-slack  |      1     |      0.588 |     0.79  |          0 |
+| capmas-retrained-bge-large-s1                      | bc1-triage |      0.965 |      0.735 |     0.838 |          0 |
+| capmas-retrained-bge-large-s1                      | bc2-build  |      0.58  |    nan     |     0.029 |          0 |
+| capmas-retrained-bge-large-s1                      | bc3-slack  |      0.977 |      0.511 |     0.818 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc1-triage |      0.884 |      0.735 |     0.779 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc2-build  |      0.58  |    nan     |     0.029 |          0 |
+| capmas-retrained-bge-large-s1 (untuned)            | bc3-slack  |      0.955 |      0.511 |     0.693 |          0 |
+| capmas-retrained-bge-large-s2                      | bc1-triage |      0.919 |      0.66  |     0.787 |          0 |
+| capmas-retrained-bge-large-s2                      | bc2-build  |      0.507 |    nan     |     0.014 |          0 |
+| capmas-retrained-bge-large-s2                      | bc3-slack  |      0.955 |      0.41  |     0.726 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc1-triage |      0.919 |      0.741 |     0.787 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc2-build  |      0.638 |    nan     |     0.043 |          0 |
+| capmas-retrained-bge-large-s2 (untuned)            | bc3-slack  |      0.955 |      0.536 |     0.726 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc1-triage |      0.977 |      0.83  |     0.89  |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc2-build  |      0.768 |    nan     |     0.087 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0           | bc3-slack  |      0.932 |      0.635 |     0.89  |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc1-triage |      0.919 |      0.83  |     0.84  |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc2-build  |      0.768 |    nan     |     0.087 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s0 (untuned) | bc3-slack  |      0.818 |      0.635 |     0.82  |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc1-triage |      0.977 |      0.692 |     0.882 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc2-build  |      0.522 |    nan     |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1           | bc3-slack  |      0.977 |      0.645 |     0.921 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc1-triage |      0.93  |      0.825 |     0.822 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc2-build  |      0.739 |    nan     |     0.116 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s1 (untuned) | bc3-slack  |      0.932 |      0.716 |     0.866 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc1-triage |      0.837 |      0.601 |     0.786 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc2-build  |      0.304 |    nan     |     0     |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2           | bc3-slack  |      0.841 |      0.457 |     0.835 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc1-triage |      0.837 |      0.788 |     0.786 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc2-build  |      0.739 |    nan     |     0.014 |          0 |
+| capmas-retrained-qwen3-embedding-0.6b-s2 (untuned) | bc3-slack  |      0.841 |      0.728 |     0.835 |          0 |
