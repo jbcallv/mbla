@@ -592,3 +592,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Found:** the Qwen3-4B server got a shutdown signal at 10:29 UTC on 2026-11-11, not from us; the last BoundClaw call was at 10:22. Since about 13:57 UTC both cards in the shared reservation run Antonio Mastropaolo's llama-servers, with about 9 GB free on each, too little for the reranker. We did not touch them.
 - **Changes:** `decision_server.py` takes `--host` and `--api-key-file` (401 without the key); `mbla.DecisionModel` has an `APIKey` field; `bench/serve/reranker_server.sh` waits for a card with 22 GB free, then serves on 0.0.0.0:8300. The launcher is waiting.
 - **For BoundClaw:** a different API (`/score`), Go type and cutoffs; `research/helper_endpoint.md` section 7.
+
+## D-71 · Reranker-8B hosted on a rented GPU (2026-11-11)
+- **Why:** the lab's cards are in use for Antonio Mastropaolo's proposal until 2026-11-12; he asked us to rent a GPU (Runpod) and invoice him.
+- **Setup:** one H100 80 GB pod (Runpod, US-MO-1, on-demand, $3.99/hr; cheaper cards were listed but could not be deployed). The model was copied from ams1 and checked by SHA-256 (identical). The server (`decision_server.py`, same code and library versions as ams1 except torch 2.8) listens only on the pod's localhost. `bench/serve/runpod_relay.sh` on ams1 forwards 0.0.0.0:8300 to it over SSH, so the address and key are unchanged and the pod has no public port.
+- **Check (development set, 408 tasks):** grants identical on 403; scores differ by at most 0.09 (different GPU and torch). Tasks completed 97.8% in both runs; excess in C 0.072 against 0.073; attack reach on injected tasks 27.0% against 26.5%. No errors. Latency through the relay 0.20 s median, 0.25 s p95.
+- **To undo:** stop the relay (by PID), stop the pod; move back to ams1 with `bench/serve/reranker_server.sh` once a card is free.

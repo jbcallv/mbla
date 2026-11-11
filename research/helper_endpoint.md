@@ -24,9 +24,10 @@ equals handing over everything. BoundClaw's own checker and the receiver's ceili
 | API | `POST {base}/score` (not OpenAI-compatible); `GET {base}/health` |
 | Auth header | `Authorization: Bearer $MBLA_API_KEY` (missing or wrong key: HTTP 401) |
 | Model | Qwen3-Reranker-8B fine-tuned for this task (training seed 1, lowest validation loss) |
+| Where it runs | a rented GPU (Runpod), reached through the ams1 address above; callers see no difference |
 | Cutoffs | grant now at 0.7, backup at 0.15 |
 | Context limit | 8,192 tokens per candidate (task + one permission) |
-| Typical latency | about 0.13 s per call (0.30 s at the 95th percentile) |
+| Typical latency | about 0.2 s per call (0.25 s at the 95th percentile), measured through the relay |
 
 Check that it is reachable:
 
