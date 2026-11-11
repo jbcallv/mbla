@@ -586,3 +586,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Check:** the development set sent to the hosted fine-tuned Qwen3-4B, unchanged (408 of 408 identical to `dev-tuned` seed 2) and with storage without trailing `/`, `%7Edefault`, sorted names, an approximation of BoundClaw's name extraction, and no names. None made tasks completed or unneeded authority worse; answers changed on 3-37% of tasks.
 - **Limit found:** in our data the delegator already holds the narrow grant on 312 of 408 development and 1,376 of 1,469 training tasks, so named-resource narrowing rarely decides the outcome there. BoundClaw's live setup (whole buckets and teams held) leans on it more than our evaluation tested.
 - **Written up:** `research/boundclaw_adapter_answers.md`; scripts in `bench/explore/adapter_check/`.
+
+## D-70 · Hosted helper switched to fine-tuned Reranker-8B (2026-11-11)
+- **Decided:** Joseph, 2026-11-11: host the fine-tuned Qwen3-Reranker-8B instead of the fine-tuned Qwen3-4B. Seed 1, by D-59's rule (lowest synthetic validation loss: 0.0057 against 0.0107 and 0.0065). Its development cutoffs are 0.7 and 0.15. Final test, this seed: tasks completed 83.9%, excess in C 0.119, attack reach on injected tasks 31.2%, latency 0.13 s (0.30 s p95).
+- **Found:** the Qwen3-4B server got a shutdown signal at 10:29 UTC on 2026-11-11, not from us; the last BoundClaw call was at 10:22. Since about 13:57 UTC both cards in the shared reservation run Antonio Mastropaolo's llama-servers, with about 9 GB free on each, too little for the reranker. We did not touch them.
+- **Changes:** `decision_server.py` takes `--host` and `--api-key-file` (401 without the key); `mbla.DecisionModel` has an `APIKey` field; `bench/serve/reranker_server.sh` waits for a card with 22 GB free, then serves on 0.0.0.0:8300. The launcher is waiting.
+- **For BoundClaw:** a different API (`/score`), Go type and cutoffs; `research/helper_endpoint.md` section 7.

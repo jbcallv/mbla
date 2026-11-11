@@ -32,6 +32,7 @@ type SystemOne struct {
 type DecisionModel struct {
 	Label    string
 	Endpoint string
+	APIKey   string
 	Glossary Glossary
 	Client   *http.Client
 	lastCall CallReport
@@ -118,7 +119,7 @@ type decisionResponse struct {
 func (decision *DecisionModel) Score(ctx context.Context, request Request, candidates Policy) ([]float64, error) {
 	body := map[string]any{"state": Describe(request), "candidates": describeAll(candidates, decision.Glossary)}
 	var response decisionResponse
-	if err := postJSON(ctx, decision.Client, decision.Endpoint+"/score", "", body, &response); err != nil {
+	if err := postJSON(ctx, decision.Client, decision.Endpoint+"/score", decision.APIKey, body, &response); err != nil {
 		return nil, err
 	}
 	decision.lastCall = CallReport{Version: response.Model}

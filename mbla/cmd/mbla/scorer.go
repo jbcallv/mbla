@@ -52,7 +52,7 @@ func newScorer(config scorerConfig) (mbla.Scorer, error) {
 	case "systemone":
 		return &mbla.SystemOne{Label: config.model, Endpoint: config.endpoint, APIKey: apiKey, Glossary: glossary, Client: client}, nil
 	case "decision":
-		return &mbla.DecisionModel{Label: config.model, Endpoint: config.endpoint, Glossary: glossary, Client: client}, nil
+		return &mbla.DecisionModel{Label: config.model, Endpoint: config.endpoint, APIKey: apiKey, Glossary: glossary, Client: client}, nil
 	case "chat":
 		return newChatModel(config, apiKey, glossary, client)
 	}

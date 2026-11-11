@@ -113,7 +113,7 @@ def load_backend(arguments):
     return Laya(arguments.model, arguments.revision)
 
 
-def handler_for(backend, model_label):
+def handler_for(backend, model_label, api_key=None):
     class ScoreHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             self.reply(200, {"status": "ok"}) if self.path == "/health" else self.send_error(404)
@@ -121,6 +121,9 @@ def handler_for(backend, model_label):
         def do_POST(self):
             if self.path != "/score":
                 self.send_error(404)
+                return
+            if api_key and self.headers.get("Authorization") != f"Bearer {api_key}":
+                self.reply(401, {"error": "missing or wrong api key"})
                 return
             request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             self.reply(200, {"model": model_label, "scores": backend.score(request["state"], request["candidates"])})
@@ -154,9 +157,12 @@ def main():
     parser.add_argument("--model", default="")
     parser.add_argument("--revision", default=None)
     parser.add_argument("--port", type=int, required=True)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--api-key-file", default=None, help="if set, /score requires 'Authorization: Bearer <key>'")
     arguments = parser.parse_args()
+    api_key = Path(arguments.api_key_file).read_text().strip() if arguments.api_key_file else None
     model_label = f"{arguments.model or arguments.backend}@{arguments.revision or 'default'}"
-    server = ThreadingHTTPServer(("127.0.0.1", arguments.port), handler_for(load_backend(arguments), model_label))
+    server = ThreadingHTTPServer((arguments.host, arguments.port), handler_for(load_backend(arguments), model_label, api_key))
     server.daemon_threads = True
     server.serve_forever()
 
