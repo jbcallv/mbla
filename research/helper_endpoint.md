@@ -1,138 +1,109 @@
 # MBLA permission helper: endpoint and usage spec
 
-How BoundClaw calls the hosted permission helper. Updated 2026-11-11 (decision D-70): the hosted helper is now the
-fine-tuned Qwen3-Reranker-8B, replacing the fine-tuned Qwen3-4B of D-68. **The request format changed.** See section 7.
-The API key is not in this file. It is shared separately and must be read from the environment variable
-`MBLA_API_KEY`.
+How BoundClaw calls the hosted permission helper. Updated 2026-11-11 (decision D-72). The hosted helper is now the
+fine-tuned Qwen3-Reranker-8B, on a rented GPU. It answers the same request the October client and BoundClaw's
+current adapter already send. **The only change for existing callers is the base URL** (section 3). The API key is
+not in this file. It is shared separately and must be read from the environment variable `MBLA_API_KEY`; it is the
+same key as before.
 
 ## 1. What the helper does
 
 When the delegator hands a task to a receiver, the helper reads the task and the candidate permissions (drawn from
-what the delegator holds). It gives each candidate a score from 0 to 1. The delegator applies two cutoffs:
+what the delegator holds) and returns two lists:
 
-- score ≥ 0.7: granted to the receiver now;
-- score ≥ 0.15: a backup the receiver may ask for later, one at a time, at most 3 requests.
+- `required`: granted to the receiver now;
+- `plausible`: backups the receiver may ask for later, one at a time, at most 3 requests.
 
-Anything below 0.15 is never granted. The helper can only score the candidates it is given, so its worst answer
+Anything in neither list is never granted. The helper can only choose from the candidates, so its worst answer
 equals handing over everything. BoundClaw's own checker and the receiver's ceiling still decide what is allowed.
+
+Inside the server, the reranker scores each candidate from 0 to 1. A score of 0.7 or more makes the candidate
+`required`, and from 0.15 up to 0.7 makes it `plausible`. These are this model's cutoffs, tuned on the development
+set. With the client's usual `Thresholds{Initial: 0.8, Admit: 0.2}`, the grants are exactly the reranker's grants:
+checked on 408 of 408 development tasks.
 
 ## 2. Connection
 
 | Setting | Value |
 |---|---|
-| Base URL | `http://172.16.31.10:8300` (host `ams1`); no `/v1` |
-| API | `POST {base}/score` (not OpenAI-compatible); `GET {base}/health` |
+| Base URL | `https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1` |
+| API | `POST {base}/chat/completions` (the mbla chat format), `GET {base}/models` |
 | Auth header | `Authorization: Bearer $MBLA_API_KEY` (missing or wrong key: HTTP 401) |
+| Model name | `mbla-reranker-8b-tuned`; the old names `mbla-qwen3-4b-tuned` and `Qwen/Qwen3-8B` are accepted and give the same answers |
 | Model | Qwen3-Reranker-8B fine-tuned for this task (training seed 1, lowest validation loss) |
-| Where it runs | a rented GPU (Runpod), reached through the ams1 address above; callers see no difference |
-| Cutoffs | grant now at 0.7, backup at 0.15 |
-| Context limit | 8,192 tokens per candidate (task + one permission) |
-| Typical latency | about 0.2 s per call (0.25 s at the 95th percentile), measured through the relay |
+| Where it runs | one H100 GPU on Runpod, HTTPS through Runpod's proxy |
+| Typical latency | about 0.14 s per call (0.22 s at the 95th percentile), measured from ams1 |
 
 Check that it is reachable:
 
 ```bash
-curl -s http://172.16.31.10:8300/health
+curl -s https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1/models -H "Authorization: Bearer $MBLA_API_KEY"
 ```
 
-The answer is `{"status": "ok"}`.
+The answer lists the three model names.
 
-## 3. Recommended: use the mbla Go library
+## 3. Using the mbla Go library (what BoundClaw's adapter does)
 
-The library (`github.com/jbcallv/mbla/mbla`) builds the exact request the helper was evaluated with. The `APIKey`
-field on `DecisionModel` was added on 2026-11-11, so re-vendor `mbla/` at that commit or later. Settings go in three
-places.
-
-### 3.1 Create the helper once
+Nothing changes except `Endpoint`. No re-vendoring is needed.
 
 ```go
-helper := &mbla.DecisionModel{
-	Label:    "mbla-reranker-8b-tuned",
-	Endpoint: "http://172.16.31.10:8300",
-	APIKey:   os.Getenv("MBLA_API_KEY"),
-	Client:   &http.Client{Timeout: 45 * time.Second},
+helper := &mbla.ChatModel{
+	Endpoint:  "https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1",
+	APIKey:    os.Getenv("MBLA_API_KEY"),
+	Model:     "mbla-reranker-8b-tuned", // the old name also works
+	Seed:      0,
+	ExtraBody: map[string]any{"chat_template_kwargs": map[string]any{"enable_thinking": false}},
+	Client:    &http.Client{Timeout: 45 * time.Second},
 }
-```
 
-Leave `Glossary` empty: the helper was evaluated on bare permission strings, without descriptions.
-
-### 3.2 On each delegation: ask what to grant
-
-```go
-request := mbla.Request{
-	Operation: "github.triage",
-	Receiver:  mbla.Receiver{Name: "triage-agent"},
-	Text:      taskText,                              // the task text the delegator wrote
-	Manifest:  receiverManifest,                      // optional: what the receiver's operator says it needs
-	Named:     []string{"github:acme/web/issues/42/"}, // resources the context names; never shown to the helper
-}
 proposal, err := mbla.Propose(ctx, helper, request, holdings,
-	mbla.Thresholds{Initial: 0.7, Admit: 0.15})
+	mbla.Thresholds{Initial: 0.8, Admit: 0.2})
 if err != nil {
 	// fail closed: no handoff
 }
 send(proposal.Initial) // grant now
-```
 
-- `holdings` is what the delegator holds; candidates are built from it by the library, not by the model.
-- Keep `Initial: 0.7` and `Admit: 0.15`. They were tuned for this model on the development set, and they are the
-  values evaluated. The old 0.8 / 0.2 belonged to the chat model.
-- On any error (timeout, wrong number of scores), do not hand off.
-
-### 3.3 Set up later requests
-
-Unchanged:
-
-```go
 recovery := &mbla.Recovery{
 	Holdings: holdings,
-	Admit:    proposal.Admit,    // backups come only from the helper's list
+	Admit:    proposal.Admit, // backups come only from the helper's lists
 	Ceiling:  receiverCeiling,
 	Mode:     mbla.Admitted,
-	Cap:      3,                 // at most 3 requests per task
-}
-
-switch recovery.Decide(mbla.RecoveryRequest{TaskID: taskID, Permission: requested}) {
-case mbla.Granted:
-	grant(requested)
-default:
-	refuse()
+	Cap:      3,
 }
 ```
+
+Leave `Glossary` empty. Keep `Mode: mbla.Admitted`: allowing requests for anything the delegator holds lets attacks
+reach their target far more often. The full delegator and receiver flow is in `mbla/README.md`.
 
 ## 4. Raw HTTP, if not using the library
 
-Results match the evaluation only if every field below is the same.
-
-### 4.1 Request
-
-`POST http://172.16.31.10:8300/score` with headers `Content-Type: application/json` and
-`Authorization: Bearer $MBLA_API_KEY`.
+`POST https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1/chat/completions` with headers
+`Content-Type: application/json` and `Authorization: Bearer $MBLA_API_KEY`:
 
 ```json
 {
-  "state": "task: <task text>\nmanifest: <permission>\nmanifest: <permission>\n",
-  "candidates": [
-    "github:issue.read:acme/web/issues/42/*",
-    "github:issue.comment:acme/web/issues/42/*",
-    "net:connect:example.org:443"
+  "model": "mbla-reranker-8b-tuned",
+  "messages": [
+    {"role": "system", "content": "<any; ignored by this model>"},
+    {"role": "user", "content": "Delegated request:\ntask: <task text>\nmanifest: <permission>\n\nCandidate permissions:\n0. <permission>\n1. <permission>\n"}
   ]
 }
 ```
 
-- `state`: one line `task: <text>`, then one line `manifest: <permission>` per manifest permission. Every line ends
-  in a newline, and lines with an empty value are left out. This is `mbla.Describe(request)`.
-- `candidates`: the candidate permissions as `service:operation:resource` strings, built as by `mbla.Candidates`.
-  There are no indices, no system prompt, no answer schema and no key-order concern.
+- The server reads only the last message. It must follow the layout above exactly, which is what
+  `mbla.ChatModel` writes. That is `Delegated request:`, then the lines of `mbla.Describe(request)`: `task: <text>`,
+  then one `manifest: <permission>` per manifest permission, each ending in a newline. Then a blank line,
+  `Candidate permissions:`, and one `<index>. <permission>` line per candidate, numbered from 0.
+- Other fields (`temperature`, `seed`, `response_format`, `chat_template_kwargs`) are accepted and ignored. The
+  answer is deterministic.
+- A prompt that does not follow the layout gets HTTP 400; treat it as no handoff.
 
-### 4.2 Response
+Response, OpenAI-style: `choices[0].message.content` is a JSON object, for example
+`{"plausible":[3],"required":[0,2]}`. Grant `required` now; keep `plausible` as the backup list.
 
-```json
-{"model": "<model path>@default", "scores": [0.98, 0.31, 0.02]}
-```
-
-`scores` has one number per candidate, in the same order. Grant those ≥ 0.7 now, and keep those ≥ 0.15 as the
-backup list. A wrong number of scores, or any HTTP error, means no handoff.
+The server also offers `POST {host}/score`: send `{"state": <Describe(request)>, "candidates": [...]}` to
+`https://ljhbcrzr9edp5a-8300.proxy.runpod.net/score` and get one score per candidate back. Use cutoffs 0.7 / 0.15
+with `mbla.DecisionModel`. This gives the same grants and is not needed by BoundClaw.
 
 ## 5. What to expect
 
@@ -146,20 +117,13 @@ Final test, 192 tasks, held out from all development (full report: `research/eva
 | Handing over everything | 83% | 1.00 | 81% |
 
 - "Tasks completed" means the receiver could get every permission it needed within 3 backup requests.
+- On the 408 development tasks, the hosted server gives the same grants as our benchmark run on 403. The other 5
+  differ by rounding between GPU types. Tasks completed, unneeded authority and attack reach are unchanged
+  (97.8%, 0.072, 27.0% against 97.8%, 0.073, 26.5%).
 - The helper reduces authority but does not by itself stop injected instructions. Keep the ceiling and keep backups
   limited to the helper's list.
 
-## 6. Contact
+## 6. Contact and availability
 
-Server and model questions: Joseph Call. The server runs until stopped; ask before load testing.
-
-## 7. What changed from the Qwen3-4B endpoint (for existing callers)
-
-| | Before (Qwen3-4B, D-68) | Now (Reranker-8B) |
-|---|---|---|
-| Go type | `mbla.ChatModel` | `mbla.DecisionModel` (re-vendor for `APIKey`) |
-| URL | `http://172.16.31.10:8300/v1/chat/completions` | `http://172.16.31.10:8300/score` |
-| Body | OpenAI chat request with JSON schema | `{"state", "candidates"}` |
-| Answer | `required` / `plausible` index lists | one score per candidate |
-| Cutoffs | `Thresholds{Initial: 0.8, Admit: 0.2}` | `Thresholds{Initial: 0.7, Admit: 0.15}` |
-| Unchanged | candidates, `Named`, the recovery settings, the API key | |
+Server and model questions: Joseph Call. The pod is rented and runs until stopped. Ask before load testing. The old
+address `http://172.16.31.10:8300` no longer answers.

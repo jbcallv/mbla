@@ -113,20 +113,72 @@ def load_backend(arguments):
     return Laya(arguments.model, arguments.revision)
 
 
-def handler_for(backend, model_label, api_key=None):
+PROMPT_HEAD = "Delegated request:\n"
+PROMPT_SPLIT = "\nCandidate permissions:\n"
+
+
+def parse_chat_prompt(prompt):
+    """the mbla ChatModel's user prompt back into the scorer's inputs: Describe(request) and the candidate strings."""
+    if not prompt.startswith(PROMPT_HEAD) or PROMPT_SPLIT not in prompt:
+        raise ValueError("not an mbla chat prompt")
+    head, _, listing = prompt[len(PROMPT_HEAD) :].rpartition(PROMPT_SPLIT)
+    candidates = []
+    for index, line in enumerate(listing.splitlines()):
+        number, _, candidate = line.partition(". ")
+        if number != str(index) or not candidate:
+            raise ValueError(f"candidate line {index} malformed")
+        candidates.append(candidate)
+    return head, candidates
+
+
+def chat_selection(scores, cutoffs):
+    """scores as the ChatModel's answer: required (grant now) and plausible (backup), by the scorer's own cutoffs."""
+    initial, admit = cutoffs
+    return {
+        "plausible": [index for index, score in enumerate(scores) if admit <= score < initial],
+        "required": [index for index, score in enumerate(scores) if score >= initial],
+    }
+
+
+def chat_reply(model_name, selection):
+    message = {"role": "assistant", "content": json.dumps(selection, separators=(",", ":"))}
+    return {"object": "chat.completion", "model": model_name, "choices": [{"index": 0, "message": message, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0}}
+
+
+def handler_for(backend, model_label, api_key=None, chat_names=(), cutoffs=(0.5, 0.5)):
     class ScoreHandler(BaseHTTPRequestHandler):
         def do_GET(self):
-            self.reply(200, {"status": "ok"}) if self.path == "/health" else self.send_error(404)
+            if self.path == "/health":
+                self.reply(200, {"status": "ok"})
+            elif self.path == "/v1/models" and self.authorized():
+                self.reply(200, {"object": "list", "data": [{"id": name, "object": "model"} for name in chat_names]})
+            elif self.path != "/v1/models":
+                self.send_error(404)
 
         def do_POST(self):
-            if self.path != "/score":
+            if self.path not in ("/score", "/v1/chat/completions"):
                 self.send_error(404)
                 return
-            if api_key and self.headers.get("Authorization") != f"Bearer {api_key}":
-                self.reply(401, {"error": "missing or wrong api key"})
+            if not self.authorized():
                 return
             request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-            self.reply(200, {"model": model_label, "scores": backend.score(request["state"], request["candidates"])})
+            if self.path == "/score":
+                self.reply(200, {"model": model_label, "scores": backend.score(request["state"], request["candidates"])})
+                return
+            try:
+                state, candidates = parse_chat_prompt(request["messages"][-1]["content"])
+            except (ValueError, KeyError, IndexError) as error:
+                self.reply(400, {"error": str(error)})
+                return
+            selection = chat_selection(backend.score(state, candidates), cutoffs)
+            self.reply(200, chat_reply(request.get("model", model_label), selection))
+
+        def authorized(self):
+            if api_key and self.headers.get("Authorization") != f"Bearer {api_key}":
+                self.reply(401, {"error": "missing or wrong api key"})
+                return False
+            return True
 
         def reply(self, status, payload):
             body = json.dumps(payload).encode()
@@ -158,11 +210,13 @@ def main():
     parser.add_argument("--revision", default=None)
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--api-key-file", default=None, help="if set, /score requires 'Authorization: Bearer <key>'")
+    parser.add_argument("--api-key-file", default=None, help="if set, every model call requires 'Authorization: Bearer <key>'")
+    parser.add_argument("--chat-names", nargs="*", default=[], help="model names listed at /v1/models for mbla ChatModel callers")
+    parser.add_argument("--cutoffs", nargs=2, type=float, default=[0.5, 0.5], help="initial and admit cutoffs for chat callers")
     arguments = parser.parse_args()
     api_key = Path(arguments.api_key_file).read_text().strip() if arguments.api_key_file else None
     model_label = f"{arguments.model or arguments.backend}@{arguments.revision or 'default'}"
-    server = ThreadingHTTPServer((arguments.host, arguments.port), handler_for(load_backend(arguments), model_label, api_key))
+    server = ThreadingHTTPServer((arguments.host, arguments.port), handler_for(load_backend(arguments), model_label, api_key, arguments.chat_names, arguments.cutoffs))
     server.daemon_threads = True
     server.serve_forever()
 
