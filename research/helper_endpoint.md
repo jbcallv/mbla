@@ -142,7 +142,7 @@ Final test, 192 tasks, held out from all development (full report: `research/eva
 | Reranker-8B fine-tuned, seed 1 (hosted) | 84% | 0.12 | 31% |
 | Qwen3-4B fine-tuned, seed 2 (hosted until 2026-11-11) | 82% | 0.07 | 69% |
 | Qwen3-4B, not fine-tuned | 94% | 0.21 | 63% |
-| Handing over everything | 83% | 1.00 | 99% |
+| Handing over everything | 83% | 1.00 | 81% |
 
 - "Tasks completed" means the receiver could get every permission it needed within 3 backup requests.
 - The helper reduces authority but does not by itself stop injected instructions. Keep the ceiling and keep backups
