@@ -622,3 +622,9 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Check (408 development tasks through the public address):** same grants as the benchmark on 370 of 408 (the benchmark's three seeds agree on all 408, so the rest is GPU rounding, H100 against L40S). Tasks completed 89.2% (benchmark 89.2%), excess in C 0.106 (0.104), attack reach on injected tasks 57.6% (58.0%). No errors. Latency 0.19 s median, 0.29 s p95. Without the key: 401.
 - **Trade-off sent:** attack reach is higher than the reranker's (63% against 31% on the final test); the ceiling and Admitted-only backups remain the defense.
 - **Still open:** BoundClaw's objection to the public address (2026-11-11).
+
+## D-76 · Prompted Qwen3-4B hosted on ams1 again; Runpod retired (2026-11-12)
+- **Decided:** Joseph, 2026-11-12: cards are free again; host here for BoundClaw's latency tests. Also answers BoundClaw's objection to the public Runpod address: the helper is back inside the lab network.
+- **Running:** `bench/serve/integration_server.sh` on card 0, vLLM on 0.0.0.0:8300, Qwen3-4B as released (revision `1cfa9a72`), benchmark settings, 55% of the card, key required. Same served names as D-75. Address `http://172.16.31.10:8300/v1`.
+- **Check (408 development tasks):** same grants as the benchmark on 408 of 408. Tasks completed 89.2%, excess in C 0.104, attack reach on injected tasks 58.0%. No errors. Latency 0.33 s median, 0.53 s p95 (L40S; the H100 pod was 0.19 s). Without the key: 401.
+- **Runpod:** pod to be stopped in the console by Joseph; its disk keeps the files.

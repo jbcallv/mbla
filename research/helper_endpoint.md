@@ -1,9 +1,9 @@
 # MBLA permission helper: endpoint and usage spec
 
-How BoundClaw calls the hosted permission helper. Updated 2026-11-12 (decision D-75). The hosted helper is now
+How BoundClaw calls the hosted permission helper. Updated 2026-11-12 (decisions D-75, D-76). The hosted helper is now
 Qwen3-4B as released, not fine-tuned: the model the paper recommends. Fine-tuned models fit our task data closely and
-did worse on tasks unlike it; the released model reads unfamiliar tasks better. Same address, same request, same key:
-**existing callers change nothing** (section 3). The API key is
+did worse on tasks unlike it; the released model reads unfamiliar tasks better. It runs again on the lab machine (ams1). Same request, same key:
+**existing callers change only the base URL, back to `http://172.16.31.10:8300/v1`** (section 3). The API key is
 not in this file. It is shared separately and must be read from the environment variable `MBLA_API_KEY`; it is the
 same key as before.
 
@@ -26,18 +26,18 @@ those lists.
 
 | Setting | Value |
 |---|---|
-| Base URL | `https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1` |
+| Base URL | `http://172.16.31.10:8300/v1` |
 | API | `POST {base}/chat/completions` (the mbla chat format), `GET {base}/models` |
 | Auth header | `Authorization: Bearer $MBLA_API_KEY` (missing or wrong key: HTTP 401) |
 | Model name | `mbla-qwen3-4b`; the names `Qwen/Qwen3-4B`, `mbla-reranker-8b-tuned`, `mbla-qwen3-4b-tuned` and `Qwen/Qwen3-8B` are accepted so older clients keep working, and all give this model's answers |
 | Model | Qwen3-4B as released (revision `1cfa9a72`), not fine-tuned, served by vLLM 0.30.0 with the benchmark's settings |
-| Where it runs | one H100 GPU on Runpod, HTTPS through Runpod's proxy |
-| Typical latency | about 0.19 s per call (0.29 s at the 95th percentile), measured from ams1 |
+| Where it runs | one L40S GPU on ams1, inside the lab network (plain HTTP, not reachable from the internet) |
+| Typical latency | about 0.33 s per call (0.53 s at the 95th percentile), measured on ams1 |
 
 Check that it is reachable:
 
 ```bash
-curl -s https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1/models -H "Authorization: Bearer $MBLA_API_KEY"
+curl -s http://172.16.31.10:8300/v1/models -H "Authorization: Bearer $MBLA_API_KEY"
 ```
 
 The answer lists the five model names.
@@ -48,7 +48,7 @@ Nothing changes except `Endpoint`. No re-vendoring is needed.
 
 ```go
 helper := &mbla.ChatModel{
-	Endpoint:  "https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1",
+	Endpoint:  "http://172.16.31.10:8300/v1",
 	APIKey:    os.Getenv("MBLA_API_KEY"),
 	Model:     "mbla-qwen3-4b", // the old names also work
 	Seed:      0,
@@ -77,7 +77,7 @@ reach their target far more often. The full delegator and receiver flow is in `m
 
 ## 4. Raw HTTP, if not using the library
 
-`POST https://ljhbcrzr9edp5a-8300.proxy.runpod.net/v1/chat/completions` with headers
+`POST http://172.16.31.10:8300/v1/chat/completions` with headers
 `Content-Type: application/json` and `Authorization: Bearer $MBLA_API_KEY`:
 
 ```json
@@ -110,13 +110,12 @@ Final test, 192 tasks, held out from all development (full report: `research/eva
 | Handing over everything | 83% | 1.00 | 81% |
 
 - "Tasks completed" means the receiver could get every permission it needed within 3 backup requests.
-- On the 408 development tasks, the hosted server gives the same grants as our benchmark run on 370. The other 38
-  differ by rounding between GPU types (our three benchmark seeds agree with each other on all 408). Tasks
-  completed, unneeded authority and attack reach are unchanged (89.2%, 0.106, 57.6% against 89.2%, 0.104, 58.0%).
+- On the 408 development tasks, the hosted server gives the same grants as our benchmark run on all 408 (same GPU type).
+  Tasks completed 89.2%, unneeded authority 0.104, attack reach 58.0%.
 - The helper reduces authority but does not by itself stop injected instructions. Keep the ceiling and keep backups
   limited to the helper's list.
 
 ## 6. Contact and availability
 
-Server and model questions: Joseph Call. The pod is rented and runs until stopped. Ask before load testing. The old
-address `http://172.16.31.10:8300` no longer answers.
+Server and model questions: Joseph Call. Ask before load testing. The Runpod address used on 2026-11-11 and 11-12
+(`https://ljhbcrzr9edp5a-8300.proxy.runpod.net`) is retired.
