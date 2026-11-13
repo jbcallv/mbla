@@ -628,3 +628,10 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Running:** `bench/serve/integration_server.sh` on card 0, vLLM on 0.0.0.0:8300, Qwen3-4B as released (revision `1cfa9a72`), benchmark settings, 55% of the card, key required. Same served names as D-75. Address `http://172.16.31.10:8300/v1`.
 - **Check (408 development tasks):** same grants as the benchmark on 408 of 408. Tasks completed 89.2%, excess in C 0.104, attack reach on injected tasks 58.0%. No errors. Latency 0.33 s median, 0.53 s p95 (L40S; the H100 pod was 0.19 s). Without the key: 401.
 - **Runpod:** pod to be stopped in the console by Joseph; its disk keeps the files.
+
+## D-77 · Policy-inference results drafted into the BoundClaw paper (2026-11-13)
+- **Decided:** Joseph, 2026-11-13: add our results to the paper as a minor part of RQ3, after "Compromised helper" and before the advisor's Table 8; RQs, layout and template unchanged; no attack results (the security team's end-to-end tests cover attacks, steered subtasks, A5m and task success); the inference table stays theirs.
+- **Added (branch `add/mbla` of etclab/agent-paper, not yet a PR):** paragraphs "Helper benchmark", "Least privilege" and "Helper latency"; a figure of EAC_C against median latency per helper; a table of coverage, EAC_C/N/D, MAC_C and latency (median, p99) for 4 baselines, 7 prompted and 5 fine-tuned helpers (mean of 3 seeds with range), final test only. Numbers come from `bench/explore/paper_inference.py`; latency is pooled over every call from the raw rows of the final runs (each model alone on an L40S).
+- **Labels described as:** model-drafted keys, every final-test candidate reviewed by a human; Gemma 4 31B as an independent judge chosen on pilot labels, 223 of 226 agreement with the human (κ 0.94), passing the bound fixed in advance that Llama-3.3-70B failed.
+- **Left out:** FORTIS, mostargate, coin flips, untuned reranker cutoffs, attack reach, adaptive attacker, manifest inflation, recovery-cap sensitivity.
+- **Open for Joseph:** the advisor's RQ3 opening still says "288 human-labeled delegation tasks" (the pilot's test set); our paragraph gives 408 + 192.
