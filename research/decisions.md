@@ -635,3 +635,8 @@ Decisions taken for MBLA that the team can revisit. Each entry names the alterna
 - **Labels described as:** model-drafted keys, every final-test candidate reviewed by a human; Gemma 4 31B as an independent judge chosen on pilot labels, 223 of 226 agreement with the human (κ 0.94), passing the bound fixed in advance that Llama-3.3-70B failed.
 - **Left out:** FORTIS, mostargate, coin flips, untuned reranker cutoffs, attack reach, adaptive attacker, manifest inflation, recovery-cap sensitivity.
 - **Open for Joseph:** the advisor's RQ3 opening still says "288 human-labeled delegation tasks" (the pilot's test set); our paragraph gives 408 + 192.
+
+## D-78 · Helper re-hosted on card 0 for BoundClaw's end-to-end tests (2026-11-23)
+- **Decided:** Joseph, 2026-11-23: re-host the prompted Qwen3-4B on card 0 for the security team's end-to-end tests, starting today, and keep the card for inference until the end of the week (2026-11-28).
+- **Running:** same as D-76: `bench/serve/integration_server.sh`, card 0, `http://172.16.31.10:8300/v1`, same key and served names, server PID 3299999. Card 0 is Joseph's standing reservation in the lab's `gpu` tool; Antonio is listed as admin on every card, so the tool alone does not keep the card free. Joseph is to tell Antonio.
+- **Check (408 development tasks):** same grants as the benchmark on 408 of 408, no errors, median 0.33 s.
